@@ -1,0 +1,236 @@
+src/middleware/admin.ts(1,10): error TS6133: 'Request' is declared but its value is never read.
+src/middleware/admin.ts(5,51): error TS6133: 'res' is declared but its value is never read.
+src/middleware/admin.ts(19,56): error TS6133: 'res' is declared but its value is never read.
+src/middleware/upload.ts(9,21): error TS6133: 'req' is declared but its value is never read.
+src/middleware/upload.ts(63,47): error TS6133: 'req' is declared but its value is never read.
+src/middleware/upload.ts(63,61): error TS6133: 'res' is declared but its value is never read.
+src/models/StoragePath.ts(349,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Record<StorageType, { size: number; count: number; }>'.
+src/models/StoragePath.ts(350,7): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Record<StorageType, { size: number; count: number; }>'.
+src/models/StoragePath.ts(351,7): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Record<StorageType, { size: number; count: number; }>'.
+src/providers/storage/AzureStorageProvider.ts(4,3): error TS6133: 'BlockBlobClient' is declared but its value is never read.
+src/providers/storage/AzureStorageProvider.ts(10,3): error TS6133: 'BlobDownloadResponseModel' is declared but its value is never read.
+src/providers/storage/AzureStorageProvider.ts(16,3): error TS6133: 'StorageProviderConfig' is declared but its value is never read.
+src/providers/storage/AzureStorageProvider.ts(27,3): error TS6133: 'StorageChecksumAlgorithm' is declared but its value is never read.
+src/providers/storage/AzureStorageProvider.ts(46,14): error TS2420: Class 'AzureStorageProvider' incorrectly implements interface 'StorageProvider'.
+  Type 'AzureStorageProvider' is missing the following properties from type 'StorageProvider': healthCheck, stream, move
+src/providers/storage/AzureStorageProvider.ts(49,11): error TS2564: Property 'containerClient' has no initializer and is not definitely assigned in the constructor.
+src/providers/storage/AzureStorageProvider.ts(78,54): error TS2554: Expected 0 arguments, but got 1.
+src/providers/storage/AzureStorageProvider.ts(79,7): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'StorageFile'.
+src/providers/storage/AzureStorageProvider.ts(86,5): error TS2740: Type '{ path: string; name: string; }' is missing the following properties from type 'StorageFolder': children, files, size, fileCount, and 2 more.
+src/providers/storage/AzureStorageProvider.ts(132,7): error TS2353: Object literal may only specify known properties, and 'maxPageSize' does not exist in type 'ContainerListBlobsOptions'.
+src/providers/storage/AzureStorageProvider.ts(144,9): error TS2393: Duplicate function implementation.
+src/providers/storage/AzureStorageProvider.ts(182,42): error TS2345: Argument of type 'Buffer<ArrayBufferLike> | Readable' is not assignable to parameter of type 'Readable'.
+  Type 'Buffer<ArrayBufferLike>' is missing the following properties from type 'Readable': readableAborted, readable, readableDidRead, readableEncoding, and 45 more.
+src/providers/storage/AzureStorageProvider.ts(186,47): error TS2322: Type 'BlobGetPropertiesResponse' is not assignable to type 'BlobPropertiesInternal'.
+  Types of property 'lastModified' are incompatible.
+    Type 'Date | undefined' is not assignable to type 'Date'.
+      Type 'undefined' is not assignable to type 'Date'.
+src/providers/storage/AzureStorageProvider.ts(226,51): error TS2339: Property 'destPath' does not exist on type 'CopyFileOptions'.
+src/providers/storage/AzureStorageProvider.ts(234,9): error TS2393: Duplicate function implementation.
+src/providers/storage/AzureStorageProvider.ts(239,44): error TS2554: Expected 0 arguments, but got 1.
+src/providers/storage/AzureStorageProvider.ts(253,115): error TS2554: Expected 2-3 arguments, but got 4.
+src/providers/storage/AzureStorageProvider.ts(257,29): error TS6133: 'options' is declared but its value is never read.
+src/providers/storage/AzureStorageProvider.ts(257,59): error TS6133: 'callback' is declared but its value is never read.
+src/providers/storage/AzureStorageProvider.ts(268,17): error TS6133: 'watcher' is declared but its value is never read.
+src/providers/storage/AzureStorageProvider.ts(285,47): error TS2322: Type 'BlobGetPropertiesResponse' is not assignable to type 'BlobPropertiesInternal'.
+  Types of property 'lastModified' are incompatible.
+    Type 'Date | undefined' is not assignable to type 'Date'.
+      Type 'undefined' is not assignable to type 'Date'.
+src/providers/storage/AzureStorageProvider.ts(296,22): error TS6133: 'item' is declared but its value is never read.
+src/providers/storage/AzureStorageProvider.ts(296,103): error TS2353: Object literal may only specify known properties, and 'maxPageSize' does not exist in type 'ContainerListBlobsOptions'.
+src/providers/storage/AzureStorageProvider.ts(305,5): error TS2740: Type '{ path: string; name: string; }' is missing the following properties from type 'StorageFolder': children, files, size, fileCount, and 2 more.
+src/providers/storage/AzureStorageProvider.ts(311,9): error TS2393: Duplicate function implementation.
+src/providers/storage/AzureStorageProvider.ts(336,50): error TS2339: Property 'force' does not exist on type 'DeleteFileOptions'.
+src/providers/storage/AzureStorageProvider.ts(352,75): error TS2339: Property 'destPath' does not exist on type 'MoveFileOptions'.
+src/providers/storage/AzureStorageProvider.ts(358,51): error TS2339: Property 'destPath' does not exist on type 'CopyFileOptions'.
+src/providers/storage/AzureStorageProvider.ts(374,54): error TS2339: Property 'force' does not exist on type 'DeleteFolderOptions'.
+src/providers/storage/AzureStorageProvider.ts(381,48): error TS2339: Property 'oldPath' does not exist on type 'RenameFolderOptions'.
+src/providers/storage/AzureStorageProvider.ts(382,48): error TS2339: Property 'newPath' does not exist on type 'RenameFolderOptions'.
+src/providers/storage/AzureStorageProvider.ts(409,31): error TS2353: Object literal may only specify known properties, and 'oldPath' does not exist in type 'RenameFolderOptions'.
+src/providers/storage/AzureStorageProvider.ts(409,77): error TS2339: Property 'destPath' does not exist on type 'MoveFolderOptions'.
+src/providers/storage/AzureStorageProvider.ts(415,49): error TS2339: Property 'destPath' does not exist on type 'CopyFolderOptions'.
+src/providers/storage/AzureStorageProvider.ts(432,9): error TS2393: Duplicate function implementation.
+src/providers/storage/AzureStorageProvider.ts(437,44): error TS2554: Expected 0 arguments, but got 1.
+src/providers/storage/AzureStorageProvider.ts(441,67): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(options: GetChecksumOptions): Promise<string>', gave the following error.
+    Type 'string | undefined' is not assignable to type 'StorageChecksumAlgorithm'.
+      Type 'undefined' is not assignable to type 'StorageChecksumAlgorithm'.
+  Overload 2 of 2, '(options: GetChecksumOptions): Promise<string>', gave the following error.
+    Type 'string | undefined' is not assignable to type 'StorageChecksumAlgorithm'.
+      Type 'undefined' is not assignable to type 'StorageChecksumAlgorithm'.
+src/providers/storage/GCSStorageProvider.ts(4,1): error TS6133: 'crypto' is declared but its value is never read.
+src/providers/storage/GCSStorageProvider.ts(7,3): error TS6133: 'StorageProviderConfig' is declared but its value is never read.
+src/providers/storage/GCSStorageProvider.ts(24,11): error TS2564: Property 'bucket' has no initializer and is not definitely assigned in the constructor.
+src/providers/storage/GCSStorageProvider.ts(53,22): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/providers/storage/GCSStorageProvider.ts(57,7): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'StorageFile'.
+src/providers/storage/GCSStorageProvider.ts(83,9): error TS2416: Property 'createFolder' in type 'GCSStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(folderPath: string) => Promise<void>' is not assignable to type '(options: CreateFolderOptions) => Promise<void>'.
+    Types of parameters 'folderPath' and 'options' are incompatible.
+      Type 'CreateFolderOptions' is not assignable to type 'string'.
+src/providers/storage/GCSStorageProvider.ts(107,28): error TS2345: Argument of type '{ path: string; name: string; }' is not assignable to parameter of type 'StorageFolder'.
+  Type '{ path: string; name: string; }' is missing the following properties from type 'StorageFolder': children, files, size, fileCount, and 2 more.
+src/providers/storage/GCSStorageProvider.ts(119,9): error TS2416: Property 'getStats' in type 'GCSStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path?: string | undefined) => Promise<StorageStats>' is not assignable to type '(options: GetStatsOptions) => Promise<StorageStats>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'GetStatsOptions' is not assignable to type 'string'.
+src/providers/storage/GCSStorageProvider.ts(135,31): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/providers/storage/GCSStorageProvider.ts(161,14): error TS2339: Property 'pipe' does not exist on type 'Buffer<ArrayBufferLike> | Readable'.
+  Property 'pipe' does not exist on type 'Buffer<ArrayBufferLike>'.
+src/providers/storage/GCSStorageProvider.ts(167,12): error TS6133: 'metadata' is declared but its value is never read.
+src/providers/storage/GCSStorageProvider.ts(185,9): error TS2416: Property 'delete' in type 'GCSStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(filePath: string) => Promise<void>' is not assignable to type '(options: DeleteFileOptions) => Promise<void>'.
+    Types of parameters 'filePath' and 'options' are incompatible.
+      Type 'DeleteFileOptions' is not assignable to type 'string'.
+src/providers/storage/GCSStorageProvider.ts(192,9): error TS2416: Property 'rename' in type 'GCSStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(oldPath: string, newPath: string) => Promise<void>' is not assignable to type '(options: RenameFileOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/GCSStorageProvider.ts(204,9): error TS2416: Property 'copy' in type 'GCSStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(sourcePath: string, destPath: string) => Promise<void>' is not assignable to type '(options: CopyFileOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/GCSStorageProvider.ts(215,9): error TS2416: Property 'getChecksum' in type 'GCSStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(filePath: string, algorithm?: StorageChecksumAlgorithm) => Promise<string>' is not assignable to type '(options: GetChecksumOptions) => Promise<string>'.
+    Types of parameters 'filePath' and 'options' are incompatible.
+      Type 'GetChecksumOptions' is not assignable to type 'string'.
+src/providers/storage/GCSStorageProvider.ts(215,39): error TS6133: 'algorithm' is declared but its value is never read.
+src/providers/storage/GCSStorageProvider.ts(238,29): error TS6133: 'options' is declared but its value is never read.
+src/providers/storage/GCSStorageProvider.ts(238,59): error TS6133: 'callback' is declared but its value is never read.
+src/providers/storage/GCSStorageProvider.ts(249,17): error TS6133: 'watcher' is declared but its value is never read.
+src/providers/storage/LocalStorageProvider.ts(42,9): error TS2416: Property 'exists' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path: string) => Promise<boolean>' is not assignable to type '(options: ExistsOptions) => Promise<boolean>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'ExistsOptions' is not assignable to type 'string'.
+src/providers/storage/LocalStorageProvider.ts(50,9): error TS2416: Property 'getFile' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path: string) => Promise<StorageFile | null>' is not assignable to type '(options: GetFileOptions) => Promise<StorageFile | null>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'GetFileOptions' is not assignable to type 'string'.
+src/providers/storage/LocalStorageProvider.ts(70,9): error TS2416: Property 'getFolder' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path: string) => Promise<StorageFolder | null>' is not assignable to type '(options: GetFolderOptions) => Promise<StorageFolder | null>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'GetFolderOptions' is not assignable to type 'string'.
+src/providers/storage/LocalStorageProvider.ts(169,9): error TS2416: Property 'getStats' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path?: string | undefined) => Promise<StorageStats>' is not assignable to type '(options: GetStatsOptions) => Promise<StorageStats>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'GetStatsOptions' is not assignable to type 'string'.
+src/providers/storage/LocalStorageProvider.ts(198,9): error TS2416: Property 'createFolder' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path: string) => Promise<void>' is not assignable to type '(options: CreateFolderOptions) => Promise<void>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'CreateFolderOptions' is not assignable to type 'string'.
+src/providers/storage/LocalStorageProvider.ts(203,9): error TS2416: Property 'deleteFolder' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path: string, recursive?: boolean | undefined) => Promise<void>' is not assignable to type '(options: DeleteFolderOptions) => Promise<void>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'DeleteFolderOptions' is not assignable to type 'string'.
+src/providers/storage/LocalStorageProvider.ts(216,9): error TS2416: Property 'renameFolder' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(sourcePath: string, destinationPath: string) => Promise<void>' is not assignable to type '(options: RenameFolderOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/LocalStorageProvider.ts(232,9): error TS2416: Property 'moveFolder' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(sourcePath: string, destinationPath: string, _overwrite?: boolean | undefined) => Promise<void>' is not assignable to type '(options: MoveFolderOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/LocalStorageProvider.ts(236,9): error TS2416: Property 'copyFolder' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(sourcePath: string, destinationPath: string, overwrite?: boolean | undefined) => Promise<void>' is not assignable to type '(options: CopyFolderOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/LocalStorageProvider.ts(319,9): error TS2416: Property 'delete' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path: string) => Promise<void>' is not assignable to type '(options: DeleteFileOptions) => Promise<void>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'DeleteFileOptions' is not assignable to type 'string'.
+src/providers/storage/LocalStorageProvider.ts(329,9): error TS2416: Property 'rename' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(sourcePath: string, destinationPath: string) => Promise<void>' is not assignable to type '(options: RenameFileOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/LocalStorageProvider.ts(345,9): error TS2416: Property 'move' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(sourcePath: string, destinationPath: string) => Promise<void>' is not assignable to type '(options: MoveFileOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/LocalStorageProvider.ts(349,9): error TS2416: Property 'copy' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(sourcePath: string, destinationPath: string, overwrite?: boolean | undefined) => Promise<void>' is not assignable to type '(options: CopyFileOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/LocalStorageProvider.ts(365,9): error TS2416: Property 'getChecksum' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(filePath: string, algorithm: StorageChecksumAlgorithm) => Promise<string>' is not assignable to type '(options: GetChecksumOptions) => Promise<string>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/LocalStorageProvider.ts(386,9): error TS2416: Property 'verifyChecksum' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path: string, expectedChecksum: string, algorithm?: StorageChecksumAlgorithm | undefined) => Promise<boolean>' is not assignable to type '(options: VerifyChecksumOptions) => Promise<boolean>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/LocalStorageProvider.ts(398,9): error TS2416: Property 'getPublicUrl' in type 'LocalStorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path: string) => Promise<string>' is not assignable to type '(options: GetPublicUrlOptions) => Promise<string>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'GetPublicUrlOptions' is not assignable to type 'string'.
+src/providers/storage/LocalStorageProvider.ts(491,7): error TS2322: Type 'LocalStorageProvider' is not assignable to type 'StorageProvider'.
+  Types of property 'exists' are incompatible.
+    Type '(path: string) => Promise<boolean>' is not assignable to type '(options: ExistsOptions) => Promise<boolean>'.
+      Types of parameters 'path' and 'options' are incompatible.
+        Type 'ExistsOptions' is not assignable to type 'string'.
+src/providers/storage/LocalStorageProvider.ts(493,7): error TS2740: Type 'S3StorageProvider' is missing the following properties from type 'StorageProvider': healthCheck, stream, delete, rename, and 2 more.
+src/providers/storage/LocalStorageProvider.ts(495,7): error TS2739: Type 'AzureStorageProvider' is missing the following properties from type 'StorageProvider': healthCheck, stream, move
+src/providers/storage/LocalStorageProvider.ts(497,7): error TS2740: Type 'GCSStorageProvider' is missing the following properties from type 'StorageProvider': healthCheck, exists, getFile, getFolder, and 8 more.
+src/providers/storage/LocalStorageProvider.ts(499,7): error TS2740: Type 'R2StorageProvider' is missing the following properties from type 'StorageProvider': healthCheck, exists, getFile, getFolder, and 7 more.
+src/providers/storage/R2StorageProvider.ts(9,3): error TS6133: 'CreateMultipartUploadCommand' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(10,3): error TS6133: 'UploadPartCommand' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(11,3): error TS6133: 'CompleteMultipartUploadCommand' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(12,3): error TS6133: 'AbortMultipartUploadCommand' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(13,3): error TS6133: 'ListPartsCommand' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(18,1): error TS6133: 'crypto' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(21,3): error TS6133: 'StorageProviderConfig' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(38,11): error TS2564: Property 'client' has no initializer and is not definitely assigned in the constructor.
+src/providers/storage/R2StorageProvider.ts(39,11): error TS2564: Property 'bucket' has no initializer and is not definitely assigned in the constructor.
+src/providers/storage/R2StorageProvider.ts(60,8): error TS2339: Property 'catch' does not exist on type 'HeadObjectCommand'.
+src/providers/storage/R2StorageProvider.ts(85,7): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'StorageFile'.
+src/providers/storage/R2StorageProvider.ts(111,9): error TS2416: Property 'createFolder' in type 'R2StorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(folderPath: string) => Promise<void>' is not assignable to type '(options: CreateFolderOptions) => Promise<void>'.
+    Types of parameters 'folderPath' and 'options' are incompatible.
+      Type 'CreateFolderOptions' is not assignable to type 'string'.
+src/providers/storage/R2StorageProvider.ts(142,30): error TS2345: Argument of type '{ path: string; name: string; }' is not assignable to parameter of type 'StorageFolder'.
+  Type '{ path: string; name: string; }' is missing the following properties from type 'StorageFolder': children, files, size, fileCount, and 2 more.
+src/providers/storage/R2StorageProvider.ts(161,9): error TS2416: Property 'getStats' in type 'R2StorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(path?: string | undefined) => Promise<StorageStats>' is not assignable to type '(options: GetStatsOptions) => Promise<StorageStats>'.
+    Types of parameters 'path' and 'options' are incompatible.
+      Type 'GetStatsOptions' is not assignable to type 'string'.
+src/providers/storage/R2StorageProvider.ts(248,9): error TS2416: Property 'delete' in type 'R2StorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(filePath: string) => Promise<void>' is not assignable to type '(options: DeleteFileOptions) => Promise<void>'.
+    Types of parameters 'filePath' and 'options' are incompatible.
+      Type 'DeleteFileOptions' is not assignable to type 'string'.
+src/providers/storage/R2StorageProvider.ts(257,9): error TS2416: Property 'rename' in type 'R2StorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(oldPath: string, newPath: string) => Promise<void>' is not assignable to type '(options: RenameFileOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/R2StorageProvider.ts(274,9): error TS2416: Property 'copy' in type 'R2StorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(sourcePath: string, destPath: string) => Promise<void>' is not assignable to type '(options: CopyFileOptions) => Promise<void>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/providers/storage/R2StorageProvider.ts(286,9): error TS2416: Property 'getChecksum' in type 'R2StorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(filePath: string, algorithm?: StorageChecksumAlgorithm) => Promise<string>' is not assignable to type '(options: GetChecksumOptions) => Promise<string>'.
+    Types of parameters 'filePath' and 'options' are incompatible.
+      Type 'GetChecksumOptions' is not assignable to type 'string'.
+src/providers/storage/R2StorageProvider.ts(286,39): error TS6133: 'algorithm' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(308,9): error TS2416: Property 'getPublicUrl' in type 'R2StorageProvider' is not assignable to the same property in base type 'StorageProvider'.
+  Type '(filePath: string) => Promise<string>' is not assignable to type '(options: GetPublicUrlOptions) => Promise<string>'.
+    Types of parameters 'filePath' and 'options' are incompatible.
+      Type 'GetPublicUrlOptions' is not assignable to type 'string'.
+src/providers/storage/R2StorageProvider.ts(318,29): error TS6133: 'options' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(318,59): error TS6133: 'callback' is declared but its value is never read.
+src/providers/storage/R2StorageProvider.ts(329,17): error TS6133: 'watcher' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(9,3): error TS6133: 'CreateMultipartUploadCommand' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(10,3): error TS6133: 'UploadPartCommand' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(11,3): error TS6133: 'CompleteMultipartUploadCommand' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(12,3): error TS6133: 'AbortMultipartUploadCommand' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(13,3): error TS6133: 'ListPartsCommand' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(18,1): error TS6133: 'crypto' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(22,3): error TS6133: 'StorageProviderConfig' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(33,3): error TS6133: 'StorageChecksumAlgorithm' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(52,14): error TS2420: Class 'S3StorageProvider' incorrectly implements interface 'StorageProvider'.
+  Type 'S3StorageProvider' is missing the following properties from type 'StorageProvider': healthCheck, stream, delete, rename, and 2 more.
+src/providers/storage/S3StorageProvider.ts(55,11): error TS2564: Property 'client' has no initializer and is not definitely assigned in the constructor.
+src/providers/storage/S3StorageProvider.ts(56,11): error TS2564: Property 'bucket' has no initializer and is not definitely assigned in the constructor.
+src/providers/storage/S3StorageProvider.ts(93,7): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'StorageFile'.
+src/providers/storage/S3StorageProvider.ts(93,21): error TS2339: Property 'Metadata' does not exist on type '_Object'.
+src/providers/storage/S3StorageProvider.ts(141,34): error TS2339: Property 'cursor' does not exist on type 'StorageListOptions'.
+src/providers/storage/S3StorageProvider.ts(150,11): error TS2322: Type '{ path: string; name: string; }[]' is not assignable to type 'StorageFolder[]'.
+  Type '{ path: string; name: string; }' is missing the following properties from type 'StorageFolder': children, files, size, fileCount, and 2 more.
+src/providers/storage/S3StorageProvider.ts(275,7): error TS2740: Type '{ path: string; name: string; }' is missing the following properties from type 'StorageFolder': children, files, size, fileCount, and 2 more.
+src/providers/storage/S3StorageProvider.ts(314,75): error TS2339: Property 'destPath' does not exist on type 'MoveFileOptions'.
+src/providers/storage/S3StorageProvider.ts(320,41): error TS2339: Property 'destPath' does not exist on type 'CopyFileOptions'.
+src/providers/storage/S3StorageProvider.ts(358,43): error TS2339: Property 'oldPath' does not exist on type 'RenameFolderOptions'.
+src/providers/storage/S3StorageProvider.ts(359,43): error TS2339: Property 'newPath' does not exist on type 'RenameFolderOptions'.
+src/providers/storage/S3StorageProvider.ts(392,31): error TS2353: Object literal may only specify known properties, and 'oldPath' does not exist in type 'RenameFolderOptions'.
+src/providers/storage/S3StorageProvider.ts(392,77): error TS2339: Property 'destPath' does not exist on type 'MoveFolderOptions'.
+src/providers/storage/S3StorageProvider.ts(398,44): error TS2339: Property 'destPath' does not exist on type 'CopyFolderOptions'.
+src/providers/storage/S3StorageProvider.ts(437,67): error TS2322: Type 'string | undefined' is not assignable to type 'StorageChecksumAlgorithm'.
+  Type 'undefined' is not assignable to type 'StorageChecksumAlgorithm'.
+src/providers/storage/S3StorageProvider.ts(457,29): error TS6133: 'options' is declared but its value is never read.
+src/providers/storage/S3StorageProvider.ts(457,59): error TS6133: 'callback' is declared but its value is never read.

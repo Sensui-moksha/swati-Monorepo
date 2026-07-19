@@ -1,0 +1,134 @@
+import express, { Application, Request, Response } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
+import hpp from 'hpp';
+import cookieParser from 'cookie-parser';
+import { env } from './config/index';
+import { connectDB } from './config/db';
+import { swaggerConfig, swaggerSpec } from './config/swagger';
+import swaggerUi from 'swagger-ui-express';
+import { errorHandler, notFound } from './middleware/errorHandler';
+import { requestLogger } from './middleware/requestLogger';
+import routes from './routes';
+
+const app: Application = express();
+
+// Trust proxy for rate limiting behind reverse proxy
+app.set('trust proxy', 1);
+
+// Security middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: env.CORS_ORIGIN,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: env.RATE_LIMIT_WINDOW_MS,
+  max: env.RATE_LIMIT_MAX_REQUESTS,
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+
+// Data sanitization
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+
+// Compression
+app.use(compression());
+
+// Request logging
+if (env.NODE_ENV !== 'test') {
+  app.use(requestLogger);
+}
+
+// Health check endpoint
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: env.NODE_ENV,
+  });
+});
+
+// API Documentation
+if (swaggerConfig.enabled) {
+  app.use(swaggerConfig.path, swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Prototype v0 API Documentation',
+  }));
+}
+
+// API Routes
+app.use('/api', routes);
+
+// 404 handler
+app.use(notFound);
+
+// Global error handler
+app.use(errorHandler);
+
+// Start server
+const startServer = async (): Promise<void> => {
+  try {
+    await connectDB();
+    
+    app.listen(env.PORT, () => {
+      console.log(`
+╔══════════════════════════════════════════════════════════════╗
+║  Prototype v0 Server Started Successfully                   ║
+╠══════════════════════════════════════════════════════════════╣
+║  Environment: ${env.NODE_ENV.padEnd(47)}║
+║  Port: ${String(env.PORT).padEnd(48)}║
+║  API URL: http://localhost:${env.PORT}/api${' '.repeat(36 - String(env.PORT).length)}║
+║  Health: http://localhost:${env.PORT}/health${' '.repeat(32 - String(env.PORT).length)}║
+║  Docs: http://localhost:${env.PORT}${swaggerConfig.path}${' '.repeat(38 - String(env.PORT).length - swaggerConfig.path.length)}║
+╚══════════════════════════════════════════════════════════════╝
+      `);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err: Error) => {
+  console.error('Unhandled Rejection:', err);
+  process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err: Error) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+startServer();
+
+export default app;
