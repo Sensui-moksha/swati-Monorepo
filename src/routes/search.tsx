@@ -16,7 +16,7 @@ export const Route = createFileRoute("/search")({
           <h1 className="mt-2 font-serif text-5xl">Search</h1>
           <div className="mt-8 relative">
             <Search className="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search articles, authors, topics..." className="w-full border border-input pl-12 pr-4 py-4 text-lg focus:outline-none focus:border-primary" />
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search articles, topics..." className="w-full border border-input pl-12 pr-4 py-4 text-lg focus:outline-none focus:border-primary" />
           </div>
           {q && <div className="mt-4 text-sm text-muted-foreground">{results.length} results for "{q}"</div>}
           <ul className="mt-8 divide-y divide-rule">

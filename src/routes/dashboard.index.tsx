@@ -4,7 +4,6 @@ import { PageHeader, BookCard, SectionTitle, KpiCard, Card } from "@/components/
 import { BOOKS } from "@/lib/mock-books";
 import { NOTIFICATIONS, READING_HISTORY } from "@/lib/mock-extended";
 import { ARTICLES, formatShortDate } from "@/lib/mock-data";
-import { AUTHORS } from "@/lib/mock-extended";
 
 export const Route = createFileRoute("/dashboard/")({
   component: () => (
@@ -43,13 +42,6 @@ export const Route = createFileRoute("/dashboard/")({
       </div>
       <SectionTitle eyebrow="For you" title="Recommended" href="/dashboard/recommended" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">{BOOKS.slice(0, 4).map((b) => <BookCard key={b.id} book={b} size="sm" />)}</div>
-      <SectionTitle eyebrow="Popular" title="Popular Authors" href="/authors" />
-      <div className="grid md:grid-cols-6 gap-4">{AUTHORS.map((a) => (
-        <Link key={a.slug} to="/authors/$slug" params={{ slug: a.slug }} className="text-center group">
-          <div className="w-16 h-16 rounded-full bg-primary/10 text-primary grid place-items-center font-serif text-xl mx-auto">{a.name[0]}</div>
-          <div className="mt-2 text-xs">{a.name}</div>
-        </Link>
-      ))}</div>
     </DashboardShell>
   ),
 });

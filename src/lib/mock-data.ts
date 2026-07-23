@@ -6,14 +6,9 @@ import historyImg from "@/assets/book-history.jpg";
 import anatomyImg from "@/assets/book-anatomy.jpg";
 
 export const CATEGORIES = [
-  { slug: "politics", name: "Politics", desc: "Policy, elections, governance." },
-  { slug: "business", name: "Business", desc: "Markets, economy, enterprise." },
-  { slug: "technology", name: "Technology", desc: "Innovation, startups, AI." },
-  { slug: "science", name: "Science", desc: "Research, discovery, climate." },
-  { slug: "sports", name: "Sports", desc: "Live scores, features, opinion." },
-  { slug: "culture", name: "Culture", desc: "Arts, cinema, literature." },
-  { slug: "opinion", name: "Opinion", desc: "Editorials and columns." },
-  { slug: "world", name: "World", desc: "Global affairs and diplomacy." },
+  { slug: "WEEKLY", name: "Politics", desc: "Breaking news and political analysis" },
+  { slug: "MONTHLY", name: "Business", desc: "Market trends and business insights" },
+  { slug: "BOOKS", name: "Technology", desc: "Latest in tech and innovation" },
 ];
 
 export type Article = {

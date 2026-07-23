@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicPage } from "@/components/shells";
 import { BookCard, SectionTitle } from "@/components/ui-primitives";
 import { BOOKS } from "@/lib/mock-books";
-import { COLLECTIONS, TAGS, AUTHORS } from "@/lib/mock-extended";
+import { COLLECTIONS, TAGS } from "@/lib/mock-extended";
 import { Search } from "lucide-react";
 
 export const Route = createFileRoute("/discover/")({
@@ -26,15 +26,6 @@ export const Route = createFileRoute("/discover/")({
           <Link key={c.slug} to="/collections/$slug" params={{ slug: c.slug }} className="group block bg-paper border border-rule rounded overflow-hidden">
             <div className="h-40 overflow-hidden"><img src={c.cover} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" /></div>
             <div className="p-4"><div className="font-serif text-lg">{c.name}</div><div className="text-xs text-muted-foreground mt-1">{c.count} titles</div></div>
-          </Link>
-        ))}
-      </div>
-      <SectionTitle title="Popular Authors" href="/authors" />
-      <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-        {AUTHORS.map((a) => (
-          <Link key={a.slug} to="/authors/$slug" params={{ slug: a.slug }} className="text-center group">
-            <div className="w-20 h-20 rounded-full bg-primary/10 text-primary grid place-items-center font-serif text-2xl mx-auto group-hover:bg-primary group-hover:text-primary-foreground transition">{a.name[0]}</div>
-            <div className="mt-2 text-sm">{a.name}</div>
           </Link>
         ))}
       </div>

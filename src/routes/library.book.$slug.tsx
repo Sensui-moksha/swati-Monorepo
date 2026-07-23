@@ -30,7 +30,7 @@ export const Route = createFileRoute("/library/book/$slug")({
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground mb-4">By <Link to="/authors" className="text-primary hover:underline">{book.author}</Link></div>
+            <div className="text-sm text-muted-foreground mb-4">By {book.author}</div>
             <div className="flex items-center gap-4 mb-6 text-sm">
               <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-primary text-primary" />{book.rating}</span>
               <span className="text-muted-foreground">{book.reviews} reviews</span>

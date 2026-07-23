@@ -59,7 +59,7 @@ function HomePage() {
       <section className="rule-top bg-secondary/40">
         <div className="container-edit py-14">
           <SectionHead eyebrow="Sections" title="Explore by category" />
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-px bg-rule border border-rule">
+          <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-px bg-rule border border-rule">
             {CATEGORIES.map((c) => (
               <Link
                 key={c.slug}
@@ -68,7 +68,6 @@ function HomePage() {
                 className="group bg-paper p-6 hover:bg-secondary transition-colors"
               >
                 <div className="text-2xl font-serif font-semibold group-hover:text-primary">{c.name}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{c.desc}</div>
                 <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary uppercase tracking-wider">
                   Read <ArrowRight className="h-3 w-3" />
                 </div>
@@ -148,16 +147,6 @@ function HomePage() {
                   </li>
                 ))}
               </ol>
-
-              <div className="mt-10 border border-rule p-6 bg-secondary/50">
-                <div className="eyebrow">Newsletter</div>
-                <h4 className="mt-2 font-serif text-xl">The Morning Read</h4>
-                <p className="mt-1 text-sm text-muted-foreground">Six carefully chosen stories, in your inbox before breakfast.</p>
-                <form className="mt-4 flex gap-2" onSubmit={(e) => e.preventDefault()}>
-                  <input type="email" placeholder="you@example.com" className="flex-1 min-w-0 border border-input bg-paper px-3 py-2 text-sm focus:outline-none focus:border-primary" />
-                  <button className="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 hover:bg-primary/90">Subscribe</button>
-                </form>
-              </div>
             </aside>
           </div>
         </div>
