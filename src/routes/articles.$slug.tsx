@@ -1,24 +1,12 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site-layout";
-import { ARTICLES, formatDate } from "@/lib/mock-data";
+import { useArticleBySlug, useArticles } from "@/lib/api/hooks";
+import { formatDate } from "@/lib/utils";
 import { Crumbs } from "./articles";
 import { Bookmark, Share2, MessageSquare, Heart, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/articles/$slug")({
-  loader: ({ params }) => {
-    const article = ARTICLES.find((a) => a.slug === params.slug);
-    if (!article) throw notFound();
-    return { article };
-  },
-  head: ({ loaderData }) => ({
-    meta: loaderData ? [
-      { title: `${loaderData.article.title} — Swathi Publications` },
-      { name: "description", content: loaderData.article.summary },
-      { property: "og:title", content: loaderData.article.title },
-      { property: "og:description", content: loaderData.article.summary },
-      { property: "og:image", content: loaderData.article.image },
-    ] : [{ title: "Article not found" }, { name: "robots", content: "noindex" }],
-  }),
+  head: () => ({ meta: [{ title: "Article — Swathi Publications" }] }),
   notFoundComponent: () => (
     <SiteLayout>
       <div className="container-edit py-24 text-center">
@@ -31,51 +19,79 @@ export const Route = createFileRoute("/articles/$slug")({
 });
 
 function ArticleDetail() {
-  const { article } = Route.useLoaderData();
-  const related = ARTICLES.filter((a) => a.category === article.category && a.id !== article.id).slice(0, 3);
+  const { slug } = Route.useParams();
+  const { data: articleData, isLoading, error } = useArticleBySlug(slug);
+  const article = articleData?.data;
+  const { data: relatedData } = useArticles({ categoryId: article?.category?.id, limit: 4 } as any);
+  const related = (relatedData?.data ?? []).filter((a) => a.id !== article?.id).slice(0, 3);
+
+  if (isLoading) {
+    return (
+      <SiteLayout>
+        <div className="container-edit py-10 animate-pulse">
+          <div className="h-4 bg-secondary rounded w-1/4 mb-6" />
+          <div className="h-12 bg-secondary rounded w-3/4 mb-4" />
+          <div className="h-6 bg-secondary rounded w-1/2 mb-8" />
+          <div className="aspect-[16/9] bg-secondary mb-8" />
+          <div className="space-y-4">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-4 bg-secondary rounded" />)}</div>
+        </div>
+      </SiteLayout>
+    );
+  }
+
+  if (error || !article) {
+    return (
+      <SiteLayout>
+        <div className="container-edit py-24 text-center">
+          <h1 className="font-serif text-4xl">Article not found</h1>
+          <Link to="/articles" className="mt-4 inline-block text-primary underline">Back to publications</Link>
+        </div>
+      </SiteLayout>
+    );
+  }
 
   return (
     <SiteLayout>
       <article className="container-edit py-10">
-        <Crumbs items={[["Home", "/"], ["Publications", "/articles"], [article.categoryName, "/articles"]]} />
+        <Crumbs items={[["Home", "/"], ["Publications", "/articles"], [article.category?.name ?? "Article", "/articles"]]} />
 
         <header className="mt-6 max-w-3xl">
-          <div className="eyebrow">{article.categoryName}</div>
+          <div className="eyebrow">{article.category?.name ?? 'Article'}</div>
           <h1 className="mt-3 font-serif text-4xl md:text-6xl font-bold leading-[1.05]">{article.title}</h1>
-          <p className="mt-5 text-xl text-muted-foreground leading-relaxed">{article.subtitle}</p>
+          <p className="mt-5 text-xl text-muted-foreground leading-relaxed">{article.excerpt}</p>
 
           <div className="mt-8 rule-top rule-bottom py-4 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 text-primary grid place-items-center font-serif">
-                {article.author.split(" ").map((s: string) => s[0]).join("")}
+                {(article.author?.name ?? 'S').split(" ").map((s: string) => s[0]).join("")}
               </div>
               <div className="text-sm">
-                <div className="font-semibold">{article.author}</div>
-                <div className="text-muted-foreground text-xs">{article.authorRole} · {formatDate(article.date)} · {article.readTime}</div>
+                <div className="font-semibold">{article.author?.name ?? 'Staff Writer'}</div>
+                <div className="text-muted-foreground text-xs">{formatDate(article.publishedAt ?? article.createdAt)} · {article.readingTime} min read</div>
               </div>
             </div>
             <div className="flex items-center gap-4 text-muted-foreground text-sm">
               <button className="inline-flex items-center gap-1 hover:text-primary"><Bookmark className="h-4 w-4" /> Save</button>
               <button className="inline-flex items-center gap-1 hover:text-primary"><Share2 className="h-4 w-4" /> Share</button>
-              <button className="inline-flex items-center gap-1 hover:text-primary"><Heart className="h-4 w-4" /> {article.views}</button>
+              <button className="inline-flex items-center gap-1 hover:text-primary"><Heart className="h-4 w-4" /> {article.viewCount}</button>
             </div>
           </div>
         </header>
 
         <figure className="mt-8">
-          <img src={article.image} alt={article.title} className="w-full aspect-[16/9] object-cover bg-secondary" />
+          <img src={article.coverImage ?? ''} alt={article.title} className="w-full aspect-[16/9] object-cover bg-secondary" />
           <figcaption className="mt-2 text-xs text-muted-foreground">Photograph · Swathi Publications archive</figcaption>
         </figure>
 
         <div className="mt-10 grid md:grid-cols-12 gap-10">
           <div className="md:col-span-8 md:col-start-3">
             <div className="prose prose-lg max-w-none font-serif text-lg leading-[1.85] text-foreground/90 space-y-6">
-              {article.body.map((p: string, i: number) => (
+              {article.content ? article.content.split('\n\n').map((p: string, i: number) => (
                 <p key={i} className={i === 0 ? "first-letter:font-serif first-letter:text-6xl first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:leading-[0.85]" : ""}>{p}</p>
-              ))}
+              )) : <p>{article.excerpt}</p>}
             </div>
 
-            {article.premium && (
+            {(article as any).isPremium && (
               <div className="mt-10 border border-primary/30 bg-primary/5 p-8 text-center">
                 <Lock className="h-6 w-6 text-primary mx-auto" />
                 <h3 className="mt-3 font-serif text-2xl">This is a premium article.</h3>
@@ -118,18 +134,20 @@ function ArticleDetail() {
         </div>
 
         {/* Related */}
-        <section className="mt-20 rule-top pt-10">
-          <div className="eyebrow">Related in {article.categoryName}</div>
-          <div className="mt-6 grid md:grid-cols-3 gap-8">
-            {related.map((a) => (
-              <Link key={a.id} to="/articles/$slug" params={{ slug: a.slug }} className="group">
-                <img src={a.image} alt={a.title} className="aspect-[4/3] w-full object-cover bg-secondary" />
-                <h4 className="mt-3 font-serif text-lg group-hover:text-primary">{a.title}</h4>
-                <div className="mt-1 text-xs text-muted-foreground">{formatDate(a.date)}</div>
-              </Link>
-            ))}
-          </div>
-        </section>
+        {related.length > 0 && (
+          <section className="mt-20 rule-top pt-10">
+            <div className="eyebrow">Related in {article.category?.name ?? 'this section'}</div>
+            <div className="mt-6 grid md:grid-cols-3 gap-8">
+              {related.map((a) => (
+                <Link key={a.id} to="/articles/$slug" params={{ slug: a.slug }} className="group">
+                  <img src={a.coverImage ?? ''} alt={a.title} className="aspect-[4/3] w-full object-cover bg-secondary" />
+                  <h4 className="mt-3 font-serif text-lg group-hover:text-primary">{a.title}</h4>
+                  <div className="mt-1 text-xs text-muted-foreground">{a.publishedAt ? formatDate(a.publishedAt) : ''}</div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </article>
     </SiteLayout>
   );

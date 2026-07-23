@@ -83,8 +83,10 @@ export function Card({ title, action, children, className }: { title?: string; a
   );
 }
 
-export function BookCard({ book, size = "md", index = 0 }: { book: { slug: string; title: string; author: string; cover: string; category?: string }; size?: "sm" | "md" | "lg"; index?: number }) {
+export function BookCard({ book, size = "md", index = 0 }: { book: { slug: string; title: string; author?: string | { name?: string } | null; cover?: string; coverImage?: string | null; category?: string; format?: string }; size?: "sm" | "md" | "lg"; index?: number }) {
   const h = size === "sm" ? "h-48" : size === "lg" ? "h-80" : "h-64";
+  const coverSrc = book.coverImage ?? book.cover ?? '';
+  const authorName = typeof book.author === 'string' ? book.author : book.author?.name ?? '';
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -101,7 +103,7 @@ export function BookCard({ book, size = "md", index = 0 }: { book: { slug: strin
         >
           <div className="skeleton absolute inset-0" aria-hidden />
           <img
-            src={book.cover}
+            src={coverSrc}
             alt={book.title}
             loading="lazy"
             decoding="async"
@@ -115,7 +117,7 @@ export function BookCard({ book, size = "md", index = 0 }: { book: { slug: strin
         <div className="mt-3">
           {book.category && <div className="text-xs uppercase tracking-widest text-primary mb-1">{book.category}</div>}
           <div className="font-serif text-base leading-snug group-hover:text-primary transition">{book.title}</div>
-          <div className="text-xs text-muted-foreground mt-1">{book.author}</div>
+          <div className="text-xs text-muted-foreground mt-1">{authorName}</div>
         </div>
       </Link>
     </motion.div>

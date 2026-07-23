@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ADMIN_STATS, ADMIN_PAYMENTS, ARTICLES, formatINR, formatShortDate } from "@/lib/mock-data";
+import { useAdminStats, useAdminPayments, useArticles } from "@/lib/api/hooks";
+import { formatINR, formatShortDate } from "@/lib/utils";
 import { TrendingUp, TrendingDown, DollarSign, Users, Eye, FileText } from "lucide-react";
 
 export const Route = createFileRoute("/admin/")({
@@ -7,6 +8,14 @@ export const Route = createFileRoute("/admin/")({
 });
 
 function AdminDashboard() {
+  const { data: statsData } = useAdminStats();
+  const { data: paymentsData } = useAdminPayments({ limit: 6 });
+  const { data: articlesData } = useArticles({ limit: 6 });
+
+  const stats = statsData?.data;
+  const payments = paymentsData?.data ?? [];
+  const articles = articlesData?.data ?? [];
+
   return (
     <div className="space-y-8">
       <div>
@@ -15,10 +24,10 @@ function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Kpi label="Revenue" value={formatINR(ADMIN_STATS.revenue)} delta={ADMIN_STATS.revenueDelta} icon={DollarSign} />
-        <Kpi label="Subscribers" value={ADMIN_STATS.subscribers.toLocaleString()} delta={ADMIN_STATS.subscribersDelta} icon={Users} />
-        <Kpi label="Active users" value={ADMIN_STATS.activeUsers.toLocaleString()} delta={ADMIN_STATS.activeUsersDelta} icon={Eye} />
-        <Kpi label="Articles" value={ADMIN_STATS.articlesPublished.toLocaleString()} delta={ADMIN_STATS.articlesDelta} icon={FileText} />
+        <Kpi label="Revenue" value={stats ? formatINR(stats.totalUsers ?? 0) : '—'} delta={0} icon={DollarSign} />
+        <Kpi label="Active users" value={stats?.activeUsers?.toLocaleString() ?? '—'} delta={0} icon={Users} />
+        <Kpi label="New users" value={stats?.newUsers?.toLocaleString() ?? '—'} delta={0} icon={Eye} />
+        <Kpi label="Total users" value={stats?.totalUsers?.toLocaleString() ?? '—'} delta={0} icon={FileText} />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -31,18 +40,17 @@ function AdminDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <Card title="Recent payments">
+        <Card title="Recent orders">
           <table className="w-full text-sm">
             <thead className="text-xs uppercase text-muted-foreground">
-              <tr className="border-b border-rule"><th className="text-left py-2">ID</th><th className="text-left">User</th><th className="text-right">Amount</th><th className="text-right">Status</th></tr>
+              <tr className="border-b border-rule"><th className="text-left py-2">ID</th><th className="text-left">Status</th><th className="text-right">Total</th></tr>
             </thead>
             <tbody>
-              {ADMIN_PAYMENTS.slice(0, 6).map((p) => (
+              {payments.map((p) => (
                 <tr key={p.id} className="border-b border-rule/60">
-                  <td className="py-2 font-mono text-xs">{p.id}</td>
-                  <td>{p.user}</td>
-                  <td className="text-right">{formatINR(p.amount)}</td>
-                  <td className="text-right"><StatusBadge status={p.status} /></td>
+                  <td className="py-2 font-mono text-xs">{p.orderNumber}</td>
+                  <td><StatusBadge status={p.status} /></td>
+                  <td className="text-right">{formatINR(p.total)}</td>
                 </tr>
               ))}
             </tbody>
@@ -50,10 +58,10 @@ function AdminDashboard() {
         </Card>
         <Card title="Top performing articles">
           <ul className="divide-y divide-rule text-sm">
-            {ARTICLES.slice(0, 6).map((a) => (
+            {articles.map((a) => (
               <li key={a.id} className="py-2.5 flex justify-between gap-4">
                 <span className="truncate">{a.title}</span>
-                <span className="text-muted-foreground shrink-0 text-xs">{a.views.toLocaleString()} views · {formatShortDate(a.date)}</span>
+                <span className="text-muted-foreground shrink-0 text-xs">{a.viewCount?.toLocaleString()} views · {a.publishedAt ? formatShortDate(a.publishedAt) : ''}</span>
               </li>
             ))}
           </ul>
@@ -72,9 +80,11 @@ function Kpi({ label, value, delta, icon: Icon }: any) {
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
       <div className="mt-3 font-serif text-3xl">{value}</div>
-      <div className={`mt-1 text-xs inline-flex items-center gap-1 ${up ? "text-emerald-700" : "text-primary"}`}>
-        {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />} {Math.abs(delta)}% vs last month
-      </div>
+      {delta !== 0 && (
+        <div className={`mt-1 text-xs inline-flex items-center gap-1 ${up ? "text-emerald-700" : "text-primary"}`}>
+          {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />} {Math.abs(delta)}% vs last month
+        </div>
+      )}
     </div>
   );
 }
@@ -93,10 +103,17 @@ export function StatusBadge({ status }: { status: string }) {
     Succeeded: "bg-emerald-100 text-emerald-800",
     Active: "bg-emerald-100 text-emerald-800",
     Approved: "bg-emerald-100 text-emerald-800",
+    completed: "bg-emerald-100 text-emerald-800",
+    active: "bg-emerald-100 text-emerald-800",
     Failed: "bg-red-100 text-red-800",
+    failed: "bg-red-100 text-red-800",
     Refunded: "bg-amber-100 text-amber-800",
+    refunded: "bg-amber-100 text-amber-800",
     Flagged: "bg-amber-100 text-amber-800",
     Suspended: "bg-red-100 text-red-800",
+    cancelled: "bg-red-100 text-red-800",
+    pending: "bg-amber-100 text-amber-800",
+    processing: "bg-blue-100 text-blue-800",
     Free: "bg-secondary text-foreground/70",
   };
   return <span className={`inline-block text-[10px] uppercase tracking-widest px-2 py-0.5 rounded ${colors[status] ?? "bg-secondary"}`}>{status}</span>;

@@ -1,31 +1,36 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { SiteLayout } from "@/components/site-layout";
-import { ARTICLES, formatShortDate } from "@/lib/mock-data";
+import { PublicPage } from "@/components/shells";
+import { useLatestArticles } from "@/lib/api/hooks";
+import { formatShortDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/latest")({
-  head: () => ({ meta: [{ title: "Latest Releases — Swathi Publications" }, { name: "description", content: "Fresh reporting, published daily." }] }),
-  component: () => (
-    <SiteLayout>
-      <div className="container-edit py-12">
-        <div className="eyebrow">Live</div>
-        <h1 className="mt-2 font-serif text-5xl">Latest Releases</h1>
-        <p className="mt-2 text-muted-foreground">Updated throughout the day.</p>
-        <ul className="mt-10 divide-y divide-rule">
-          {ARTICLES.map((a) => (
-            <li key={a.id} className="py-6">
-              <Link to="/articles/$slug" params={{ slug: a.slug }} className="group grid grid-cols-[120px_minmax(0,1fr)] sm:grid-cols-[180px_minmax(0,1fr)] gap-6">
-                <img src={a.image} alt={a.title} className="aspect-[4/3] w-full object-cover bg-secondary" />
+  component: LatestPage,
+});
+
+function LatestPage() {
+  const { data, isLoading } = useLatestArticles();
+  const articles = data?.data ?? [];
+
+  return (
+    <PublicPage eyebrow="Latest" title="Latest Articles" description="The most recent stories from across all sections.">
+      {isLoading ? (
+        <div className="space-y-4">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="animate-pulse h-16 bg-secondary rounded" />)}</div>
+      ) : (
+        <ul className="divide-y divide-rule">
+          {articles.map((a) => (
+            <li key={a.id} className="py-4">
+              <Link to="/articles/$slug" params={{ slug: a.slug }} className="group flex gap-6">
+                <div className="w-24 h-16 shrink-0 overflow-hidden rounded-sm bg-secondary"><img src={a.coverImage ?? ''} alt="" className="w-full h-full object-cover" /></div>
                 <div className="min-w-0">
-                  <div className="eyebrow">{a.categoryName}</div>
-                  <h3 className="mt-1 font-serif text-xl sm:text-2xl group-hover:text-primary">{a.title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{a.summary}</p>
-                  <div className="mt-2 text-xs text-muted-foreground">{formatShortDate(a.date)} · {a.readTime}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{a.category?.name ?? 'Article'}</div>
+                  <div className="font-serif text-lg group-hover:text-primary leading-snug">{a.title}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{a.publishedAt ? formatShortDate(a.publishedAt) : ''} · {a.readingTime} min read</div>
                 </div>
               </Link>
             </li>
           ))}
         </ul>
-      </div>
-    </SiteLayout>
-  ),
-});
+      )}
+    </PublicPage>
+  );
+}

@@ -1,44 +1,46 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ADMIN_USERS, formatINR } from "@/lib/mock-data";
+import { useSubscriptionPlans, useAdminUsers } from "@/lib/api/hooks";
+import { formatINR } from "@/lib/utils";
 import { Card, StatusBadge } from "./admin.index";
 
 export const Route = createFileRoute("/admin/subscriptions")({
-  component: () => {
-    const subs = ADMIN_USERS.filter((u) => u.plan !== "Free");
-    const mrr = subs.reduce((s, u) => s + (u.plan === "Digital" ? 199 : u.plan === "Digital + Print" ? 449 : 1999), 0);
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="font-serif text-3xl">Subscriptions</h1>
-          <p className="text-sm text-muted-foreground">Active recurring plans and lifecycle</p>
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatBox label="Active subs" value={subs.length.toLocaleString()} />
-          <StatBox label="MRR" value={formatINR(mrr)} />
-          <StatBox label="Churn (30d)" value="2.4%" />
-          <StatBox label="Trial users" value="1,204" />
-        </div>
-        <Card title="Active subscriptions">
-          <table className="w-full text-sm">
-            <thead className="text-xs uppercase text-muted-foreground"><tr className="border-b border-rule"><th className="text-left py-2">Subscriber</th><th className="text-left">Plan</th><th className="text-left">Started</th><th className="text-left">Next billing</th><th className="text-left">Status</th></tr></thead>
-            <tbody>
-              {subs.map((u) => (
-                <tr key={u.id} className="border-b border-rule/60 hover:bg-secondary/30">
-                  <td className="py-3">{u.name}<div className="text-xs text-muted-foreground">{u.email}</div></td>
-                  <td><StatusBadge status={u.plan} /></td>
-                  <td className="text-muted-foreground text-xs">{u.joined}</td>
-                  <td className="text-muted-foreground text-xs">2026-08-11</td>
-                  <td><StatusBadge status={u.status} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      </div>
-    );
-  },
+  component: AdminSubscriptionsPage,
 });
 
-function StatBox({ label, value }: { label: string; value: string }) {
-  return <div className="bg-paper border border-rule rounded-md p-5"><div className="text-xs uppercase tracking-widest text-muted-foreground">{label}</div><div className="mt-2 font-serif text-3xl">{value}</div></div>;
+function AdminSubscriptionsPage() {
+  const { data: plansData } = useSubscriptionPlans();
+  const { data: usersData } = useAdminUsers({ limit: 10 });
+  const plans = plansData?.data ?? [];
+  const users = usersData?.data ?? [];
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-serif text-3xl">Subscriptions</h1>
+        <p className="text-sm text-muted-foreground">Manage subscription plans and subscribers</p>
+      </div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card title="Plans">
+          <ul className="divide-y divide-rule text-sm">
+            {plans.map((p) => (
+              <li key={p.id} className="py-3 flex justify-between">
+                <div><div className="font-medium">{p.name}</div><div className="text-xs text-muted-foreground">{p.interval}</div></div>
+                <div className="text-right"><div>{formatINR(p.price)}</div><StatusBadge status={p.isActive ? "Active" : "Inactive"} /></div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+        <Card title="Recent subscribers">
+          <ul className="divide-y divide-rule text-sm">
+            {users.map((u) => (
+              <li key={u.id} className="py-3 flex justify-between">
+                <span>{u.name}</span>
+                <span className="text-muted-foreground text-xs">{u.email}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </div>
+    </div>
+  );
 }

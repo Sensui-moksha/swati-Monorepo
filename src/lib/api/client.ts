@@ -2,7 +2,7 @@
 
 import type { AuthTokens, User, ApiResponse, PaginatedResponse, PaginationParams } from './types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const TOKEN_KEY = 'swati_auth_tokens';
 const USER_KEY = 'swati_user';
 
@@ -121,7 +121,21 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
+    let url = endpoint;
+    if (!endpoint.startsWith('http')) {
+      // The backend mounts commerce/admin routes at /api/v1 and core content routes at /api
+      const v1Routes = ['/access', '/admin', '/coupons', '/invoices', '/orders', '/payments', '/plans', '/promotions', '/reports', '/subscriptions', '/system', '/webhooks'];
+      const isV1Route = v1Routes.some(route => endpoint.startsWith(route));
+      
+      let base = this.baseURL;
+      // Auto-correct the base URL based on the route's actual mount point in the backend
+      if (isV1Route && !base.endsWith('/v1')) {
+        base = `${base.replace(/\/$/, '')}/v1`;
+      } else if (!isV1Route && base.endsWith('/v1')) {
+        base = base.replace(/\/v1$/, '');
+      }
+      url = `${base}${endpoint}`;
+    }
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -171,6 +185,25 @@ class ApiClient {
         ? (data as { error: string }).error
         : `HTTP ${response.status}: ${response.statusText}`;
       throw new ApiError(errorMessage, response.status, data);
+    }
+
+    // Transform backend paginated responses into the frontend's expected PaginatedResponse format
+    if (
+      isJson && 
+      data && 
+      typeof data === 'object' && 
+      'success' in data && 
+      data.success === true && 
+      'data' in data && 
+      data.data && 
+      typeof data.data === 'object' && 
+      'pagination' in (data.data as Record<string, unknown>)
+    ) {
+      const payload = data.data as { data: unknown[], pagination: unknown };
+      return {
+        data: payload.data,
+        meta: payload.pagination
+      } as T;
     }
 
     return data as T;

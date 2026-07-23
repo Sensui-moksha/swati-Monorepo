@@ -1,6 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BookGridPage } from "@/components/book-grid-page";
-import { BOOKS } from "@/lib/mock-books";
+import { PublicPage } from "@/components/shells";
+import { BookCard } from "@/components/ui-primitives";
+import { useTrendingBooks } from "@/lib/api/hooks";
+
 export const Route = createFileRoute("/library/trending")({
-  component: () => <BookGridPage title="Trending Now" description="What readers are opening this week." books={[...BOOKS].reverse()} />,
+  component: LibraryTrendingPage,
 });
+
+function LibraryTrendingPage() {
+  const { data, isLoading } = useTrendingBooks();
+  const books = data?.data ?? [];
+
+  return (
+    <PublicPage eyebrow="Library" title="Trending" description="The most popular titles this week.">
+      {isLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="animate-pulse"><div className="aspect-[3/4] bg-secondary rounded-sm" /></div>)}</div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">{books.map((b) => <BookCard key={b.id} book={b} />)}</div>
+      )}
+    </PublicPage>
+  );
+}

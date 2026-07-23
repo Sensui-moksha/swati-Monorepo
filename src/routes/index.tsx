@@ -1,51 +1,76 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site-layout";
-import { ARTICLES, CATEGORIES, FEATURED, LATEST, TOP_STORIES, TRENDING, TESTIMONIALS, formatDate, formatShortDate } from "@/lib/mock-data";
+import { useFeaturedArticles, useArticles, useLatestArticles, useTrendingArticles, useTopStories, useCategories } from "@/lib/api/hooks";
+import { formatDate, formatShortDate } from "@/lib/utils";
 import { ArrowRight, BookOpen, ShieldCheck, Sparkles, Newspaper, TrendingUp, Check } from "lucide-react";
+
+const TESTIMONIALS = [
+  { name: "Dr. Meera Sundaram", role: "Professor, JNU", quote: "The kind of reporting that assumes its reader is intelligent. A rare thing." },
+  { name: "Arjun Kapoor", role: "Founder, LedgerLabs", quote: "My morning read. Long-form when it earns it, brisk when it doesn't." },
+  { name: "Shreya Nair", role: "Public Policy Analyst", quote: "Sober analysis without the theatrics of the news cycle." },
+];
 
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
 function HomePage() {
+  const { data: featuredData } = useFeaturedArticles(1);
+  const { data: topStoriesData } = useTopStories();
+  const { data: categoriesData } = useCategories();
+  const { data: articlesData } = useArticles({ limit: 3 });
+  const { data: latestData } = useLatestArticles({ limit: 5 });
+  const { data: trendingData } = useTrendingArticles({ limit: 5 });
+
+  const featured = featuredData?.data?.[0];
+  const topStories = topStoriesData?.data ?? [];
+  const categories = categoriesData?.data ?? [];
+  const articles = articlesData?.data ?? [];
+  const latest = latestData?.data ?? [];
+  const trending = trendingData?.data ?? [];
+
   return (
     <SiteLayout>
       {/* Hero */}
       <section className="container-edit pt-10 pb-14">
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-8">
-            <Link to="/articles/$slug" params={{ slug: FEATURED.slug }} className="group block">
-              <div className="overflow-hidden bg-secondary">
-                <img src={FEATURED.image} alt={FEATURED.title} className="aspect-[16/9] w-full object-cover" />
-              </div>
-              <div className="mt-5 flex items-center gap-3 text-xs">
-                <span className="eyebrow">{FEATURED.categoryName}</span>
-                <span className="text-muted-foreground">·</span>
-                <span className="text-muted-foreground">{formatDate(FEATURED.date)} · {FEATURED.readTime}</span>
-              </div>
-              <h1 className="mt-3 text-4xl md:text-5xl lg:text-6xl font-serif font-bold leading-[1.05] tracking-tight group-hover:text-primary transition-colors">
-                {FEATURED.title}
-              </h1>
-              <p className="mt-4 max-w-2xl text-lg text-muted-foreground leading-relaxed">
-                {FEATURED.subtitle}
-              </p>
-              <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary">
-                Read the story <ArrowRight className="h-4 w-4" />
-              </div>
-            </Link>
+            {featured ? (
+              <Link to="/articles/$slug" params={{ slug: featured.slug }} className="group block">
+                <div className="overflow-hidden bg-secondary">
+                  <img src={featured.coverImage ?? ''} alt={featured.title} className="aspect-[16/9] w-full object-cover" />
+                </div>
+                <div className="mt-5 flex items-center gap-3 text-xs">
+                  <span className="eyebrow">{featured.category?.name ?? 'Featured'}</span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-muted-foreground">{featured.publishedAt ? formatDate(featured.publishedAt) : ''} · {featured.readingTime} min read</span>
+                </div>
+                <h1 className="mt-3 text-4xl md:text-5xl lg:text-6xl font-serif font-bold leading-[1.05] tracking-tight group-hover:text-primary transition-colors">
+                  {featured.title}
+                </h1>
+                <p className="mt-4 max-w-2xl text-lg text-muted-foreground leading-relaxed">
+                  {featured.excerpt}
+                </p>
+                <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                  Read the story <ArrowRight className="h-4 w-4" />
+                </div>
+              </Link>
+            ) : (
+              <div className="animate-pulse"><div className="aspect-[16/9] bg-secondary" /><div className="mt-5 h-12 bg-secondary rounded w-3/4" /><div className="mt-4 h-6 bg-secondary rounded w-1/2" /></div>
+            )}
           </div>
 
           <aside className="md:col-span-4 md:border-l md:border-rule md:pl-8">
             <div className="eyebrow mb-4">Top Stories</div>
             <ul className="divide-y divide-rule">
-              {TOP_STORIES.map((a, i) => (
+              {topStories.slice(0, 4).map((a, i) => (
                 <li key={a.id} className="py-4 first:pt-0">
                   <Link to="/articles/$slug" params={{ slug: a.slug }} className="group flex gap-4">
                     <span className="font-serif text-3xl text-primary/70 leading-none w-6">{i + 1}</span>
                     <div className="min-w-0">
-                      <div className="text-[11px] uppercase tracking-widest text-muted-foreground">{a.categoryName}</div>
+                      <div className="text-[11px] uppercase tracking-widest text-muted-foreground">{a.category?.name ?? 'Article'}</div>
                       <h3 className="mt-1 font-serif text-lg leading-snug group-hover:text-primary">{a.title}</h3>
-                      <div className="mt-1 text-xs text-muted-foreground">{formatShortDate(a.date)} · {a.readTime}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{a.publishedAt ? formatShortDate(a.publishedAt) : ''} · {a.readingTime} min read</div>
                     </div>
                   </Link>
                 </li>
@@ -60,13 +85,8 @@ function HomePage() {
         <div className="container-edit py-14">
           <SectionHead eyebrow="Sections" title="Explore by category" />
           <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-px bg-rule border border-rule">
-            {CATEGORIES.map((c) => (
-              <Link
-                key={c.slug}
-                to="/categories/$slug"
-                params={{ slug: c.slug }}
-                className="group bg-paper p-6 hover:bg-secondary transition-colors"
-              >
+            {categories.map((c) => (
+              <Link key={c.slug} to="/categories/$slug" params={{ slug: c.slug }} className="group bg-paper p-6 hover:bg-secondary transition-colors">
                 <div className="text-2xl font-serif font-semibold group-hover:text-primary">{c.name}</div>
                 <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary uppercase tracking-wider">
                   Read <ArrowRight className="h-3 w-3" />
@@ -86,21 +106,21 @@ function HomePage() {
           </Link>
         </div>
         <div className="mt-10 grid md:grid-cols-3 gap-8">
-          {ARTICLES.slice(0, 3).map((a) => (
+          {articles.map((a) => (
             <article key={a.id} className="group">
               <Link to="/articles/$slug" params={{ slug: a.slug }} className="block">
                 <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-                  <img src={a.image} alt={a.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
-                  {a.premium && (
+                  <img src={a.coverImage ?? ''} alt={a.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+                  {(a as any).isPremium && (
                     <span className="absolute left-3 top-3 bg-primary text-primary-foreground text-[10px] font-semibold uppercase tracking-widest px-2 py-1">
                       Premium
                     </span>
                   )}
                 </div>
-                <div className="mt-4 eyebrow">{a.categoryName}</div>
+                <div className="mt-4 eyebrow">{a.category?.name ?? 'Article'}</div>
                 <h3 className="mt-2 font-serif text-2xl leading-tight group-hover:text-primary">{a.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{a.subtitle}</p>
-                <div className="mt-3 text-xs text-muted-foreground">By {a.author} · {formatShortDate(a.date)}</div>
+                <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{a.excerpt}</p>
+                <div className="mt-3 text-xs text-muted-foreground">By {a.author?.name ?? 'Staff'} · {a.publishedAt ? formatShortDate(a.publishedAt) : ''}</div>
               </Link>
             </article>
           ))}
@@ -114,15 +134,15 @@ function HomePage() {
             <div className="md:col-span-8">
               <SectionHead eyebrow="Latest" title="Fresh from the newsroom" />
               <ul className="mt-8 divide-y divide-rule">
-                {LATEST.map((a) => (
+                {latest.map((a) => (
                   <li key={a.id} className="py-6">
                     <Link to="/articles/$slug" params={{ slug: a.slug }} className="group grid grid-cols-[100px_minmax(0,1fr)] sm:grid-cols-[140px_minmax(0,1fr)] gap-5">
-                      <img src={a.image} alt={a.title} className="aspect-[4/3] w-full object-cover bg-secondary" />
+                      <img src={a.coverImage ?? ''} alt={a.title} className="aspect-[4/3] w-full object-cover bg-secondary" />
                       <div className="min-w-0">
-                        <div className="eyebrow">{a.categoryName}</div>
+                        <div className="eyebrow">{a.category?.name ?? 'Article'}</div>
                         <h3 className="mt-1 font-serif text-lg sm:text-xl leading-snug group-hover:text-primary">{a.title}</h3>
-                        <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{a.summary}</p>
-                        <div className="mt-2 text-xs text-muted-foreground">{formatShortDate(a.date)} · {a.readTime}</div>
+                        <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{a.excerpt}</p>
+                        <div className="mt-2 text-xs text-muted-foreground">{a.publishedAt ? formatShortDate(a.publishedAt) : ''} · {a.readingTime} min read</div>
                       </div>
                     </Link>
                   </li>
@@ -138,7 +158,7 @@ function HomePage() {
             <aside className="md:col-span-4 md:border-l md:border-rule md:pl-8">
               <div className="eyebrow mb-4 flex items-center gap-2"><TrendingUp className="h-3.5 w-3.5" /> Trending</div>
               <ol className="space-y-4">
-                {TRENDING.map((a, i) => (
+                {trending.map((a, i) => (
                   <li key={a.id}>
                     <Link to="/articles/$slug" params={{ slug: a.slug }} className="group flex gap-3">
                       <span className="font-serif text-2xl text-primary/60 leading-none w-6">{i + 1}</span>
