@@ -5,14 +5,47 @@ import {
   BookOpen, X, ChevronLeft, ChevronRight, List, Search, Bookmark, StickyNote,
   Palette, Type, Maximize2, Sun, Menu,
 } from "lucide-react";
-import { bookById, type Book, type BookPage } from "@/lib/mock-books";
+import { booksApi } from "@/lib/api/endpoints/books";
 import { cn } from "@/lib/utils";
 
+// Reader-specific types for page-based rendering (not from API)
+type BookPage = { heading?: string; paragraphs: string[]; chapter?: string };
+type Book = {
+  id: string; slug: string; title: string; subtitle?: string; author?: string;
+  publisher?: string; year?: number; category?: string; cover?: string;
+  spineColor?: string; coverMaterial?: "hardcover" | "softcover" | "leather" | "magazine" | "minimal";
+  pages: BookPage[]; chapters: { title: string; page: number }[];
+  description?: string; isbn?: string; pageCount?: number; language?: string;
+  rating?: number; reviews?: number; price?: number;
+};
+
 export const Route = createFileRoute("/reader/$bookId")({
-  loader: ({ params }) => {
-    const book = bookById(params.bookId);
-    if (!book) throw notFound();
-    return { book };
+  loader: async ({ params }) => {
+    try {
+      const res = await booksApi.get(params.bookId);
+      const apiBook = res.data;
+      if (!apiBook) throw notFound();
+      // Map API Book to reader's Book shape
+      const book: Book = {
+        id: apiBook.id, slug: apiBook.slug, title: apiBook.title,
+        subtitle: apiBook.description, author: apiBook.author?.name,
+        publisher: apiBook.publisher?.name,
+        year: apiBook.publishedAt ? new Date(apiBook.publishedAt).getFullYear() : undefined,
+        category: apiBook.genres?.[0]?.name, cover: apiBook.coverImage,
+        spineColor: "#7a2323", coverMaterial: "hardcover",
+        pages: (apiBook.chapters ?? []).flatMap((ch) => [
+          { chapter: ch.title, heading: ch.title, paragraphs: ch.content ? ch.content.split('\n\n') : ["Content loading..."] },
+          ...Array.from({ length: 2 }, (_, i) => ({ paragraphs: ch.content ? ch.content.split('\n\n').slice(i * 2, i * 2 + 3) : [""] })),
+        ]),
+        chapters: (apiBook.chapters ?? []).map((ch, i) => ({ title: ch.title, page: i * 3 + 1 })),
+        description: apiBook.description, isbn: apiBook.isbn,
+        pageCount: apiBook.pageCount, language: apiBook.language,
+        price: apiBook.price,
+      };
+      return { book };
+    } catch {
+      throw notFound();
+    }
   },
   head: ({ loaderData }) => ({
     meta: [

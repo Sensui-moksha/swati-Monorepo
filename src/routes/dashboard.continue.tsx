@@ -1,21 +1,31 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/shells";
 import { PageHeader } from "@/components/ui-primitives";
-import { READING_HISTORY } from "@/lib/mock-extended";
+import { useContinueReading } from "@/lib/api/hooks";
+
 export const Route = createFileRoute("/dashboard/continue")({
-  component: () => (
-    <DashboardShell>
-      <PageHeader eyebrow="Dashboard" title="Continue Reading" description="Books you've started, waiting for you." />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">{READING_HISTORY.map((r) => (
-        <Link key={r.book.id} to="/reader/$bookId" params={{ bookId: r.book.id }} className="group block">
-          <div className="aspect-[3/4] overflow-hidden rounded-sm shadow-md relative">
-            <img src={r.book.cover} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" />
-            <div className="absolute bottom-0 inset-x-0 h-1 bg-black/20"><div className="h-full bg-primary" style={{ width: `${r.progress}%` }} /></div>
-          </div>
-          <div className="mt-3 font-serif text-sm">{r.book.title}</div>
-          <div className="text-xs text-muted-foreground">Page {r.page} · {r.progress}% · {r.lastRead}</div>
-        </Link>
-      ))}</div>
-    </DashboardShell>
-  ),
+  component: ContinuePage,
 });
+
+function ContinuePage() {
+  const { data, isLoading } = useContinueReading();
+  const books = data?.data ?? [];
+
+  return (
+    <DashboardShell>
+      <PageHeader eyebrow="Dashboard" title="Continue Reading" description="Pick up where you left off." />
+      {isLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="animate-pulse"><div className="aspect-[3/4] bg-secondary rounded-sm" /></div>)}</div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {books.map((b) => (
+            <Link key={b.id} to="/reader/$bookId" params={{ bookId: b.id }} className="group block">
+              <div className="aspect-[3/4] overflow-hidden rounded-sm shadow-md"><img src={b.coverImage ?? ''} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" /></div>
+              <div className="mt-2 font-serif text-sm">{b.title}</div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </DashboardShell>
+  );
+}

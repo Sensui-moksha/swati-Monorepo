@@ -1,19 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/shells";
-import { PageHeader, StatusPill } from "@/components/ui-primitives";
-import { NOTIFICATIONS } from "@/lib/mock-extended";
+import { PageHeader } from "@/components/ui-primitives";
+import { useNotifications } from "@/lib/api/hooks";
+import { formatShortDate } from "@/lib/utils";
+
 export const Route = createFileRoute("/dashboard/notifications")({
-  component: () => (
-    <DashboardShell>
-      <PageHeader eyebrow="Center" title="Notifications" description="Updates about your reading, subscription, and account." />
-      <ul className="border border-rule rounded divide-y divide-rule bg-paper">
-        {NOTIFICATIONS.map((n) => (
-          <li key={n.id} className={`p-4 flex justify-between gap-4 ${n.unread ? "bg-primary/5" : ""}`}>
-            <div className="min-w-0"><div className="font-medium flex items-center gap-2">{n.title}{n.unread && <span className="w-2 h-2 rounded-full bg-primary" />}</div><div className="text-sm text-muted-foreground">{n.body}</div></div>
-            <div className="text-xs text-muted-foreground shrink-0">{n.time}<div className="mt-1"><StatusPill status={n.type} /></div></div>
-          </li>
-        ))}
-      </ul>
-    </DashboardShell>
-  ),
+  component: NotificationsPage,
 });
+
+function NotificationsPage() {
+  const { data, isLoading } = useNotifications();
+  const notifications = data?.data ?? [];
+
+  return (
+    <DashboardShell>
+      <PageHeader eyebrow="Dashboard" title="Notifications" description="Updates, alerts, and messages." />
+      {isLoading ? (
+        <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 bg-secondary rounded animate-pulse" />)}</div>
+      ) : (
+        <ul className="divide-y divide-rule">
+          {notifications.map((n: any) => (
+            <li key={n.id} className="py-4">
+              <div className="font-medium text-sm">{n.title}</div>
+              <div className="text-xs text-muted-foreground mt-1">{n.message}</div>
+              <div className="text-xs text-muted-foreground mt-1">{n.createdAt ? formatShortDate(n.createdAt) : ''}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </DashboardShell>
+  );
+}

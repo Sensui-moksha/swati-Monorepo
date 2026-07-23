@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site-layout";
-import { formatINR } from "@/lib/mock-data";
+import { formatINR } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
