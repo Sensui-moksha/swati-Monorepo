@@ -134,6 +134,27 @@ export const tagIdSchema = z.object({
   params: z.object({ id: z.string().regex(/^[a-f0-9]{24}$/) }),
 });
 
+export const createCategorySchema = z.object({
+  body: z.object({
+    name: z.string().min(1).max(50),
+    description: z.string().max(500).optional(),
+    color: z.string().optional(),
+    icon: z.string().optional(),
+    parent: z.string().regex(/^[a-f0-9]{24}$/).optional().nullable(),
+    isActive: z.boolean().optional(),
+    order: z.number().optional(),
+  }),
+});
+export const updateCategorySchema = z.object({
+  body: createCategorySchema.shape.body.partial(),
+});
+export const categoryIdSchema = z.object({
+  params: z.object({ id: z.string().regex(/^[a-f0-9]{24}$/) }),
+});
+export const categorySlugSchema = z.object({
+  params: z.object({ slug: z.string().min(1) }),
+});
+
 export const mediaUpdateSchema = z.object({
   body: z.object({
     filename: z.string().optional(),

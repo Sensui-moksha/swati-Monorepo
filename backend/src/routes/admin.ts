@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, authorize } from "../middleware/auth";
+import { authenticate, authorize, AuthRequest } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 import { adminController } from "../controllers/adminController";
 import { adminSchemas } from "../validators/adminValidators";
@@ -48,6 +48,12 @@ router.get(
   authorize("admin"),
   validate(adminSchemas.userList),
   adminController.listUsers.bind(adminController),
+);
+router.post(
+  "/users",
+  authenticate,
+  authorize("admin"),
+  adminController.createUser.bind(adminController),
 );
 
 /**
@@ -197,5 +203,133 @@ router.get(
   authorize("admin"),
   adminController.getMediaUsage.bind(adminController),
 );
+
+// Admin Settings routes
+router.get("/settings/:category", authenticate, authorize("admin"), async (req, res, next) => {
+  try {
+    const category = String(req.params.category || "");
+    const { Setting } = await import("../models/Setting.js");
+    const settingDoc = await Setting.findOne({ key: `settings_${category}` });
+    if (settingDoc) {
+      res.json({ success: true, data: settingDoc.value });
+      return;
+    }
+    const capCat = category ? category.charAt(0).toUpperCase() + category.slice(1) : "General";
+    res.json({
+      success: true,
+      data: {
+        category,
+        fields: [
+          { id: "1", label: `${capCat} Setting 1`, value: "Default Value 1" },
+          { id: "2", label: `${capCat} Setting 2`, value: "Default Value 2" },
+        ],
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put("/settings/:category", authenticate, authorize("admin"), async (req: AuthRequest, res, next) => {
+  try {
+    const category = String(req.params.category || "");
+    const { Setting } = await import("../models/Setting.js");
+    const settingDoc = await Setting.findOneAndUpdate(
+      { key: `settings_${category}` },
+      { value: req.body, type: "json", updatedBy: req.user?._id?.toString() },
+      { upsert: true, new: true },
+    );
+    res.json({ success: true, data: settingDoc?.value ?? req.body });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin Reports Preview route
+router.get("/reports/preview", authenticate, authorize("admin"), (_req, res) => {
+  res.json({ success: true, data: [] });
+});
+
+// Dynamic Admin Entity Handler for admin entity management
+router.get("/:entity", authenticate, authorize("admin"), async (req, res, next) => {
+  try {
+    const { entity } = req.params;
+    let items: any[] = [];
+    let total = 0;
+
+    if (entity === "books") {
+      const { Book } = await import("../models/Book.js");
+      items = await Book.find({}).sort({ createdAt: -1 }).limit(20).lean();
+      total = await Book.countDocuments();
+      items = items.map((b: any) => ({ ...b, id: b._id.toString(), name: b.title }));
+    } else if (entity === "publications") {
+      const { Publication } = await import("../models/Publication.js");
+      items = await Publication.find({}).sort({ createdAt: -1 }).limit(20).lean();
+      total = await Publication.countDocuments();
+      items = items.map((p: any) => ({ ...p, id: p._id.toString() }));
+    } else if (entity === "articles") {
+      const { Article } = await import("../models/Article.js");
+      items = await Article.find({}).sort({ createdAt: -1 }).limit(20).lean();
+      total = await Article.countDocuments();
+      items = items.map((a: any) => ({ ...a, id: a._id.toString(), name: a.title }));
+    } else if (entity === "categories") {
+      const { Category } = await import("../models/Category.js");
+      items = await Category.find({}).sort({ createdAt: -1 }).limit(20).lean();
+      total = await Category.countDocuments();
+      items = items.map((c: any) => ({ ...c, id: c._id.toString() }));
+    } else if (entity === "authors") {
+      const { Author } = await import("../models/Author.js");
+      items = await Author.find({}).sort({ createdAt: -1 }).limit(20).lean();
+      total = await Author.countDocuments();
+      items = items.map((a: any) => ({ ...a, id: a._id.toString() }));
+    } else if (entity === "orders" || entity === "payments") {
+      const { CommerceOrder } = await import("../models/CommerceOrder.js");
+      items = await CommerceOrder.find({}).sort({ createdAt: -1 }).limit(20).populate("user", "fullName email name").lean();
+      total = await CommerceOrder.countDocuments();
+      items = items.map((o: any) => ({ ...o, id: o._id.toString(), name: o.orderNumber }));
+    } else if (entity === "staff" || entity === "roles") {
+      const { User } = await import("../models/User.js");
+      const roleFilter = entity === "staff" ? { role: { $in: ["admin", "editor", "publisher", "support"] } } : {};
+      items = await User.find(roleFilter).sort({ createdAt: -1 }).limit(20).lean();
+      total = await User.countDocuments(roleFilter);
+      items = items.map((u: any) => ({ ...u, id: u._id.toString(), name: u.fullName || u.username }));
+    } else if (entity === "workspace" || entity === "tasks") {
+      const { Article } = await import("../models/Article.js");
+      items = await Article.find({}).sort({ updatedAt: -1 }).limit(20).populate("author", "fullName email").lean();
+      total = await Article.countDocuments();
+      items = items.map((a: any) => ({
+        id: a._id.toString(),
+        name: a.title,
+        status: a.status || "published",
+        owner: (a.author as any)?.fullName || "Editorial Team",
+        updatedAt: a.updatedAt || a.createdAt,
+      }));
+    } else if (entity === "notifications") {
+      const { Article } = await import("../models/Article.js");
+      items = await Article.find({}).sort({ createdAt: -1 }).limit(10).lean();
+      total = items.length;
+      items = items.map((a: any) => ({
+        id: a._id.toString(),
+        type: "Content Release",
+        title: `New Article: ${a.title}`,
+        message: `Article published in category ${a.categoryId || "General"}`,
+        date: new Date(a.createdAt).toLocaleDateString(),
+        status: "Delivered",
+      }));
+    }
+
+    res.json({
+      data: items,
+      meta: {
+        page: 1,
+        limit: 20,
+        total,
+        totalPages: Math.ceil(total / 20) || 1,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default router;

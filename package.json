@@ -1,0 +1,16 @@
+{
+  "name": "prototype-v0-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Swathi Publications & Cryoflake Backend Monorepo",
+  "scripts": {
+    "dev": "concurrently -n \"backend,frontend\" -c \"blue.bold,green.bold\" \"npm run dev --prefix backend\" \"npm run dev --prefix swati-clientside\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix swati-clientside",
+    "build": "npm run build --prefix backend && npm run build --prefix swati-clientside",
+    "seed": "npm run seed --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

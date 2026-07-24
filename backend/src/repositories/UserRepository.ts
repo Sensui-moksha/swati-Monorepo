@@ -32,6 +32,7 @@ export class UserRepository extends BaseRepository<IUser> {
       .findOne({
         $or: [{ email: lower }, { username: lower }],
       })
+      .select('+password')
       .exec();
   }
 

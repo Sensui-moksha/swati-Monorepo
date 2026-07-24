@@ -82,6 +82,19 @@ export class AdminController {
     }
   }
 
+  async createUser(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const user = await userService.createUser(req.body);
+      res.json({ success: true, data: user });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getUser(
     req: AuthRequest,
     res: Response,

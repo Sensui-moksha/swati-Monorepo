@@ -56,7 +56,7 @@ export class CategoryRepository extends BaseRepository<ICategory> {
       }
     }
 
-    return this.findWithPagination(query, {
+    return super.findWithPagination(query, {
       ...options,
       sort: options.sort || { order: 1, name: 1 },
     });

@@ -81,3 +81,11 @@ export type {
   INotificationModel,
   NotificationType,
 } from "./Notification";
+
+// Product Module Models
+export { Product } from "./Product";
+export type { IProduct, IProductModel } from "./Product";
+export { ProductVariant } from "./ProductVariant";
+export type { IProductVariant, IProductVariantModel } from "./ProductVariant";
+export { ProductCategory } from "./ProductCategory";
+export type { IProductCategory, IProductCategoryModel } from "./ProductCategory";

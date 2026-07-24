@@ -18,6 +18,8 @@ import editorialRoutes from "./editorial";
 import mediaRoutes from "./media";
 import tagsRoutes from "./tags";
 import commentsRoutes from "./comments";
+import categoriesRoutes from "./categories";
+import publishingRoutes from "./publishing";
 import plansRoutes from "./plans";
 import subscriptionsRoutes from "./subscriptions";
 import ordersRoutes from "./orders";
@@ -64,7 +66,10 @@ router.use("/storage/sync", storageSyncRoutes);
 router.use("/storage/scanner", filesystemScannerRoutes);
 router.use("/storage/watcher", filesystemWatcherRoutes);
 router.use("/tags", tagsRoutes);
+router.use("/categories", categoriesRoutes);
 router.use("/comments", commentsRoutes);
+router.use("/", publishingRoutes);
+router.use("/publishing", publishingRoutes);
 
 // Commerce Infrastructure Routes
 router.use("/v1/plans", plansRoutes);

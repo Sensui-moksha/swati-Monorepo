@@ -188,11 +188,14 @@ export class AuthService {
       emailVerificationToken,
       user.fullName,
     );
-    await this.sendEmail({
+    // Fire-and-forget: don't let email delivery failure crash registration
+    this.sendEmail({
       to: user.email,
       subject: "Verify your email address",
       html,
       text,
+    }).catch((err) => {
+      console.warn("Failed to send verification email:", err.message);
     });
 
     const tokens = this.generateTokens({

@@ -175,13 +175,16 @@ export class UserService {
     totalUsers: number;
     activeUsers: number;
     verifiedUsers: number;
+    newUsers: number;
     recentUsers: IUser[];
   }> {
-    const [totalUsers, activeUsers, verifiedUsers, recentUsers] =
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const [totalUsers, activeUsers, verifiedUsers, newUsers, recentUsers] =
       await Promise.all([
         userRepository.count({}),
         userRepository.getActiveUsersCount(),
         userRepository.getVerifiedUsersCount(),
+        userRepository.count({ createdAt: { $gte: thirtyDaysAgo } }),
         userRepository.getRecentUsers(5),
       ]);
 
@@ -189,6 +192,7 @@ export class UserService {
       totalUsers,
       activeUsers,
       verifiedUsers,
+      newUsers,
       recentUsers,
     };
   }
