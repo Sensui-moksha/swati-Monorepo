@@ -1,6 +1,9 @@
-import { Link } from "@tanstack/react-router";
-import { Search, User, ShoppingCart, Menu } from "lucide-react";
+import { Link, useRouter } from "@tanstack/react-router";
+import { Search, User, ShoppingCart, Menu, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api/client";
+import { authApi } from "@/lib/api/endpoints/auth";
 import logoImg from "../assets/logo.png";
 
 const NAV = [
@@ -16,6 +19,35 @@ const NAV = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  // Check if user is authenticated by querying /auth/me
+  const { data: currentUser } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => authApi.me().then((r: any) => r?.data?.user || r?.data || null),
+    enabled: apiClient.isAuthenticated(),
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const isLoggedIn = apiClient.isAuthenticated() && !!currentUser;
+
+  const logoutMutation = useMutation({
+    mutationFn: () => authApi.logout(),
+    onSuccess: () => {
+      apiClient.clearTokens();
+      queryClient.clear();
+      router.navigate({ to: "/" });
+    },
+    onError: () => {
+      // Clear tokens even if logout API fails
+      apiClient.clearTokens();
+      queryClient.clear();
+      router.navigate({ to: "/" });
+    },
+  });
+
   return (
     <header className="sticky top-0 z-40 bg-paper">
       {/* Top metadata bar */}
@@ -23,11 +55,32 @@ export function SiteHeader() {
         <div className="container-edit flex h-7 items-center justify-between text-[9px] tracking-widest text-muted-foreground uppercase">
           <span className="hidden sm:inline">Saturday, 11 July 2026 · Chennai Edition</span>
           <div className="flex items-center gap-3 ml-auto sm:ml-0">
-            <Link to="/login" className="hover:text-primary transition-colors">Login</Link>
-            <span className="hidden sm:inline text-border">|</span>
-            <Link to="/register" className="hover:text-primary transition-colors">Register</Link>
-            <span className="hidden sm:inline text-border">|</span>
-            <Link to="/account" className="hover:text-primary transition-colors hidden sm:inline">My Account</Link>
+            {isLoggedIn ? (
+              <>
+                <span className="text-foreground/80">{currentUser?.fullName || currentUser?.username || "Account"}</span>
+                <span className="hidden sm:inline text-border">|</span>
+                <Link to="/account" className="hover:text-primary transition-colors hidden sm:inline">My Account</Link>
+                {currentUser?.role === "admin" && (
+                  <>
+                    <span className="hidden sm:inline text-border">|</span>
+                    <Link to="/admin" className="hover:text-primary transition-colors hidden sm:inline">Admin</Link>
+                  </>
+                )}
+                <span className="hidden sm:inline text-border">|</span>
+                <button 
+                  onClick={() => logoutMutation.mutate()}
+                  className="hover:text-primary transition-colors inline-flex items-center gap-1"
+                >
+                  <LogOut className="h-2.5 w-2.5" /> Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="hover:text-primary transition-colors">Login</Link>
+                <span className="hidden sm:inline text-border">|</span>
+                <Link to="/register" className="hover:text-primary transition-colors">Register</Link>
+              </>
+            )}
             <span className="hidden sm:inline text-border">|</span>
             <Link to="/cart" className="hover:text-primary transition-colors inline-flex items-center gap-1">
               <ShoppingCart className="h-3 w-3" /> Cart

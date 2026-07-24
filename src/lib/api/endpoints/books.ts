@@ -21,181 +21,181 @@ export const booksApi = {
     status?: string;
     format?: string;
   }) =>
-    apiClient.get<PaginatedResponse<Book>>('/books', { params }),
+    apiClient.get<PaginatedResponse<Book>>('/publishing/books', { params }),
 
   get: (id: string) =>
-    apiClient.get<ApiResponse<Book>>(`/books/${id}`),
+    apiClient.get<ApiResponse<Book>>(`/publishing/books/${id}`),
 
   getBySlug: (slug: string) =>
-    apiClient.get<ApiResponse<Book>>(`/books/slug/${slug}`),
+    apiClient.get<ApiResponse<Book>>(`/publishing/books/slug/${slug}`),
 
   create: (data: Partial<Book>) =>
-    apiClient.post<ApiResponse<Book>>('/books', data),
+    apiClient.post<ApiResponse<Book>>('/publishing/books', data),
 
   update: (id: string, data: Partial<Book>) =>
-    apiClient.patch<ApiResponse<Book>>(`/books/${id}`, data),
+    apiClient.patch<ApiResponse<Book>>(`/publishing/books/${id}`, data),
 
   delete: (id: string) =>
-    apiClient.delete<ApiResponse<void>>(`/books/${id}`),
+    apiClient.delete<ApiResponse<void>>(`/publishing/books/${id}`),
 
   publish: (id: string) =>
-    apiClient.post<ApiResponse<Book>>(`/books/${id}/publish`),
+    apiClient.post<ApiResponse<Book>>(`/publishing/books/${id}/publish`),
 
   unpublish: (id: string) =>
-    apiClient.post<ApiResponse<Book>>(`/books/${id}/unpublish`),
+    apiClient.post<ApiResponse<Book>>(`/publishing/books/${id}/unpublish`),
 
   // Chapters
   listChapters: (bookId: string, params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Chapter>>(`/books/${bookId}/chapters`, { params }),
+    apiClient.get<PaginatedResponse<Chapter>>(`/publishing/books/${bookId}/chapters`, { params }),
 
   getChapter: (bookId: string, chapterId: string) =>
-    apiClient.get<ApiResponse<Chapter>>(`/books/${bookId}/chapters/${chapterId}`),
+    apiClient.get<ApiResponse<Chapter>>(`/publishing/books/${bookId}/chapters/${chapterId}`),
 
   createChapter: (bookId: string, data: Partial<Chapter>) =>
-    apiClient.post<ApiResponse<Chapter>>(`/books/${bookId}/chapters`, data),
+    apiClient.post<ApiResponse<Chapter>>(`/publishing/books/${bookId}/chapters`, data),
 
   updateChapter: (bookId: string, chapterId: string, data: Partial<Chapter>) =>
-    apiClient.patch<ApiResponse<Chapter>>(`/books/${bookId}/chapters/${chapterId}`, data),
+    apiClient.patch<ApiResponse<Chapter>>(`/publishing/books/${bookId}/chapters/${chapterId}`, data),
 
   deleteChapter: (bookId: string, chapterId: string) =>
-    apiClient.delete<ApiResponse<void>>(`/books/${bookId}/chapters/${chapterId}`),
+    apiClient.delete<ApiResponse<void>>(`/publishing/books/${bookId}/chapters/${chapterId}`),
 
   publishChapter: (bookId: string, chapterId: string) =>
-    apiClient.post<ApiResponse<Chapter>>(`/books/${bookId}/chapters/${chapterId}/publish`),
+    apiClient.post<ApiResponse<Chapter>>(`/publishing/books/${bookId}/chapters/${chapterId}/publish`),
 
   reorderChapters: (bookId: string, chapterIds: string[]) =>
-    apiClient.post<ApiResponse<void>>(`/books/${bookId}/chapters/reorder`, { chapterIds }),
+    apiClient.post<ApiResponse<void>>(`/publishing/books/${bookId}/chapters/reorder`, { chapterIds }),
 
   // Authors
   listAuthors: (params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Author>>('/authors', { params }),
+    apiClient.get<PaginatedResponse<Author>>('/publishing/authors', { params }),
 
   getAuthor: (id: string) =>
-    apiClient.get<ApiResponse<Author>>(`/authors/${id}`),
+    apiClient.get<ApiResponse<Author>>(`/publishing/authors/${id}`),
 
   getAuthorBySlug: (slug: string) =>
-    apiClient.get<ApiResponse<Author>>(`/authors/slug/${slug}`),
+    apiClient.get<ApiResponse<Author>>(`/publishing/authors/slug/${slug}`),
 
   createAuthor: (data: Partial<Author>) =>
-    apiClient.post<ApiResponse<Author>>('/authors', data),
+    apiClient.post<ApiResponse<Author>>('/publishing/authors', data),
 
   updateAuthor: (id: string, data: Partial<Author>) =>
-    apiClient.patch<ApiResponse<Author>>(`/authors/${id}`, data),
+    apiClient.patch<ApiResponse<Author>>(`/publishing/authors/${id}`, data),
 
   deleteAuthor: (id: string) =>
-    apiClient.delete<ApiResponse<void>>(`/authors/${id}`),
+    apiClient.delete<ApiResponse<void>>(`/publishing/authors/${id}`),
 
   followAuthor: (authorId: string) =>
-    apiClient.post<ApiResponse<{ followed: boolean; followerCount: number }>>(`/authors/${authorId}/follow`),
+    apiClient.post<ApiResponse<{ followed: boolean; followerCount: number }>>(`/publishing/authors/${authorId}/follow`),
 
   getAuthorBooks: (authorId: string, params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Book>>(`/authors/${authorId}/books`, { params }),
+    apiClient.get<PaginatedResponse<Book>>(`/publishing/authors/${authorId}/books`, { params }),
 
   // Publishers
   listPublishers: (params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Publisher>>('/publishers', { params }),
+    apiClient.get<PaginatedResponse<Publisher>>('/publishing/publishers', { params }),
 
   getPublisher: (id: string) =>
-    apiClient.get<ApiResponse<Publisher>>(`/publishers/${id}`),
+    apiClient.get<ApiResponse<Publisher>>(`/publishing/publishers/${id}`),
 
   getPublisherBySlug: (slug: string) =>
-    apiClient.get<ApiResponse<Publisher>>(`/publishers/slug/${slug}`),
+    apiClient.get<ApiResponse<Publisher>>(`/publishing/publishers/slug/${slug}`),
 
   createPublisher: (data: Partial<Publisher>) =>
-    apiClient.post<ApiResponse<Publisher>>('/publishers', data),
+    apiClient.post<ApiResponse<Publisher>>('/publishing/publishers', data),
 
   updatePublisher: (id: string, data: Partial<Publisher>) =>
-    apiClient.patch<ApiResponse<Publisher>>(`/publishers/${id}`, data),
+    apiClient.patch<ApiResponse<Publisher>>(`/publishing/publishers/${id}`, data),
 
   deletePublisher: (id: string) =>
-    apiClient.delete<ApiResponse<void>>(`/publishers/${id}`),
+    apiClient.delete<ApiResponse<void>>(`/publishing/publishers/${id}`),
 
   getPublisherBooks: (publisherId: string, params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Book>>(`/publishers/${publisherId}/books`, { params }),
+    apiClient.get<PaginatedResponse<Book>>(`/publishing/publishers/${publisherId}/books`, { params }),
 
   // Genres
   listGenres: (params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Genre>>('/genres', { params }),
+    apiClient.get<PaginatedResponse<Genre>>('/publishing/genres', { params }),
 
   getGenre: (id: string) =>
-    apiClient.get<ApiResponse<Genre>>(`/genres/${id}`),
+    apiClient.get<ApiResponse<Genre>>(`/publishing/genres/${id}`),
 
   getGenreBySlug: (slug: string) =>
-    apiClient.get<ApiResponse<Genre>>(`/genres/slug/${slug}`),
+    apiClient.get<ApiResponse<Genre>>(`/publishing/genres/slug/${slug}`),
 
   createGenre: (data: Partial<Genre>) =>
-    apiClient.post<ApiResponse<Genre>>('/genres', data),
+    apiClient.post<ApiResponse<Genre>>('/publishing/genres', data),
 
   updateGenre: (id: string, data: Partial<Genre>) =>
-    apiClient.patch<ApiResponse<Genre>>(`/genres/${id}`, data),
+    apiClient.patch<ApiResponse<Genre>>(`/publishing/genres/${id}`, data),
 
   deleteGenre: (id: string) =>
-    apiClient.delete<ApiResponse<void>>(`/genres/${id}`),
+    apiClient.delete<ApiResponse<void>>(`/publishing/genres/${id}`),
 
   // Series
   listSeries: (params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Series>>('/series', { params }),
+    apiClient.get<PaginatedResponse<Series>>('/publishing/series', { params }),
 
   getSeries: (id: string) =>
-    apiClient.get<ApiResponse<Series>>(`/series/${id}`),
+    apiClient.get<ApiResponse<Series>>(`/publishing/series/${id}`),
 
   getSeriesBySlug: (slug: string) =>
-    apiClient.get<ApiResponse<Series>>(`/series/slug/${slug}`),
+    apiClient.get<ApiResponse<Series>>(`/publishing/series/slug/${slug}`),
 
   createSeries: (data: Partial<Series>) =>
-    apiClient.post<ApiResponse<Series>>('/series', data),
+    apiClient.post<ApiResponse<Series>>('/publishing/series', data),
 
   updateSeries: (id: string, data: Partial<Series>) =>
-    apiClient.patch<ApiResponse<Series>>(`/series/${id}`, data),
+    apiClient.patch<ApiResponse<Series>>(`/publishing/series/${id}`, data),
 
   deleteSeries: (id: string) =>
-    apiClient.delete<ApiResponse<void>>(`/series/${id}`),
+    apiClient.delete<ApiResponse<void>>(`/publishing/series/${id}`),
 
   followSeries: (seriesId: string) =>
-    apiClient.post<ApiResponse<{ followed: boolean }>>(`/series/${seriesId}/follow`),
+    apiClient.post<ApiResponse<{ followed: boolean }>>(`/publishing/series/${seriesId}/follow`),
 
   getSeriesBooks: (seriesId: string, params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Book>>(`/series/${seriesId}/books`, { params }),
+    apiClient.get<PaginatedResponse<Book>>(`/publishing/series/${seriesId}/books`, { params }),
 
   // Interactions
   bookmark: (bookId: string) =>
-    apiClient.post<ApiResponse<{ bookmarked: boolean }>>(`/books/${bookId}/bookmark`),
+    apiClient.post<ApiResponse<{ bookmarked: boolean }>>(`/publishing/books/${bookId}/bookmark`),
 
   favorite: (bookId: string) =>
-    apiClient.post<ApiResponse<{ favorited: boolean }>>(`/books/${bookId}/favorite`),
+    apiClient.post<ApiResponse<{ favorited: boolean }>>(`/publishing/books/${bookId}/favorite`),
 
   rate: (bookId: string, rating: number, review?: string) =>
-    apiClient.post<ApiResponse<{ rating: number; averageRating: number; reviewCount: number }>>(`/books/${bookId}/rate`, { rating, review }),
+    apiClient.post<ApiResponse<{ rating: number; averageRating: number; reviewCount: number }>>(`/publishing/books/${bookId}/rate`, { rating, review }),
 
   getReadingProgress: (bookId: string) =>
-    apiClient.get<ApiResponse<{ progress: number; currentChapterId?: string; lastReadAt: string }>>(`/books/${bookId}/progress`),
+    apiClient.get<ApiResponse<{ progress: number; currentChapterId?: string; lastReadAt: string }>>(`/publishing/books/${bookId}/progress`),
 
   updateReadingProgress: (bookId: string, progress: number, chapterId?: string) =>
-    apiClient.post<ApiResponse<void>>(`/books/${bookId}/progress`, { progress, chapterId }),
+    apiClient.post<ApiResponse<void>>(`/publishing/books/${bookId}/progress`, { progress, chapterId }),
 
   // Search & Discovery
   search: (query: string, params?: PaginationParams & { genreId?: string; authorId?: string; format?: string }) =>
-    apiClient.get<PaginatedResponse<Book>>('/books/search', { params: { q: query, ...params } }),
+    apiClient.get<PaginatedResponse<Book>>('/publishing/books/search', { params: { q: query, ...params } }),
 
   getRelated: (bookId: string, limit?: number) =>
-    apiClient.get<ApiResponse<Book[]>>(`/books/${bookId}/related`, { params: { limit } }),
+    apiClient.get<ApiResponse<Book[]>>(`/publishing/books/${bookId}/related`, { params: { limit } }),
 
   getPopular: (params?: PaginationParams & { period?: 'day' | 'week' | 'month' | 'all' }) =>
-    apiClient.get<PaginatedResponse<Book>>('/books/popular', { params }),
+    apiClient.get<PaginatedResponse<Book>>('/publishing/books/popular', { params }),
 
   getLatest: (params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Book>>('/books/latest', { params }),
+    apiClient.get<PaginatedResponse<Book>>('/publishing/books/latest', { params }),
 
   getFeatured: (limit?: number) =>
-    apiClient.get<ApiResponse<Book[]>>('/books/featured', { params: { limit } }),
+    apiClient.get<ApiResponse<Book[]>>('/publishing/books/featured', { params: { limit } }),
 
   getOnSale: (params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Book>>('/books/on-sale', { params }),
+    apiClient.get<PaginatedResponse<Book>>('/publishing/books/on-sale', { params }),
 
   getBestsellers: (params?: PaginationParams & { category?: string }) =>
-    apiClient.get<PaginatedResponse<Book>>('/books/bestsellers', { params }),
+    apiClient.get<PaginatedResponse<Book>>('/publishing/books/bestsellers', { params }),
 
   // Stats
   getStats: (bookId: string) =>
-    apiClient.get<ApiResponse<{ views: number; purchases: number; rating: number; reviews: number }>>(`/books/${bookId}/stats`),
+    apiClient.get<ApiResponse<{ views: number; purchases: number; rating: number; reviews: number }>>(`/publishing/books/${bookId}/stats`),
 };

@@ -10,6 +10,10 @@ import { ordersApi } from './endpoints/orders';
 import { subscriptionsApi } from './endpoints/subscriptions';
 import { usersApi } from './endpoints/users';
 import { authApi } from './endpoints/auth';
+import { adminApi } from './endpoints/adminApi';
+import { couponsApi } from './endpoints/couponsApi';
+import { analyticsApi } from './endpoints/analyticsApi';
+import { profileApi } from './endpoints/profile';
 import { queryKeys } from './queryKeys';
 
 // ─── Articles ───────────────────────────────────────────────────────────────
@@ -213,6 +217,15 @@ export function useGenreBySlug(slug: string) {
 
 // ─── Series ─────────────────────────────────────────────────────────────────
 
+
+
+export function useSearchHistory() {
+  return useQuery({
+    queryKey: queryKeys.user.searchHistory(),
+    queryFn: () => profileApi.getSearchHistory(),
+  });
+}
+
 export function useSeries(params?: PaginationParams) {
   return useQuery({
     queryKey: queryKeys.series.list(params),
@@ -309,8 +322,7 @@ export function useReadingHistory() {
 export function useBookmarks() {
   return useQuery({
     queryKey: queryKeys.user.bookmarks(),
-    queryFn: () => usersApi.getPreferences(), // placeholder
-    enabled: false,
+    queryFn: () => profileApi.getBookmarks(),
   });
 }
 
@@ -325,8 +337,7 @@ export function useFavorites() {
 export function useNotes() {
   return useQuery({
     queryKey: queryKeys.user.notes(),
-    queryFn: () => usersApi.getPreferences(), // placeholder
-    enabled: false,
+    queryFn: () => profileApi.getNotes(),
   });
 }
 
@@ -403,9 +414,7 @@ export function usePaymentMethods() {
 export function useCoupons(params?: PaginationParams) {
   return useQuery({
     queryKey: queryKeys.coupons.list(params),
-    // No couponsApi endpoint — route to orders stats as proxy
-    queryFn: () => ordersApi.getStats(),
-    enabled: false,
+    queryFn: () => couponsApi.list(params),
   });
 }
 
@@ -414,14 +423,14 @@ export function useCoupons(params?: PaginationParams) {
 export function useAdminStats() {
   return useQuery({
     queryKey: queryKeys.admin.stats(),
-    queryFn: () => usersApi.getStats(),
+    queryFn: () => adminApi.getUserStats(),
   });
 }
 
 export function useAdminUsers(params?: PaginationParams) {
   return useQuery({
     queryKey: queryKeys.admin.users(params),
-    queryFn: () => usersApi.list(params),
+    queryFn: () => adminApi.listUsers(params),
   });
 }
 
@@ -441,18 +450,129 @@ export function useAdminComments(params?: PaginationParams) {
   });
 }
 
-export function useStaff() {
+export function useCampaigns(params?: PaginationParams) {
   return useQuery({
-    queryKey: queryKeys.admin.staff(),
-    queryFn: () => usersApi.list({ role: 'admin' as any }),
+    queryKey: [...queryKeys.admin.all, 'campaigns', params] as const,
+    queryFn: () => adminApi.listCampaigns(params),
   });
 }
 
-export function useRoles() {
+export function useSupportTickets(params?: PaginationParams) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'support', params] as const,
+    queryFn: () => adminApi.listSupportTickets(params),
+  });
+}
+
+export function useMedia(params?: PaginationParams) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'media', params] as const,
+    queryFn: () => adminApi.listMedia(params),
+  });
+}
+
+export function useAdminNotifications(params?: PaginationParams) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'notifications', params] as const,
+    queryFn: () => adminApi.listNotifications(params),
+  });
+}
+
+export function useTrendingMgmt(params?: PaginationParams) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'trending', params] as const,
+    queryFn: () => adminApi.listTrending(params),
+  });
+}
+
+export function useRevenueAnalytics(params?: any) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'analytics', 'revenue', params] as const,
+    queryFn: () => analyticsApi.getRevenueAnalytics(params),
+  });
+}
+
+export function useUserAnalytics(params?: any) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'analytics', 'users', params] as const,
+    queryFn: () => analyticsApi.getUserAnalytics(params),
+  });
+}
+
+export function useContentAnalytics(params?: any) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'analytics', 'content', params] as const,
+    queryFn: () => analyticsApi.getContentAnalytics(params),
+  });
+}
+
+export function usePaymentAnalytics(params?: any) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'analytics', 'payments', params] as const,
+    queryFn: () => analyticsApi.getPaymentAnalytics(params),
+  });
+}
+
+export function useSearchAnalytics(params?: any) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'analytics', 'search', params] as const,
+    queryFn: () => analyticsApi.getSearchAnalytics(params),
+  });
+}
+
+export function useSubscriptionAnalytics(params?: any) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'analytics', 'subscriptions', params] as const,
+    queryFn: () => analyticsApi.getSubscriptionAnalytics(params),
+  });
+}
+
+export function usePublicationAnalytics(params?: any) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'analytics', 'publications', params] as const,
+    queryFn: () => analyticsApi.getPublicationAnalytics(params),
+  });
+}
+
+export function useRecentTransactions(params?: any) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.all, 'transactions', params] as const,
+    queryFn: () => analyticsApi.getTransactions(params),
+  });
+}
+
+export function useStaff(params?: PaginationParams) {
+  return useQuery({
+    queryKey: queryKeys.admin.staff(params as any),
+    queryFn: () => adminApi.listStaff(params),
+  });
+}
+
+export function useRoles(params?: PaginationParams) {
   return useQuery({
     queryKey: queryKeys.admin.roles(),
-    queryFn: () => usersApi.list(), // placeholder — real roles endpoint TBD
-    enabled: false,
+    queryFn: () => adminApi.listRoles(params),
+  });
+}
+
+export function useWorkspace(params?: PaginationParams) {
+  return useQuery({
+    queryKey: queryKeys.admin.workspace(params),
+    queryFn: () => adminApi.listWorkspace(params),
+  });
+}
+
+export function useAdminGeneric(entity: string, params?: PaginationParams) {
+  return useQuery({
+    queryKey: queryKeys.admin.generic(entity, params),
+    queryFn: () => adminApi.listGeneric(entity, params),
+  });
+}
+
+export function useReportPreview(params: { source: string, dims: string[], metrics: string[] }) {
+  return useQuery({
+    queryKey: queryKeys.admin.reportPreview(params),
+    queryFn: () => adminApi.getReportPreview(params),
   });
 }
 
@@ -475,7 +595,54 @@ export function useRevenueTrend(params?: Record<string, unknown>) {
 export function usePlanBreakdown() {
   return useQuery({
     queryKey: queryKeys.admin.planBreakdown(),
-    queryFn: () => subscriptionsApi.getStats(),
+    queryFn: () => analyticsApi.getPlanBreakdown(),
+  });
+}
+
+export function usePublishingAnalytics() {
+  return useQuery({
+    queryKey: queryKeys.admin.publishingAnalytics(),
+    queryFn: () => analyticsApi.getPublishingAnalytics(),
+  });
+}
+
+export function useReadingAnalytics() {
+  return useQuery({
+    queryKey: queryKeys.admin.readingAnalytics(),
+    queryFn: () => analyticsApi.getReadingAnalytics(),
+  });
+}
+
+export function useRecommendationsAnalytics() {
+  return useQuery({
+    queryKey: queryKeys.admin.recommendationsAnalytics(),
+    queryFn: () => analyticsApi.getRecommendationsAnalytics(),
+  });
+}
+
+export function useExecutiveAnalytics() {
+  return useQuery({
+    queryKey: queryKeys.admin.executiveAnalytics(),
+    queryFn: () => analyticsApi.getExecutiveAnalytics(),
+  });
+}
+
+import { settingsApi } from './endpoints/settingsApi';
+
+export function useSettings(category: string) {
+  return useQuery({
+    queryKey: queryKeys.admin.settings(category),
+    queryFn: () => settingsApi.getSettings(category),
+  });
+}
+
+export function useUpdateSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ category, data }: { category: string, data: any }) => settingsApi.updateSettings(category, data),
+    onSuccess: (_, { category }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings(category) });
+    },
   });
 }
 

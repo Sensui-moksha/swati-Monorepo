@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Card, Btn, StatusPill } from "@/components/ui-primitives";
 import { useState } from "react";
 
+import { useReportPreview } from "@/lib/api/hooks";
+
 export const Route = createFileRoute("/admin/reports/builder")({
   head: () => ({ meta: [{ title: "Report Builder — Swathi Admin" }, { name: "robots", content: "noindex" }] }),
   component: Page,
@@ -15,6 +17,10 @@ function Page() {
   const [source, setSource] = useState("Articles");
   const [dims, setDims] = useState<string[]>(["Date","Section"]);
   const [metrics, setMetrics] = useState<string[]>(["Reads","Avg. read time"]);
+  
+  const { data, isLoading } = useReportPreview({ source, dims, metrics });
+  const previewData = data?.data || [];
+  
   const toggle = (arr: string[], v: string, setter: (a:string[])=>void) =>
     setter(arr.includes(v) ? arr.filter(x=>x!==v) : [...arr, v]);
   return (
@@ -53,12 +59,24 @@ function Page() {
             </div>
           </Card>
           <Card title="Preview" action={<span className="text-xs text-muted-foreground">Source: {source} · {dims.length} dim · {metrics.length} metrics</span>}>
-            <table className="w-full text-sm"><thead className="text-xs uppercase tracking-widest text-muted-foreground"><tr>{[...dims, ...metrics].map(h=><th key={h} className="text-left py-2 font-medium">{h}</th>)}</tr></thead>
-            <tbody>{Array.from({length:8}).map((_,i)=>(
-              <tr key={i} className="border-t border-rule/40">{[...dims, ...metrics].map((c,j)=>(
-                <td key={j} className="py-2 tabular-nums">{j<dims.length?["2026-07-"+String(13-i).padStart(2,"0"),["Politics","Science","Business","Technology","Sports","Culture","Opinion","World"][i]][j]||"—":Math.floor(2000+Math.random()*8000).toLocaleString()}</td>
-              ))}</tr>
-            ))}</tbody></table>
+            {isLoading ? (
+              <div className="p-4 space-y-3">
+                <div className="h-4 bg-secondary rounded w-full animate-pulse" />
+                <div className="h-4 bg-secondary rounded w-full animate-pulse" />
+                <div className="h-4 bg-secondary rounded w-full animate-pulse" />
+              </div>
+            ) : (
+              <table className="w-full text-sm"><thead className="text-xs uppercase tracking-widest text-muted-foreground"><tr>{[...dims, ...metrics].map(h=><th key={h} className="text-left py-2 font-medium">{h}</th>)}</tr></thead>
+              <tbody>{previewData.map((row: any, i: number)=>(
+                <tr key={i} className="border-t border-rule/40">{[...dims, ...metrics].map((c,j)=>(
+                  <td key={j} className="py-2 tabular-nums">{row[c] || "—"}</td>
+                ))}</tr>
+              ))}
+              {previewData.length === 0 && (
+                <tr><td colSpan={dims.length + metrics.length} className="py-4 text-center text-muted-foreground">No data available for this preview</td></tr>
+              )}
+              </tbody></table>
+            )}
           </Card>
           <Card title="Save & schedule">
             <div className="flex items-center gap-3">

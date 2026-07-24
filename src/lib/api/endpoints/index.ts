@@ -8,3 +8,7 @@ export * from './publications';
 export * from './orders';
 export * from './subscriptions';
 export * from './products';
+export * from './adminApi';
+export * from './couponsApi';
+export * from './analyticsApi';
+export * from './profile';

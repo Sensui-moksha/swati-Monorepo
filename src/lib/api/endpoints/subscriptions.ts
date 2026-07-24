@@ -31,10 +31,19 @@ export interface SubscriptionFilters extends PaginationParams {
 export const subscriptionsApi = {
   // Plans
   listPlans: (params?: PaginationParams & { active?: boolean; type?: string }) =>
-    apiClient.get<PaginatedResponse<SubscriptionPlan>>('/subscriptions/plans', { params }),
+    apiClient.get<PaginatedResponse<SubscriptionPlan>>('/plans', { params }),
 
   getPlan: (id: string) =>
-    apiClient.get<ApiResponse<SubscriptionPlan>>(`/subscriptions/plans/${id}`),
+    apiClient.get<ApiResponse<SubscriptionPlan>>(`/plans/${id}`),
+
+  createPlan: (data: Partial<SubscriptionPlan>) =>
+    apiClient.post<ApiResponse<SubscriptionPlan>>('/plans', data),
+
+  updatePlan: (id: string, data: Partial<SubscriptionPlan>) =>
+    apiClient.put<ApiResponse<SubscriptionPlan>>(`/plans/${id}`, data),
+
+  deletePlan: (id: string) =>
+    apiClient.delete<ApiResponse<void>>(`/plans/${id}`),
 
   // Subscriptions
   list: (params?: SubscriptionFilters) =>

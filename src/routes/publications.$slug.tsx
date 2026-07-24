@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { PublicPage } from "@/components/shells";
 import { Btn } from "@/components/ui-primitives";
-import { usePublicationBySlug } from "@/lib/api/hooks";
+import { usePublicationBySlug, useIssues } from "@/lib/api/hooks";
 import { formatDate } from "@/lib/utils";
 import { BookOpen } from "lucide-react";
 
@@ -15,6 +15,14 @@ function PublicationDetail() {
   const { slug } = Route.useParams();
   const { data, isLoading, error } = usePublicationBySlug(slug);
   const publication = data?.data;
+
+  // We only fetch issues if we have a publication ID
+  const { data: issuesData, isLoading: isLoadingIssues } = useIssues(
+    publication?.id as string, 
+    { limit: 10 }
+  );
+  // Ensure we only use this hook when we have an ID
+  const issues = (publication?.id && issuesData?.data) ? issuesData.data : [];
 
   if (isLoading) {
     return (
@@ -40,11 +48,21 @@ function PublicationDetail() {
           <div className="mt-6"><Btn><BookOpen className="w-4 h-4 mr-2" />Read Issue</Btn></div>
           <div className="mt-8 pt-6 border-t border-rule">
             <div className="text-xs uppercase text-muted-foreground mb-3">In this issue</div>
-            <ul className="space-y-2 text-sm">
-              {["The State of the Book", "Notes from the Editor", "Long Read: The Return of the Regional Bookshop", "Portfolio: Print in Practice", "Reviews & Recommendations"].map((t, i) => (
-                <li key={i} className="flex justify-between border-b border-rule/50 pb-2"><span>{t}</span><span className="text-muted-foreground">p. {2 + i * 6}</span></li>
-              ))}
-            </ul>
+            {isLoadingIssues ? (
+              <div className="space-y-2 text-sm animate-pulse">
+                {Array.from({ length: 3 }).map((_, i) => (
+                   <div key={i} className="h-6 bg-secondary rounded w-full" />
+                ))}
+              </div>
+            ) : issues.length > 0 ? (
+              <ul className="space-y-2 text-sm">
+                {issues.map((issue: any) => (
+                  <li key={issue.id} className="flex justify-between border-b border-rule/50 pb-2"><span>{issue.title}</span><span className="text-muted-foreground">Vol. {issue.volume} No. {issue.number}</span></li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-sm opacity-60 text-muted-foreground">No issues published yet.</div>
+            )}
           </div>
         </div>
       </div>

@@ -124,7 +124,21 @@ class ApiClient {
     let url = endpoint;
     if (!endpoint.startsWith('http')) {
       // The backend mounts commerce/admin routes at /api/v1 and core content routes at /api
-      const v1Routes = ['/access', '/admin', '/coupons', '/invoices', '/orders', '/payments', '/plans', '/promotions', '/reports', '/subscriptions', '/system', '/webhooks'];
+      const v1Routes = [
+        '/access',
+        '/admin',
+        '/coupons',
+        '/invoices',
+        '/orders',
+        '/payments',
+        '/plans',
+        '/products',
+        '/promotions',
+        '/reports',
+        '/subscriptions',
+        '/system',
+        '/webhooks',
+      ];
       const isV1Route = v1Routes.some(route => endpoint.startsWith(route));
       
       let base = this.baseURL;

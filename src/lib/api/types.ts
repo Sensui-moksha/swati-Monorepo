@@ -761,22 +761,27 @@ export interface AdminSession {
 }
 
 export interface AdminStats {
-  users: {
+  totalUsers?: number;
+  activeUsers?: number;
+  verifiedUsers?: number;
+  newUsers?: number;
+  totalRevenue?: number;
+  users?: {
     total: number;
     active: number;
     newThisMonth: number;
   };
-  content: {
+  content?: {
     articles: number;
     books: number;
     publications: number;
   };
-  commerce: {
+  commerce?: {
     orders: number;
     revenue: number;
     subscriptions: number;
   };
-  engagement: {
+  engagement?: {
     comments: number;
     bookmarks: number;
     highlights: number;

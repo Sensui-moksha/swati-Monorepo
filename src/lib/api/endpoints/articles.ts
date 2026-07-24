@@ -49,16 +49,7 @@ export const articlesApi = {
     apiClient.post<ApiResponse<Article>>(`/articles/${articleId}/versions/${version}/restore`),
 
   listCategories: (params?: PaginationParams): Promise<PaginatedResponse<Category>> => {
-    // Backend doesn't implement /categories yet, so we return a mock to prevent 404s
-    const mockCategories = [
-      { id: "politics", slug: "politics", name: "Politics", desc: "Policy, elections, governance." },
-      { id: "business", slug: "business", name: "Business", desc: "Markets, economy, enterprise." },
-      { id: "technology", slug: "technology", name: "Technology", desc: "Innovation, startups, AI." },
-      { id: "science", slug: "science", name: "Science", desc: "Research, discovery, climate." },
-      { id: "sports", slug: "sports", name: "Sports", desc: "Live scores, features, opinion." },
-      { id: "culture", slug: "culture", name: "Culture", desc: "Arts, cinema, literature." }
-    ] as Category[];
-    return Promise.resolve({ data: mockCategories, meta: { page: 1, limit: 10, total: 6, totalPages: 1 } });
+    return apiClient.get<PaginatedResponse<Category>>('/categories', { params });
   },
 
   getCategory: (id: string) =>

@@ -562,28 +562,50 @@ function ReaderSidebar({ book, sidebar, onClose, onGoto }:
                 <div className="mt-4 text-xs opacity-60">Type to search. Results appear here.</div>
               </div>
             )}
-            {sidebar === "bookmarks" && (
-              <div className="space-y-2 text-sm">
-                {[3, 12, 24].map((p) => (
-                  <button key={p} onClick={() => onGoto(p)} className="w-full text-left p-2 rounded hover:bg-white/10 flex items-center gap-2">
-                    <Bookmark className="w-4 h-4 text-primary" /><span>Page {p}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {sidebar === "notes" && (
-              <div className="space-y-3 text-sm">
-                {[{ p: 4, t: "Reference this quote." }, { p: 18, t: "Compare to introduction." }].map((n) => (
-                  <button key={n.p} onClick={() => onGoto(n.p)} className="w-full text-left p-3 rounded bg-white/5 hover:bg-white/10 block">
-                    <div className="text-xs opacity-60">Page {n.p}</div>
-                    <div>{n.t}</div>
-                  </button>
-                ))}
-              </div>
-            )}
+            {sidebar === "bookmarks" && <ReaderBookmarks onGoto={onGoto} />}
+            {sidebar === "notes" && <ReaderNotes onGoto={onGoto} />}
           </div>
         </motion.aside>
       )}
     </AnimatePresence>
+  );
+}
+
+import { useBookmarks, useNotes } from "@/lib/api/hooks";
+
+function ReaderBookmarks({ onGoto }: { onGoto: (page: number) => void }) {
+  const { data: bookmarksData, isLoading } = useBookmarks();
+  const bookmarks = bookmarksData?.data || [];
+
+  if (isLoading) return <div className="text-sm opacity-60">Loading bookmarks...</div>;
+  if (bookmarks.length === 0) return <div className="text-sm opacity-60">No bookmarks yet.</div>;
+
+  return (
+    <div className="space-y-2 text-sm">
+      {bookmarks.map((p: number) => (
+        <button key={p} onClick={() => onGoto(p)} className="w-full text-left p-2 rounded hover:bg-white/10 flex items-center gap-2">
+          <Bookmark className="w-4 h-4 text-primary" /><span>Page {p}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ReaderNotes({ onGoto }: { onGoto: (page: number) => void }) {
+  const { data: notesData, isLoading } = useNotes();
+  const notes = notesData?.data || [];
+
+  if (isLoading) return <div className="text-sm opacity-60">Loading notes...</div>;
+  if (notes.length === 0) return <div className="text-sm opacity-60">No notes yet.</div>;
+
+  return (
+    <div className="space-y-3 text-sm">
+      {notes.map((n: { p: number, t: string }, i: number) => (
+        <button key={i} onClick={() => onGoto(n.p)} className="w-full text-left p-3 rounded bg-white/5 hover:bg-white/10 block">
+          <div className="text-xs opacity-60">Page {n.p}</div>
+          <div>{n.t}</div>
+        </button>
+      ))}
+    </div>
   );
 }

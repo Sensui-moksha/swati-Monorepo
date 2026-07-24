@@ -56,7 +56,7 @@ export const usersApi = {
     apiClient.get<ApiResponse<User>>(`/users/${id}`),
 
   getCurrent: () =>
-    apiClient.get<ApiResponse<User>>('/users/me'),
+    apiClient.get<ApiResponse<User>>('/auth/me'),
 
   create: (data: CreateUserData) =>
     apiClient.post<ApiResponse<User>>('/users', data),
@@ -151,7 +151,7 @@ export const usersApi = {
       usersByRole: Record<string, number>;
       usersByStatus: Record<string, number>;
       registrationsByPeriod: Array<{ period: string; count: number }>;
-    }>>('/users/stats', { params }),
+    }>>('/admin/stats/users', { params }),
 
   // Export
   export: (params?: UserFilters & { format?: 'csv' | 'xlsx' }) =>

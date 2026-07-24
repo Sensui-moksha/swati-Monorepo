@@ -164,3 +164,29 @@ export function Btn({ children, variant = "primary", size = "md", className, ...
   const sizing = size === "sm" ? "px-2.5 py-1 text-xs" : "px-4 py-2 text-sm";
   return <button {...rest} className={cn("inline-flex items-center justify-center font-medium rounded-md transition", sizing, styles, className)}>{children}</button>;
 }
+
+export function Input({ className, ...rest }: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      className={cn(
+        "flex h-9 w-full rounded-md border border-rule bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...rest}
+    />
+  );
+}
+
+export function Label({ className, children, ...rest }: React.LabelHTMLAttributes<HTMLLabelElement>) {
+  return (
+    <label
+      className={cn(
+        "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+        className
+      )}
+      {...rest}
+    >
+      {children}
+    </label>
+  );
+}

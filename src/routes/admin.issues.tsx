@@ -1,8 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/shells";
 import { PageHeader, Btn, StatusPill, KpiCard, Card } from "@/components/ui-primitives";
+import { useAdminGeneric } from "@/lib/api/hooks";
+
 export const Route = createFileRoute("/admin/issues")({
-  component: () => (
+  component: Page,
+});
+
+function Page() {
+  const { data, isLoading } = useAdminGeneric("issues");
+  const items = data?.data ?? [];
+
+  return (
     <AdminShell>
       <PageHeader eyebrow="Admin" title="Magazine Issues" description="Individual issue records and release pipeline." actions={<Btn>New</Btn>} />
       <div className="flex flex-wrap gap-2 mb-6">
@@ -16,22 +25,26 @@ export const Route = createFileRoute("/admin/issues")({
             <tr>{["Name","Status","Owner","Updated",""].map((h)=>(<th key={h} className="text-left px-4 py-3 font-medium">{h}</th>))}</tr>
           </thead>
           <tbody>
-            {Array.from({length:12}).map((_,i)=>(
-              <tr key={i} className="border-t border-rule/50 hover:bg-secondary/30">
-                <td className="px-4 py-3 font-medium">Magazine Issues record #{1000+i}</td>
-                <td className="px-4 py-3"><StatusPill status={["Active","Draft","Archived","Active"][i%4]} /></td>
-                <td className="px-4 py-3 text-muted-foreground">{["R. Iyer","M. Sundaram","N. Ravi","S. Krishnan"][i%4]}</td>
-                <td className="px-4 py-3 text-muted-foreground tabular-nums">2026-07-{String(13-(i%13)).padStart(2,'0')}</td>
+            {isLoading ? (
+              <tr><td colSpan={5} className="p-4 text-center">Loading...</td></tr>
+            ) : items.length === 0 ? (
+              <tr><td colSpan={5} className="p-4 text-center">No records found</td></tr>
+            ) : items.map((row: any) => (
+              <tr key={row.id} className="border-t border-rule/50 hover:bg-secondary/30">
+                <td className="px-4 py-3 font-medium">Magazine Issues record #{row.id || 'N/A'}</td>
+                <td className="px-4 py-3"><StatusPill status={row.status || 'Active'} /></td>
+                <td className="px-4 py-3 text-muted-foreground">{row.owner || 'System'}</td>
+                <td className="px-4 py-3 text-muted-foreground tabular-nums">{row.updatedAt ? new Date(row.updatedAt).toLocaleDateString() : '-'}</td>
                 <td className="px-4 py-3 text-right"><Btn size="sm" variant="outline">Edit</Btn></td>
               </tr>
             ))}
           </tbody>
         </table>
         <div className="flex items-center justify-between px-4 py-3 text-xs text-muted-foreground border-t border-rule/50">
-          <span>Showing 1–12 of 248</span>
+          <span>Showing {items.length} of {data?.meta?.total ?? items.length}</span>
           <div className="flex gap-1"><Btn size="sm" variant="outline">Prev</Btn><Btn size="sm" variant="outline">Next</Btn></div>
         </div>
       </div>
     </AdminShell>
-  ),
-});
+  );
+}

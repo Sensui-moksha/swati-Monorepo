@@ -144,6 +144,7 @@ import { Route as AdminArchiveRouteImport } from './routes/admin.archive'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AccountSubscriptionRouteImport } from './routes/account.subscription'
 import { Route as AccountSecurityRouteImport } from './routes/account.security'
+import { Route as AccountProfileRouteImport } from './routes/account.profile'
 import { Route as AccountPreferencesRouteImport } from './routes/account.preferences'
 import { Route as AccountPaymentMethodsRouteImport } from './routes/account.payment-methods'
 import { Route as AccountOrdersRouteImport } from './routes/account.orders'
@@ -864,6 +865,11 @@ const AccountSecurityRoute = AccountSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountProfileRoute = AccountProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountPreferencesRoute = AccountPreferencesRouteImport.update({
   id: '/preferences',
   path: '/preferences',
@@ -1132,6 +1138,7 @@ export interface FileRoutesByFullPath {
   '/account/orders': typeof AccountOrdersRoute
   '/account/payment-methods': typeof AccountPaymentMethodsRoute
   '/account/preferences': typeof AccountPreferencesRoute
+  '/account/profile': typeof AccountProfileRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/subscription': typeof AccountSubscriptionRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
@@ -1303,6 +1310,7 @@ export interface FileRoutesByTo {
   '/account/orders': typeof AccountOrdersRoute
   '/account/payment-methods': typeof AccountPaymentMethodsRoute
   '/account/preferences': typeof AccountPreferencesRoute
+  '/account/profile': typeof AccountProfileRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/subscription': typeof AccountSubscriptionRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
@@ -1484,6 +1492,7 @@ export interface FileRoutesById {
   '/account/orders': typeof AccountOrdersRoute
   '/account/payment-methods': typeof AccountPaymentMethodsRoute
   '/account/preferences': typeof AccountPreferencesRoute
+  '/account/profile': typeof AccountProfileRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/subscription': typeof AccountSubscriptionRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
@@ -1667,6 +1676,7 @@ export interface FileRouteTypes {
     | '/account/orders'
     | '/account/payment-methods'
     | '/account/preferences'
+    | '/account/profile'
     | '/account/security'
     | '/account/subscription'
     | '/admin/analytics'
@@ -1838,6 +1848,7 @@ export interface FileRouteTypes {
     | '/account/orders'
     | '/account/payment-methods'
     | '/account/preferences'
+    | '/account/profile'
     | '/account/security'
     | '/account/subscription'
     | '/admin/analytics'
@@ -2018,6 +2029,7 @@ export interface FileRouteTypes {
     | '/account/orders'
     | '/account/payment-methods'
     | '/account/preferences'
+    | '/account/profile'
     | '/account/security'
     | '/account/subscription'
     | '/admin/analytics'
@@ -3146,6 +3158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountSecurityRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/profile': {
+      id: '/account/profile'
+      path: '/profile'
+      fullPath: '/account/profile'
+      preLoaderRoute: typeof AccountProfileRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/preferences': {
       id: '/account/preferences'
       path: '/preferences'
@@ -3467,6 +3486,7 @@ interface AccountRouteChildren {
   AccountOrdersRoute: typeof AccountOrdersRoute
   AccountPaymentMethodsRoute: typeof AccountPaymentMethodsRoute
   AccountPreferencesRoute: typeof AccountPreferencesRoute
+  AccountProfileRoute: typeof AccountProfileRoute
   AccountSecurityRoute: typeof AccountSecurityRoute
   AccountSubscriptionRoute: typeof AccountSubscriptionRoute
   AccountIndexRoute: typeof AccountIndexRoute
@@ -3482,6 +3502,7 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountOrdersRoute: AccountOrdersRoute,
   AccountPaymentMethodsRoute: AccountPaymentMethodsRoute,
   AccountPreferencesRoute: AccountPreferencesRoute,
+  AccountProfileRoute: AccountProfileRoute,
   AccountSecurityRoute: AccountSecurityRoute,
   AccountSubscriptionRoute: AccountSubscriptionRoute,
   AccountIndexRoute: AccountIndexRoute,
