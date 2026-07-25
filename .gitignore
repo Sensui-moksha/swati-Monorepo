@@ -6,6 +6,7 @@ node_modules/
 # Build outputs
 dist/
 build/
+
 *.tsbuildinfo
 
 # Environment files
@@ -47,6 +48,12 @@ uploads/
 # Cache
 .cache/
 .eslintcache
+
+# Client apps
+swati-clientside/
+
+# Client apps
+swathi-client/
 .stylelintcache
 
 # Graphify output
