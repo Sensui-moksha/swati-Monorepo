@@ -9,6 +9,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { SubscriptionPlan } from "@/lib/api/types";
 
+import { queryKeys } from "@/lib/api/queryKeys";
+
 export const Route = createFileRoute("/admin/subscriptions")({
   component: AdminSubscriptionsPage,
 });
@@ -24,13 +26,19 @@ function AdminSubscriptionsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
 
+  const invalidatePlans = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.subscriptions.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.subscriptions.plans() });
+    queryClient.refetchQueries({ queryKey: queryKeys.subscriptions.plans() });
+  };
+
   const createPlanMutation = useMutation({
     mutationFn: (plan: any) => subscriptionsApi.createPlan(plan),
     onSuccess: () => {
       toast.success("Subscription plan created");
       setIsCreating(false);
       setEditingPlan(null);
-      queryClient.invalidateQueries({ queryKey: ["subscriptionPlans"] });
+      invalidatePlans();
     },
     onError: (err: any) => toast.error(err?.message || "Failed to create plan"),
   });
@@ -40,7 +48,7 @@ function AdminSubscriptionsPage() {
     onSuccess: () => {
       toast.success("Subscription plan updated");
       setEditingPlan(null);
-      queryClient.invalidateQueries({ queryKey: ["subscriptionPlans"] });
+      invalidatePlans();
     },
     onError: (err: any) => toast.error(err?.message || "Failed to update plan"),
   });
@@ -50,7 +58,7 @@ function AdminSubscriptionsPage() {
     onSuccess: () => {
       toast.success("Plan deleted successfully");
       setDeletingPlanId(null);
-      queryClient.invalidateQueries({ queryKey: ["subscriptionPlans"] });
+      invalidatePlans();
     },
     onError: (err: any) => toast.error(err?.message || "Failed to delete plan"),
   });

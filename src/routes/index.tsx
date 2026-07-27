@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site-layout";
-import { useFeaturedArticles, useArticles, useLatestArticles, useTrendingArticles, useTopStories, useCategories } from "@/lib/api/hooks";
+import { useFeaturedArticles, useArticles, useLatestArticles, useTrendingArticles, useTopStories, useCategories, useSubscriptionPlans } from "@/lib/api/hooks";
 import { formatDate, formatShortDate } from "@/lib/utils";
 import { ArrowRight, BookOpen, ShieldCheck, Sparkles, Newspaper, TrendingUp, Check } from "lucide-react";
 
@@ -21,6 +21,7 @@ function HomePage() {
   const { data: articlesData } = useArticles({ limit: 3 });
   const { data: latestData } = useLatestArticles({ limit: 5 });
   const { data: trendingData } = useTrendingArticles({ limit: 5 });
+  const { data: plansData } = useSubscriptionPlans();
 
   const featured = featuredData?.data?.[0];
   const topStories = topStoriesData?.data ?? [];
@@ -28,6 +29,10 @@ function HomePage() {
   const articles = articlesData?.data ?? [];
   const latest = latestData?.data ?? [];
   const trending = trendingData?.data ?? [];
+  const plans = plansData?.data ?? [];
+
+  const featuredPlan = plans.find((p) => p.isActive) || plans[0];
+  const minPrice = plans.length > 0 ? Math.min(...plans.map((p) => p.price)) : 0;
 
   return (
     <SiteLayout>
@@ -174,36 +179,49 @@ function HomePage() {
 
 
 
-      {/* Subscription */}
+      {/* Subscription Section */}
       <section className="container-edit py-20">
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <div className="eyebrow flex items-center gap-2"><Sparkles className="h-3.5 w-3.5" /> Premium Membership</div>
-            <h2 className="mt-3 font-serif text-4xl md:text-5xl leading-tight">Support independent journalism.</h2>
+            <div className="eyebrow flex items-center gap-2"><Sparkles className="h-3.5 w-3.5 text-primary" /> Swathi Digital Pass</div>
+            <h2 className="mt-3 font-serif text-4xl md:text-5xl leading-tight">Read Telugu's most loved weekly magazine online.</h2>
             <p className="mt-4 text-muted-foreground max-w-lg">
-              A Swathi subscription funds original reporting, deep investigations, and a print edition that still lands on doorsteps every Sunday.
+              Get unlimited digital access to Swathi Weekly (స్వాతి వారపత్రిక), popular serials, special edition novels, literary commentary, and weekly supplements anytime on any device.
             </p>
             <ul className="mt-6 space-y-2 text-sm">
-              {["Unlimited access to premium articles", "The weekly print edition, delivered", "Full archive since 1998", "Exclusive editor briefings"].map((b) => (
+              {[
+                "Unlimited digital access to Swathi Weekly editions",
+                "Full archive of serialized novels & short stories",
+                "Built-in interactive PDF & flipbook magazine reader",
+                "Instant access to new weekly supplements & specials"
+              ].map((b) => (
                 <li key={b} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 shrink-0" /> {b}</li>
               ))}
             </ul>
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Link to="/pricing" className="bg-primary text-primary-foreground px-6 py-3 text-sm font-medium hover:bg-primary/90">Subscribe from ₹199/mo</Link>
-              <Link to="/pricing" className="text-sm text-primary hover:underline">Compare plans →</Link>
+              <Link to="/pricing" className="bg-primary text-primary-foreground px-6 py-3 text-sm font-medium hover:bg-primary/90 transition-colors">
+                {minPrice > 0 ? `Subscribe from ₹${minPrice}/mo` : "Explore Subscription Plans"}
+              </Link>
+              <Link to="/pricing" className="text-sm text-primary hover:underline">Compare all plans →</Link>
             </div>
           </div>
-          <div className="relative border border-rule p-8 bg-secondary/40">
-            <div className="eyebrow">Featured Plan</div>
-            <div className="mt-2 font-serif text-3xl">Digital + Print</div>
+
+          <div className="relative border border-rule p-8 bg-paper rounded-2xl shadow-sm">
+            <div className="eyebrow text-primary font-semibold">Featured Plan</div>
+            <div className="mt-2 font-serif text-3xl font-bold">{featuredPlan ? featuredPlan.name : "Swathi Weekly Digital Pass"}</div>
             <div className="mt-4 flex items-baseline gap-1">
-              <span className="font-serif text-6xl">₹449</span>
-              <span className="text-muted-foreground">/month</span>
+              <span className="font-serif text-5xl md:text-6xl font-bold text-foreground">₹{featuredPlan ? featuredPlan.price : 299}</span>
+              <span className="text-muted-foreground">/{featuredPlan?.interval || "month"}</span>
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">Billed monthly. Cancel anytime.</div>
+            <div className="mt-2 text-xs text-muted-foreground">Billed {featuredPlan?.interval || "monthly"}. Cancel anytime.</div>
             <div className="rule-top mt-6 pt-6 space-y-2 text-sm">
-              {["Everything in Digital", "Weekly print edition", "Home delivery across India", "Full archive access"].map((b) => (
-                <div key={b} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5" /> {b}</div>
+              {(featuredPlan?.features?.length ? featuredPlan.features : [
+                "Full Swathi Weekly digital editions",
+                "Unlimited access to serials & novels library",
+                "High-resolution interactive flipbook reader",
+                "Cross-device reading sync"
+              ]).map((b) => (
+                <div key={b} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 shrink-0" /> {b}</div>
               ))}
             </div>
           </div>
