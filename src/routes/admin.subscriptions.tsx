@@ -22,9 +22,10 @@ function AdminSubscriptionsPage() {
 
   const [editingPlan, setEditingPlan] = useState<Partial<SubscriptionPlan> | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
 
   const createPlanMutation = useMutation({
-    mutationFn: (plan: Partial<SubscriptionPlan>) => subscriptionsApi.createPlan(plan),
+    mutationFn: (plan: any) => subscriptionsApi.createPlan(plan),
     onSuccess: () => {
       toast.success("Subscription plan created");
       setIsCreating(false);
@@ -35,7 +36,7 @@ function AdminSubscriptionsPage() {
   });
 
   const updatePlanMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<SubscriptionPlan> }) => subscriptionsApi.updatePlan(id, data),
+    mutationFn: ({ id, data }: { id: string; data: any }) => subscriptionsApi.updatePlan(id, data),
     onSuccess: () => {
       toast.success("Subscription plan updated");
       setEditingPlan(null);
@@ -44,6 +45,22 @@ function AdminSubscriptionsPage() {
     onError: (err: any) => toast.error(err?.message || "Failed to update plan"),
   });
 
+  const deletePlanMutation = useMutation({
+    mutationFn: (id: string) => subscriptionsApi.deletePlan(id),
+    onSuccess: () => {
+      toast.success("Plan deleted successfully");
+      setDeletingPlanId(null);
+      queryClient.invalidateQueries({ queryKey: ["subscriptionPlans"] });
+    },
+    onError: (err: any) => toast.error(err?.message || "Failed to delete plan"),
+  });
+
+  const mapIntervalToBillingCycle = (interval?: string) => {
+    if (interval === "year") return "annual";
+    if (interval === "lifetime") return "lifetime";
+    return "monthly";
+  };
+
   const handleSavePlan = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingPlan?.name || editingPlan?.price === undefined) {
@@ -51,14 +68,24 @@ function AdminSubscriptionsPage() {
       return;
     }
 
+    const payload = {
+      name: editingPlan.name,
+      slug: editingPlan.slug || editingPlan.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      price: Number(editingPlan.price),
+      interval: editingPlan.interval || "month",
+      billingCycle: mapIntervalToBillingCycle(editingPlan.interval),
+      isActive: editingPlan.isActive ?? true,
+    };
+
     if (editingPlan.id) {
-      updatePlanMutation.mutate({ id: editingPlan.id, data: editingPlan });
+      updatePlanMutation.mutate({ id: editingPlan.id, data: payload });
     } else {
-      createPlanMutation.mutate({
-        ...editingPlan,
-        slug: editingPlan.slug || editingPlan.name.toLowerCase().replace(/\s+/g, "-"),
-      });
+      createPlanMutation.mutate(payload);
     }
+  };
+
+  const confirmDelete = (id: string) => {
+    deletePlanMutation.mutate(id);
   };
 
   return (
@@ -83,7 +110,7 @@ function AdminSubscriptionsPage() {
                 id="planName"
                 value={editingPlan.name || ""}
                 onChange={(e) => setEditingPlan({ ...editingPlan, name: e.target.value })}
-                placeholder="e.g. Pro Monthly Plan"
+                placeholder="e.g. Monthly Digital Pass"
                 required
               />
             </div>
@@ -141,40 +168,77 @@ function AdminSubscriptionsPage() {
               <div className="h-10 bg-secondary rounded animate-pulse" />
               <div className="h-10 bg-secondary rounded animate-pulse" />
             </div>
-          ) : (
+          ) : plans.length > 0 ? (
             <ul className="divide-y divide-rule text-sm">
               {plans.map((p) => (
-                <li key={p.id} className="py-3 flex justify-between items-center">
+                <li key={p.id} className="py-3 flex justify-between items-center gap-4">
                   <div>
                     <div className="font-medium">{p.name}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{p.interval} billing</div>
+                    <div className="text-xs text-muted-foreground capitalize">{p.interval || "month"} billing</div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <div className="text-right">
                       <div className="font-semibold">{formatINR(p.price)}</div>
                       <StatusBadge status={p.isActive ? "Active" : "Inactive"} />
                     </div>
-                    <Btn size="sm" variant="outline" onClick={() => { setEditingPlan(p); setIsCreating(false); }}>
-                      Edit
-                    </Btn>
+                    {deletingPlanId === p.id ? (
+                      <div className="flex items-center gap-1.5 bg-red-50 p-1 rounded border border-red-200">
+                        <span className="text-xs text-red-700 font-medium px-1">Delete?</span>
+                        <button
+                          type="button"
+                          onClick={() => confirmDelete(p.id)}
+                          disabled={deletePlanMutation.isPending}
+                          className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 font-semibold transition"
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeletingPlanId(null)}
+                          className="px-2 py-1 bg-secondary text-foreground rounded text-xs hover:bg-stone-200 font-medium transition"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Btn size="sm" variant="outline" onClick={() => { setEditingPlan(p); setIsCreating(false); }}>
+                          Edit
+                        </Btn>
+                        <Btn size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeletingPlanId(p.id)}>
+                          Delete
+                        </Btn>
+                      </div>
+                    )}
                   </div>
                 </li>
               ))}
             </ul>
+          ) : (
+            <div className="py-8 text-center space-y-3">
+              <div className="text-muted-foreground text-sm">No subscription plans created yet.</div>
+              <Btn size="sm" onClick={() => { setEditingPlan({ name: "", price: 299, interval: "month", isActive: true }); setIsCreating(true); }}>
+                + Create First Plan
+              </Btn>
+            </div>
           )}
         </Card>
 
         <Card title="Recent Subscribers">
           <ul className="divide-y divide-rule text-sm">
-            {users.map((u) => (
-              <li key={u.id} className="py-3 flex justify-between items-center">
-                <div>
-                  <div className="font-medium">{u.name}</div>
-                  <div className="text-xs text-muted-foreground">{u.email}</div>
-                </div>
-                <StatusBadge status={u.status || "Active"} />
-              </li>
-            ))}
+            {users.length > 0 ? (
+              users.map((u) => (
+                <li key={u.id} className="py-3 flex justify-between items-center">
+                  <div>
+                    <div className="font-medium">{u.name}</div>
+                    <div className="text-xs text-muted-foreground">{u.email}</div>
+                  </div>
+                  <StatusBadge status={u.status || "Active"} />
+                </li>
+              ))
+            ) : (
+              <li className="py-4 text-center text-muted-foreground text-sm">No recent subscribers</li>
+            )}
           </ul>
         </Card>
       </div>

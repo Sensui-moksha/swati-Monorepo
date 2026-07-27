@@ -184,7 +184,7 @@ function HomePage() {
               A Swathi subscription funds original reporting, deep investigations, and a print edition that still lands on doorsteps every Sunday.
             </p>
             <ul className="mt-6 space-y-2 text-sm">
-              {["Unlimited access to premium articles","The weekly print edition, delivered","Full archive since 1998","Exclusive editor briefings"].map((b) => (
+              {["Unlimited access to premium articles", "The weekly print edition, delivered", "Full archive since 1998", "Exclusive editor briefings"].map((b) => (
                 <li key={b} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 shrink-0" /> {b}</li>
               ))}
             </ul>
@@ -202,7 +202,7 @@ function HomePage() {
             </div>
             <div className="mt-2 text-xs text-muted-foreground">Billed monthly. Cancel anytime.</div>
             <div className="rule-top mt-6 pt-6 space-y-2 text-sm">
-              {["Everything in Digital","Weekly print edition","Home delivery across India","Full archive access"].map((b) => (
+              {["Everything in Digital", "Weekly print edition", "Home delivery across India", "Full archive access"].map((b) => (
                 <div key={b} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5" /> {b}</div>
               ))}
             </div>

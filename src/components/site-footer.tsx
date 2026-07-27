@@ -25,7 +25,7 @@ export function SiteFooter() {
               <a href="#" aria-label="LinkedIn" className="hover:text-primary"><Linkedin className="h-4 w-4" /></a>
             </div>
           </div>
-          <FooterCol title="Company" links={[["About", "/about"], ["Careers", "/about"], ["Contact", "/contact"]]} />
+          <FooterCol title="Company" links={[["About", "/about"], ["Contact", "/contact"]]} />
           <FooterCol title="Resources" links={[["Publications", "/articles"], ["Categories", "/categories"], ["Pricing", "/pricing"]]} />
           <FooterCol title="Support" links={[["FAQs", "/contact"], ["Privacy Policy", "/about"], ["Terms of Service", "/about"], ["Admin", "/admin"]]} />
         </div>

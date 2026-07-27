@@ -82,7 +82,6 @@ import { Route as DiscoverSavedSearchesRouteImport } from './routes/discover.sav
 import { Route as DiscoverRecommendationsRouteImport } from './routes/discover.recommendations'
 import { Route as DiscoverNewRouteImport } from './routes/discover.new'
 import { Route as DiscoverHistoryRouteImport } from './routes/discover.history'
-import { Route as DiscoverFiltersRouteImport } from './routes/discover.filters'
 import { Route as DashboardTrendingRouteImport } from './routes/dashboard.trending'
 import { Route as DashboardStatsRouteImport } from './routes/dashboard.stats'
 import { Route as DashboardRecommendedRouteImport } from './routes/dashboard.recommended'
@@ -550,11 +549,6 @@ const DiscoverNewRoute = DiscoverNewRouteImport.update({
 const DiscoverHistoryRoute = DiscoverHistoryRouteImport.update({
   id: '/history',
   path: '/history',
-  getParentRoute: () => DiscoverRoute,
-} as any)
-const DiscoverFiltersRoute = DiscoverFiltersRouteImport.update({
-  id: '/filters',
-  path: '/filters',
   getParentRoute: () => DiscoverRoute,
 } as any)
 const DashboardTrendingRoute = DashboardTrendingRouteImport.update({
@@ -1179,7 +1173,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/recommended': typeof DashboardRecommendedRoute
   '/dashboard/stats': typeof DashboardStatsRoute
   '/dashboard/trending': typeof DashboardTrendingRoute
-  '/discover/filters': typeof DiscoverFiltersRoute
   '/discover/history': typeof DiscoverHistoryRoute
   '/discover/new': typeof DiscoverNewRoute
   '/discover/recommendations': typeof DiscoverRecommendationsRoute
@@ -1347,7 +1340,6 @@ export interface FileRoutesByTo {
   '/dashboard/recommended': typeof DashboardRecommendedRoute
   '/dashboard/stats': typeof DashboardStatsRoute
   '/dashboard/trending': typeof DashboardTrendingRoute
-  '/discover/filters': typeof DiscoverFiltersRoute
   '/discover/history': typeof DiscoverHistoryRoute
   '/discover/new': typeof DiscoverNewRoute
   '/discover/recommendations': typeof DiscoverRecommendationsRoute
@@ -1527,7 +1519,6 @@ export interface FileRoutesById {
   '/dashboard/recommended': typeof DashboardRecommendedRoute
   '/dashboard/stats': typeof DashboardStatsRoute
   '/dashboard/trending': typeof DashboardTrendingRoute
-  '/discover/filters': typeof DiscoverFiltersRoute
   '/discover/history': typeof DiscoverHistoryRoute
   '/discover/new': typeof DiscoverNewRoute
   '/discover/recommendations': typeof DiscoverRecommendationsRoute
@@ -1708,7 +1699,6 @@ export interface FileRouteTypes {
     | '/dashboard/recommended'
     | '/dashboard/stats'
     | '/dashboard/trending'
-    | '/discover/filters'
     | '/discover/history'
     | '/discover/new'
     | '/discover/recommendations'
@@ -1876,7 +1866,6 @@ export interface FileRouteTypes {
     | '/dashboard/recommended'
     | '/dashboard/stats'
     | '/dashboard/trending'
-    | '/discover/filters'
     | '/discover/history'
     | '/discover/new'
     | '/discover/recommendations'
@@ -2055,7 +2044,6 @@ export interface FileRouteTypes {
     | '/dashboard/recommended'
     | '/dashboard/stats'
     | '/dashboard/trending'
-    | '/discover/filters'
     | '/discover/history'
     | '/discover/new'
     | '/discover/recommendations'
@@ -2686,13 +2674,6 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/discover/history'
       preLoaderRoute: typeof DiscoverHistoryRouteImport
-      parentRoute: typeof DiscoverRoute
-    }
-    '/discover/filters': {
-      id: '/discover/filters'
-      path: '/filters'
-      fullPath: '/discover/filters'
-      preLoaderRoute: typeof DiscoverFiltersRouteImport
       parentRoute: typeof DiscoverRoute
     }
     '/dashboard/trending': {
@@ -3754,7 +3735,6 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 )
 
 interface DiscoverRouteChildren {
-  DiscoverFiltersRoute: typeof DiscoverFiltersRoute
   DiscoverHistoryRoute: typeof DiscoverHistoryRoute
   DiscoverNewRoute: typeof DiscoverNewRoute
   DiscoverRecommendationsRoute: typeof DiscoverRecommendationsRoute
@@ -3764,7 +3744,6 @@ interface DiscoverRouteChildren {
 }
 
 const DiscoverRouteChildren: DiscoverRouteChildren = {
-  DiscoverFiltersRoute: DiscoverFiltersRoute,
   DiscoverHistoryRoute: DiscoverHistoryRoute,
   DiscoverNewRoute: DiscoverNewRoute,
   DiscoverRecommendationsRoute: DiscoverRecommendationsRoute,

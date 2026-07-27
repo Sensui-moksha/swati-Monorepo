@@ -24,8 +24,8 @@ function DiscoverIndex() {
         <input placeholder="Search titles, authors, topics..." className="w-full border border-rule pl-10 pr-4 py-3 rounded-md bg-paper" />
       </div>
       <div className="flex gap-2 flex-wrap mb-10">
-        {["/discover/trending","/discover/new","/discover/recommendations","/discover/filters","/discover/saved-searches","/discover/history"].map((h, i) => (
-          <Link key={h} to={h as any} className="border border-rule px-4 py-1.5 rounded-full text-sm hover:bg-secondary">{["Trending","New","Recommendations","Filters","Saved Searches","Search History"][i]}</Link>
+        {["/discover/trending","/discover/new","/discover/recommendations","/discover/saved-searches","/discover/history"].map((h, i) => (
+          <Link key={h} to={h as any} className="border border-rule px-4 py-1.5 rounded-full text-sm hover:bg-secondary">{["Trending","New","Recommendations","Saved Searches","Search History"][i]}</Link>
         ))}
       </div>
       <SectionTitle eyebrow="Popular" title="Trending This Week" href="/discover/trending" />
