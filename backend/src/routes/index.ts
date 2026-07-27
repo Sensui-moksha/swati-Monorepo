@@ -74,6 +74,8 @@ router.use("/publishing", publishingRoutes);
 import productsRoutes from "./products";
 
 // Commerce Infrastructure Routes
+router.use("/plans", plansRoutes);
+router.use("/subscriptions", subscriptionsRoutes);
 router.use("/v1/plans", plansRoutes);
 router.use("/v1/subscriptions", subscriptionsRoutes);
 router.use("/v1/products", productsRoutes);

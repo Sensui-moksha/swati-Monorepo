@@ -16,8 +16,11 @@ export class PlanService {
   }
 
   async deletePlan(id: string): Promise<void> {
-    const deleted = await planRepository.softDelete(id);
-    if (!deleted) throw new ApiError(404, "Plan not found");
+    const deleted = await planRepository.deleteById(id);
+    if (!deleted) {
+      const softDeleted = await planRepository.softDelete(id);
+      if (!softDeleted) throw new ApiError(404, "Plan not found");
+    }
   }
 
   async archivePlan(id: string): Promise<IPlan> {
@@ -38,7 +41,7 @@ export class PlanService {
   }
   async listPlans(page = 1, limit = 20) {
     return planRepository.findWithPagination(
-      {},
+      { isDeleted: { $ne: true } },
       { page, limit, sort: { sortOrder: 1, name: 1 } },
     );
   }
