@@ -569,6 +569,36 @@ export function useAdminGeneric(entity: string, params?: PaginationParams) {
   });
 }
 
+export function useCreateAdminEntity(entity: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => adminApi.createGeneric(entity, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.generic(entity) });
+    },
+  });
+}
+
+export function useUpdateAdminEntity(entity: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => adminApi.updateGeneric(entity, id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.generic(entity) });
+    },
+  });
+}
+
+export function useDeleteAdminEntity(entity: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminApi.deleteGeneric(entity, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.generic(entity) });
+    },
+  });
+}
+
 export function useReportPreview(params: { source: string, dims: string[], metrics: string[] }) {
   return useQuery({
     queryKey: queryKeys.admin.reportPreview(params),

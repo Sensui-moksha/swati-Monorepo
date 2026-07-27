@@ -1,16 +1,46 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Bell, Search, LogOut, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { ADMIN_GROUPS } from "@/components/shells";
 import { cn } from "@/lib/utils";
+import { useAdminNotifications } from "@/lib/api/hooks";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Swathi Publications" }, { name: "robots", content: "noindex" }] }),
   component: AdminLayout,
 });
 
+function AdminHeaderSearch() {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate({ to: "/admin/search", search: { q: searchTerm.trim() } as any });
+    }
+  };
+
+  return (
+    <form onSubmit={handleSearch} className="flex-1 max-w-md relative">
+      <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      <input
+        type="search"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search users, articles, books, publications..."
+        className="w-full border border-input pl-9 pr-3 py-1.5 text-sm rounded-md bg-secondary/30 focus:bg-paper focus:outline-none focus:ring-1 focus:ring-primary"
+      />
+    </form>
+  );
+}
+
 function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { data: notifData } = useAdminNotifications();
+  const notifications = notifData?.data ?? [];
+  const unreadCount = notifications.filter((n: any) => !n.isRead && n.status !== "Read" && n.read !== true).length;
+
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(ADMIN_GROUPS.map((g) => [g.label, g.links.some((l) => path === l.to || path.startsWith(l.to + "/"))]))
   );
@@ -49,11 +79,15 @@ function AdminLayout() {
       </aside>
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="h-14 border-b border-rule bg-paper flex items-center gap-4 px-6 sticky top-0 z-30">
-          <Link to="/admin/search" className="flex-1 max-w-md relative">
-            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <div className="w-full border border-input pl-9 pr-3 py-1.5 text-sm rounded-md text-muted-foreground bg-secondary/30">Search users, articles, transactions...</div>
+          <AdminHeaderSearch />
+          <Link to="/admin/notifications" className="relative text-muted-foreground hover:text-primary" title="Notifications">
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold grid place-items-center animate-in zoom-in-50">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </Link>
-          <Link to="/admin/notifications" className="relative text-muted-foreground hover:text-primary"><Bell className="h-5 w-5" /><span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] grid place-items-center">3</span></Link>
           <div className="h-8 w-8 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-semibold">R</div>
         </header>
         <main className="flex-1 p-8 overflow-x-hidden"><Outlet /></main>

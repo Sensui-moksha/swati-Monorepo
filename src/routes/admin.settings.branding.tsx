@@ -1,38 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell, SettingsShell } from "@/components/shells";
-import { Card, Btn } from "@/components/ui-primitives";
-import { useSettings } from "@/lib/api/hooks";
+import { SettingsCategoryForm } from "@/components/admin/SettingsCategoryForm";
 
 export const Route = createFileRoute("/admin/settings/branding")({
   component: SettingsPage,
 });
 
 function SettingsPage() {
-  const category = "branding";
-  const { data, isLoading } = useSettings(category);
-  const fields = data?.data?.fields || ["Field label","Second field","Third field"];
-
   return (
     <AdminShell>
-      <SettingsShell title="Branding" description="Logo, colours and typography.">
-        <div className="grid gap-6">
-          <Card title="Branding">
-            {isLoading ? (
-               <div className="p-4 space-y-4 animate-pulse">
-                 <div className="h-12 bg-secondary/50 rounded w-full" />
-                 <div className="h-12 bg-secondary/50 rounded w-full" />
-                 <div className="h-12 bg-secondary/50 rounded w-full" />
-               </div>
-            ) : (
-            <div className="space-y-4">
-              {fields.map((f: any)=>(
-                <label key={f.id || f} className="block"><span className="text-xs uppercase tracking-widest text-muted-foreground">{f.label || f}</span><input className="mt-1 w-full border border-rule bg-paper rounded px-3 py-2 text-sm" placeholder="Sample value" defaultValue={f.value || ""} /></label>
-              ))}
-              <div className="flex gap-2 pt-2"><Btn>Save changes</Btn><Btn variant="outline">Discard</Btn></div>
-            </div>
-            )}
-          </Card>
-        </div>
+      <SettingsShell title="Branding" description="Logo, colors and visual identity.">
+        <SettingsCategoryForm category="branding" title="Branding" description="Logo, colors and visual identity." />
       </SettingsShell>
     </AdminShell>
   );

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/shells";
 import { PageHeader, Btn, StatusPill, Card, Input, Label } from "@/components/ui-primitives";
-import { useAdminNotifications } from "@/lib/api/hooks";
+import { useAdminNotifications, useCreateAdminEntity } from "@/lib/api/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -10,7 +10,8 @@ export const Route = createFileRoute("/admin/notifications")({
 });
 
 function AdminNotificationsPage() {
-  const { data, isLoading, refetch } = useAdminNotifications();
+  const { data, isLoading } = useAdminNotifications();
+  const createNotification = useCreateAdminEntity("notifications");
   const notifications = data?.data ?? [];
   const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState("");
@@ -23,11 +24,18 @@ function AdminNotificationsPage() {
       toast.error("Please provide title and message");
       return;
     }
-    toast.success(`Broadcasting notification: "${title}"`);
-    setTitle("");
-    setMessage("");
-    setShowCreate(false);
-    refetch();
+    createNotification.mutate(
+      { type, title, message, status: "Delivered", date: new Date().toISOString() },
+      {
+        onSuccess: () => {
+          toast.success(`Broadcasting notification: "${title}"`);
+          setTitle("");
+          setMessage("");
+          setShowCreate(false);
+        },
+        onError: () => toast.error("Failed to broadcast notification"),
+      }
+    );
   };
 
   return (

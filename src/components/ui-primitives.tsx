@@ -86,7 +86,8 @@ export function Card({ title, action, children, className }: { title?: string; a
 export function BookCard({ book, size = "md", index = 0 }: { book: { slug: string; title: string; author?: string | { name?: string } | null; cover?: string; coverImage?: string | null; category?: string; format?: string }; size?: "sm" | "md" | "lg"; index?: number }) {
   const h = size === "sm" ? "h-48" : size === "lg" ? "h-80" : "h-64";
   const coverSrc = book.coverImage ?? book.cover ?? '';
-  const authorName = typeof book.author === 'string' ? book.author : book.author?.name ?? '';
+  const rawAuthor = typeof book.author === 'string' ? book.author : book.author?.name ?? '';
+  const authorName = rawAuthor.match(/^[0-9a-fA-F]{24}$/) ? 'Swathi Publications' : rawAuthor;
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

@@ -3,7 +3,9 @@ import { SiteLayout } from "@/components/site-layout";
 import { useArticleBySlug, useArticles } from "@/lib/api/hooks";
 import { formatDate } from "@/lib/utils";
 import { Crumbs } from "./articles";
-import { Bookmark, Share2, MessageSquare, Heart, Lock } from "lucide-react";
+import { useState } from "react";
+import { Bookmark, Share2, MessageSquare, Heart, Lock, BookOpen, FileText } from "lucide-react";
+import { PdfBookViewer } from "@/components/PdfBookViewer";
 
 export const Route = createFileRoute("/articles/$slug")({
   head: () => ({ meta: [{ title: "Article — Swathi Publications" }] }),
@@ -24,6 +26,7 @@ function ArticleDetail() {
   const article = articleData?.data;
   const { data: relatedData } = useArticles({ categoryId: article?.category?.id, limit: 4 } as any);
   const related = (relatedData?.data ?? []).filter((a) => a.id !== article?.id).slice(0, 3);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -67,16 +70,49 @@ function ArticleDetail() {
               </div>
               <div className="text-sm">
                 <div className="font-semibold">{article.author?.name ?? 'Staff Writer'}</div>
-                <div className="text-muted-foreground text-xs">{formatDate(article.publishedAt ?? article.createdAt)} · {article.readingTime} min read</div>
+                <div className="text-muted-foreground text-xs">{formatDate(article.publishedAt ?? article.createdAt)} · {article.readingTime || 5} min read</div>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-muted-foreground text-sm">
-              <button className="inline-flex items-center gap-1 hover:text-primary"><Bookmark className="h-4 w-4" /> Save</button>
-              <button className="inline-flex items-center gap-1 hover:text-primary"><Share2 className="h-4 w-4" /> Share</button>
-              <button className="inline-flex items-center gap-1 hover:text-primary"><Heart className="h-4 w-4" /> {article.viewCount}</button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsViewerOpen(true)}
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 text-sm font-medium rounded hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                <BookOpen className="h-4 w-4" /> Read PDF in Book View
+              </button>
+              <div className="flex items-center gap-4 text-muted-foreground text-sm pl-2 border-l border-rule">
+                <button className="inline-flex items-center gap-1 hover:text-primary"><Bookmark className="h-4 w-4" /> Save</button>
+                <button className="inline-flex items-center gap-1 hover:text-primary"><Share2 className="h-4 w-4" /> Share</button>
+                <button className="inline-flex items-center gap-1 hover:text-primary"><Heart className="h-4 w-4" /> {article.viewCount}</button>
+              </div>
             </div>
           </div>
         </header>
+
+        {/* Embedded Book View Reader Section */}
+        <section className="mt-10 max-w-4xl mx-auto border border-rule rounded-xl bg-secondary/30 p-6 text-center space-y-4">
+          <div className="flex items-center justify-center gap-2 text-primary font-medium text-sm">
+            <FileText className="h-4 w-4" /> Swathi Digital Flipbook Edition
+          </div>
+          <h2 className="font-serif text-2xl font-bold">Read Full Publication in Book View</h2>
+          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+            Experience long-form reporting with seamless double-page book flipping, zooming, and print options right inside your browser.
+          </p>
+          <button
+            onClick={() => setIsViewerOpen(true)}
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 text-sm font-medium rounded-lg hover:bg-primary/90 transition-all shadow-md hover:shadow-lg"
+          >
+            <BookOpen className="h-5 w-5" /> Open Interactive Flipbook Reader
+          </button>
+        </section>
+
+        {/* In-App Book View Flipbook Reader Modal */}
+        <PdfBookViewer
+          isOpen={isViewerOpen}
+          title={article.title}
+          pdfUrl={article.pdfUrl || "/documents/sample-issue.pdf"}
+          onClose={() => setIsViewerOpen(false)}
+        />
 
         <figure className="mt-8">
           <img src={article.coverImage ?? ''} alt={article.title} className="w-full aspect-[16/9] object-cover bg-secondary" />

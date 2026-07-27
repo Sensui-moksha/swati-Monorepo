@@ -118,7 +118,6 @@ import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminRecommendationsRouteImport } from './routes/admin.recommendations'
 import { Route as AdminRecAnalyticsRouteImport } from './routes/admin.rec-analytics'
-import { Route as AdminPublishersRouteImport } from './routes/admin.publishers'
 import { Route as AdminPublicationsRouteImport } from './routes/admin.publications'
 import { Route as AdminPdfsRouteImport } from './routes/admin.pdfs'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
@@ -127,7 +126,6 @@ import { Route as AdminNotificationsRouteImport } from './routes/admin.notificat
 import { Route as AdminNewsRouteImport } from './routes/admin.news'
 import { Route as AdminMediaRouteImport } from './routes/admin.media'
 import { Route as AdminIssuesRouteImport } from './routes/admin.issues'
-import { Route as AdminGenresRouteImport } from './routes/admin.genres'
 import { Route as AdminFeaturedRouteImport } from './routes/admin.featured'
 import { Route as AdminEditorsPicksRouteImport } from './routes/admin.editors-picks'
 import { Route as AdminDraftsRouteImport } from './routes/admin.drafts'
@@ -138,7 +136,6 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCampaignsRouteImport } from './routes/admin.campaigns'
 import { Route as AdminBooksRouteImport } from './routes/admin.books'
 import { Route as AdminBiRouteImport } from './routes/admin.bi'
-import { Route as AdminAuthorsRouteImport } from './routes/admin.authors'
 import { Route as AdminArticlesRouteImport } from './routes/admin.articles'
 import { Route as AdminArchiveRouteImport } from './routes/admin.archive'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
@@ -735,11 +732,6 @@ const AdminRecAnalyticsRoute = AdminRecAnalyticsRouteImport.update({
   path: '/rec-analytics',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminPublishersRoute = AdminPublishersRouteImport.update({
-  id: '/publishers',
-  path: '/publishers',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminPublicationsRoute = AdminPublicationsRouteImport.update({
   id: '/publications',
   path: '/publications',
@@ -778,11 +770,6 @@ const AdminMediaRoute = AdminMediaRouteImport.update({
 const AdminIssuesRoute = AdminIssuesRouteImport.update({
   id: '/issues',
   path: '/issues',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminGenresRoute = AdminGenresRouteImport.update({
-  id: '/genres',
-  path: '/genres',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminFeaturedRoute = AdminFeaturedRouteImport.update({
@@ -833,11 +820,6 @@ const AdminBooksRoute = AdminBooksRouteImport.update({
 const AdminBiRoute = AdminBiRouteImport.update({
   id: '/bi',
   path: '/bi',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAuthorsRoute = AdminAuthorsRouteImport.update({
-  id: '/authors',
-  path: '/authors',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminArticlesRoute = AdminArticlesRouteImport.update({
@@ -1144,7 +1126,6 @@ export interface FileRoutesByFullPath {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/archive': typeof AdminArchiveRoute
   '/admin/articles': typeof AdminArticlesRoute
-  '/admin/authors': typeof AdminAuthorsRoute
   '/admin/bi': typeof AdminBiRouteWithChildren
   '/admin/books': typeof AdminBooksRoute
   '/admin/campaigns': typeof AdminCampaignsRoute
@@ -1155,7 +1136,6 @@ export interface FileRoutesByFullPath {
   '/admin/drafts': typeof AdminDraftsRoute
   '/admin/editors-picks': typeof AdminEditorsPicksRoute
   '/admin/featured': typeof AdminFeaturedRoute
-  '/admin/genres': typeof AdminGenresRoute
   '/admin/issues': typeof AdminIssuesRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/news': typeof AdminNewsRoute
@@ -1164,7 +1144,6 @@ export interface FileRoutesByFullPath {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/pdfs': typeof AdminPdfsRoute
   '/admin/publications': typeof AdminPublicationsRoute
-  '/admin/publishers': typeof AdminPublishersRoute
   '/admin/rec-analytics': typeof AdminRecAnalyticsRoute
   '/admin/recommendations': typeof AdminRecommendationsRouteWithChildren
   '/admin/reports': typeof AdminReportsRouteWithChildren
@@ -1316,7 +1295,6 @@ export interface FileRoutesByTo {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/archive': typeof AdminArchiveRoute
   '/admin/articles': typeof AdminArticlesRoute
-  '/admin/authors': typeof AdminAuthorsRoute
   '/admin/bi': typeof AdminBiRouteWithChildren
   '/admin/books': typeof AdminBooksRoute
   '/admin/campaigns': typeof AdminCampaignsRoute
@@ -1327,7 +1305,6 @@ export interface FileRoutesByTo {
   '/admin/drafts': typeof AdminDraftsRoute
   '/admin/editors-picks': typeof AdminEditorsPicksRoute
   '/admin/featured': typeof AdminFeaturedRoute
-  '/admin/genres': typeof AdminGenresRoute
   '/admin/issues': typeof AdminIssuesRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/news': typeof AdminNewsRoute
@@ -1336,7 +1313,6 @@ export interface FileRoutesByTo {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/pdfs': typeof AdminPdfsRoute
   '/admin/publications': typeof AdminPublicationsRoute
-  '/admin/publishers': typeof AdminPublishersRoute
   '/admin/rec-analytics': typeof AdminRecAnalyticsRoute
   '/admin/reports': typeof AdminReportsRouteWithChildren
   '/admin/roles': typeof AdminRolesRoute
@@ -1498,7 +1474,6 @@ export interface FileRoutesById {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/archive': typeof AdminArchiveRoute
   '/admin/articles': typeof AdminArticlesRoute
-  '/admin/authors': typeof AdminAuthorsRoute
   '/admin/bi': typeof AdminBiRouteWithChildren
   '/admin/books': typeof AdminBooksRoute
   '/admin/campaigns': typeof AdminCampaignsRoute
@@ -1509,7 +1484,6 @@ export interface FileRoutesById {
   '/admin/drafts': typeof AdminDraftsRoute
   '/admin/editors-picks': typeof AdminEditorsPicksRoute
   '/admin/featured': typeof AdminFeaturedRoute
-  '/admin/genres': typeof AdminGenresRoute
   '/admin/issues': typeof AdminIssuesRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/news': typeof AdminNewsRoute
@@ -1518,7 +1492,6 @@ export interface FileRoutesById {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/pdfs': typeof AdminPdfsRoute
   '/admin/publications': typeof AdminPublicationsRoute
-  '/admin/publishers': typeof AdminPublishersRoute
   '/admin/rec-analytics': typeof AdminRecAnalyticsRoute
   '/admin/recommendations': typeof AdminRecommendationsRouteWithChildren
   '/admin/reports': typeof AdminReportsRouteWithChildren
@@ -1682,7 +1655,6 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/archive'
     | '/admin/articles'
-    | '/admin/authors'
     | '/admin/bi'
     | '/admin/books'
     | '/admin/campaigns'
@@ -1693,7 +1665,6 @@ export interface FileRouteTypes {
     | '/admin/drafts'
     | '/admin/editors-picks'
     | '/admin/featured'
-    | '/admin/genres'
     | '/admin/issues'
     | '/admin/media'
     | '/admin/news'
@@ -1702,7 +1673,6 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/pdfs'
     | '/admin/publications'
-    | '/admin/publishers'
     | '/admin/rec-analytics'
     | '/admin/recommendations'
     | '/admin/reports'
@@ -1854,7 +1824,6 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/archive'
     | '/admin/articles'
-    | '/admin/authors'
     | '/admin/bi'
     | '/admin/books'
     | '/admin/campaigns'
@@ -1865,7 +1834,6 @@ export interface FileRouteTypes {
     | '/admin/drafts'
     | '/admin/editors-picks'
     | '/admin/featured'
-    | '/admin/genres'
     | '/admin/issues'
     | '/admin/media'
     | '/admin/news'
@@ -1874,7 +1842,6 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/pdfs'
     | '/admin/publications'
-    | '/admin/publishers'
     | '/admin/rec-analytics'
     | '/admin/reports'
     | '/admin/roles'
@@ -2035,7 +2002,6 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/archive'
     | '/admin/articles'
-    | '/admin/authors'
     | '/admin/bi'
     | '/admin/books'
     | '/admin/campaigns'
@@ -2046,7 +2012,6 @@ export interface FileRouteTypes {
     | '/admin/drafts'
     | '/admin/editors-picks'
     | '/admin/featured'
-    | '/admin/genres'
     | '/admin/issues'
     | '/admin/media'
     | '/admin/news'
@@ -2055,7 +2020,6 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/pdfs'
     | '/admin/publications'
-    | '/admin/publishers'
     | '/admin/rec-analytics'
     | '/admin/recommendations'
     | '/admin/reports'
@@ -2976,13 +2940,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRecAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/publishers': {
-      id: '/admin/publishers'
-      path: '/publishers'
-      fullPath: '/admin/publishers'
-      preLoaderRoute: typeof AdminPublishersRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/publications': {
       id: '/admin/publications'
       path: '/publications'
@@ -3037,13 +2994,6 @@ declare module '@tanstack/react-router' {
       path: '/issues'
       fullPath: '/admin/issues'
       preLoaderRoute: typeof AdminIssuesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/genres': {
-      id: '/admin/genres'
-      path: '/genres'
-      fullPath: '/admin/genres'
-      preLoaderRoute: typeof AdminGenresRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/featured': {
@@ -3114,13 +3064,6 @@ declare module '@tanstack/react-router' {
       path: '/bi'
       fullPath: '/admin/bi'
       preLoaderRoute: typeof AdminBiRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/authors': {
-      id: '/admin/authors'
-      path: '/authors'
-      fullPath: '/admin/authors'
-      preLoaderRoute: typeof AdminAuthorsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/articles': {
@@ -3621,7 +3564,6 @@ interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminArchiveRoute: typeof AdminArchiveRoute
   AdminArticlesRoute: typeof AdminArticlesRoute
-  AdminAuthorsRoute: typeof AdminAuthorsRoute
   AdminBiRoute: typeof AdminBiRouteWithChildren
   AdminBooksRoute: typeof AdminBooksRoute
   AdminCampaignsRoute: typeof AdminCampaignsRoute
@@ -3632,7 +3574,6 @@ interface AdminRouteChildren {
   AdminDraftsRoute: typeof AdminDraftsRoute
   AdminEditorsPicksRoute: typeof AdminEditorsPicksRoute
   AdminFeaturedRoute: typeof AdminFeaturedRoute
-  AdminGenresRoute: typeof AdminGenresRoute
   AdminIssuesRoute: typeof AdminIssuesRoute
   AdminMediaRoute: typeof AdminMediaRoute
   AdminNewsRoute: typeof AdminNewsRoute
@@ -3641,7 +3582,6 @@ interface AdminRouteChildren {
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminPdfsRoute: typeof AdminPdfsRoute
   AdminPublicationsRoute: typeof AdminPublicationsRoute
-  AdminPublishersRoute: typeof AdminPublishersRoute
   AdminRecAnalyticsRoute: typeof AdminRecAnalyticsRoute
   AdminRecommendationsRoute: typeof AdminRecommendationsRouteWithChildren
   AdminReportsRoute: typeof AdminReportsRouteWithChildren
@@ -3664,7 +3604,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminArchiveRoute: AdminArchiveRoute,
   AdminArticlesRoute: AdminArticlesRoute,
-  AdminAuthorsRoute: AdminAuthorsRoute,
   AdminBiRoute: AdminBiRouteWithChildren,
   AdminBooksRoute: AdminBooksRoute,
   AdminCampaignsRoute: AdminCampaignsRoute,
@@ -3675,7 +3614,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDraftsRoute: AdminDraftsRoute,
   AdminEditorsPicksRoute: AdminEditorsPicksRoute,
   AdminFeaturedRoute: AdminFeaturedRoute,
-  AdminGenresRoute: AdminGenresRoute,
   AdminIssuesRoute: AdminIssuesRoute,
   AdminMediaRoute: AdminMediaRoute,
   AdminNewsRoute: AdminNewsRoute,
@@ -3684,7 +3622,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminPdfsRoute: AdminPdfsRoute,
   AdminPublicationsRoute: AdminPublicationsRoute,
-  AdminPublishersRoute: AdminPublishersRoute,
   AdminRecAnalyticsRoute: AdminRecAnalyticsRoute,
   AdminRecommendationsRoute: AdminRecommendationsRouteWithChildren,
   AdminReportsRoute: AdminReportsRouteWithChildren,

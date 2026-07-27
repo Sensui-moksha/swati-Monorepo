@@ -17,6 +17,7 @@ function AdminUsersPage() {
   const users = data?.data ?? [];
 
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
   const [formData, setFormData] = useState<any>({
     id: "",
     email: "",
@@ -251,11 +252,7 @@ function AdminUsersPage() {
                           <Btn
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete user ${u.email}?`)) {
-                                deleteUserMutation.mutate(id);
-                              }
-                            }}
+                            onClick={() => setUserToDelete(u)}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             Delete
@@ -267,6 +264,43 @@ function AdminUsersPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+        {userToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-paper border border-rule rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
+              <div className="flex justify-between items-center border-b border-rule pb-3">
+                <h3 className="font-serif text-lg font-semibold text-destructive">Confirm Deletion</h3>
+                <button
+                  type="button"
+                  onClick={() => setUserToDelete(null)}
+                  className="text-muted-foreground hover:text-foreground text-sm font-semibold"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-sm text-foreground">
+                Are you sure you want to delete user <span className="font-semibold">{userToDelete.email || userToDelete.username}</span>? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-2 pt-3 border-t border-rule">
+                <Btn variant="outline" onClick={() => setUserToDelete(null)}>
+                  Cancel
+                </Btn>
+                <Btn
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => {
+                    const userId = userToDelete.id || userToDelete._id;
+                    deleteUserMutation.mutate(userId, {
+                      onSuccess: () => setUserToDelete(null),
+                      onError: () => setUserToDelete(null),
+                    });
+                  }}
+                  disabled={deleteUserMutation.isPending}
+                >
+                  {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+                </Btn>
+              </div>
+            </div>
           </div>
         )}
       </Card>

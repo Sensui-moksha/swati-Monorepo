@@ -3,6 +3,7 @@ import { DashboardShell } from "@/components/shells";
 import { PageHeader, Card, Btn, StatusPill } from "@/components/ui-primitives";
 import { useQuery } from "@tanstack/react-query";
 import { profileApi } from "@/lib/api/endpoints/profile";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/account/subscription")({
   component: AccountSubscriptionPage,
@@ -56,7 +57,7 @@ function AccountSubscriptionPage() {
             <Link to="/pricing">
               <Btn>Upgrade Plan</Btn>
             </Link>
-            <Btn variant="outline" onClick={() => alert("To cancel your plan, please contact support@swathi.com")}>
+            <Btn variant="outline" onClick={() => toast.info("To cancel your plan, please contact support@swathi.com")}>
               Manage Billing
             </Btn>
           </div>

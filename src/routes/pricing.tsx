@@ -50,7 +50,6 @@ function PricingPage() {
           <div className="mt-6 grid md:grid-cols-2 gap-8">
             {[
               ["Can I cancel anytime?","Yes. Manage your subscription from My Account. Refunds are prorated for annual plans."],
-              ["Do you offer student pricing?","Verified students receive 50% off the Digital plan. Contact support with your institution email."],
               ["What payment methods work?","UPI, all major cards, and net-banking via our PCI-DSS compliant processor."],
               ["Is print available outside India?","Digital only for international readers. Print ships within India."],
             ].map(([q, a]) => (

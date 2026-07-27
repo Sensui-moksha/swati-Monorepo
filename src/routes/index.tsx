@@ -172,26 +172,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Why choose */}
-      <section className="rule-top bg-secondary/40">
-        <div className="container-edit py-16">
-          <SectionHead eyebrow="Why Swathi" title="A newspaper built for the long read" center />
-          <div className="mt-12 grid sm:grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { icon: ShieldCheck, title: "Trusted Publishers", desc: "Independent since 1998. No paid placements, ever." },
-              { icon: BookOpen, title: "Quality Reporting", desc: "Long-form journalism from editors, not aggregators." },
-              { icon: Newspaper, title: "Digital + Print", desc: "Read online or receive the weekly print edition." },
-              { icon: ShieldCheck, title: "Secure Payments", desc: "PCI-DSS compliant billing with UPI and cards." },
-            ].map((f) => (
-              <div key={f.title}>
-                <f.icon className="h-6 w-6 text-primary" strokeWidth={1.5} />
-                <h4 className="mt-4 font-serif text-lg">{f.title}</h4>
-                <p className="mt-2 text-sm text-muted-foreground">{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* Subscription */}
       <section className="container-edit py-20">

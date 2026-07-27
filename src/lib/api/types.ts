@@ -80,6 +80,7 @@ export interface Article {
   slug: string;
   excerpt: string;
   content: string;
+  pdfUrl?: string;
   coverImage?: string;
   status: 'draft' | 'published' | 'archived' | 'scheduled';
   publishedAt?: string;

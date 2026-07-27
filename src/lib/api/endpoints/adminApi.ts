@@ -69,6 +69,15 @@ export const adminApi = {
 
   listGeneric: (entity: string, params?: PaginationParams) =>
     apiClient.get<PaginatedResponse<any>>(`/v1/admin/${entity}`, { params }),
+
+  createGeneric: (entity: string, data: any) =>
+    apiClient.post<ApiResponse<any>>(`/v1/admin/${entity}`, data),
+
+  updateGeneric: (entity: string, id: string, data: any) =>
+    apiClient.put<ApiResponse<any>>(`/v1/admin/${entity}/${id}`, data),
+
+  deleteGeneric: (entity: string, id: string) =>
+    apiClient.delete<ApiResponse<any>>(`/v1/admin/${entity}/${id}`),
     
   getReportPreview: (params: { source: string, dims: string[], metrics: string[] }) =>
     apiClient.get<ApiResponse<any[]>>('/v1/admin/reports/preview', { params }),
