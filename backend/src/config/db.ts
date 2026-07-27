@@ -36,7 +36,7 @@ export const disconnectDB = async (): Promise<void> => {
 };
 
 mongoose.connection.on("connected", () => {
-  console.log("Mongoose connected to DB");
+  isConnected = true;
 });
 
 mongoose.connection.on("error", (err) => {
@@ -44,8 +44,9 @@ mongoose.connection.on("error", (err) => {
 });
 
 mongoose.connection.on("disconnected", () => {
-  console.log("Mongoose disconnected");
   isConnected = false;
+  // Automatically reconnect if connection drops
+  connectDB().catch(() => {});
 });
 
 process.on("SIGINT", async () => {

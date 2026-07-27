@@ -71,9 +71,12 @@ router.use("/comments", commentsRoutes);
 router.use("/", publishingRoutes);
 router.use("/publishing", publishingRoutes);
 
+import productsRoutes from "./products";
+
 // Commerce Infrastructure Routes
 router.use("/v1/plans", plansRoutes);
 router.use("/v1/subscriptions", subscriptionsRoutes);
+router.use("/v1/products", productsRoutes);
 router.use("/v1/orders", ordersRoutes);
 router.use("/v1/payments", paymentsRoutes);
 router.use("/v1/invoices", invoicesRoutes);

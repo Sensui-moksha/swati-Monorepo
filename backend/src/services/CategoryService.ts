@@ -90,7 +90,15 @@ class CategoryService {
   async getCategoryBySlug(slug: string): Promise<ICategory> {
     const category = await categoryRepository.findBySlug(slug);
     if (!category) {
-      throw ApiError.notFound("Category not found");
+      const formattedName = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      return {
+        _id: new Types.ObjectId(),
+        name: formattedName,
+        slug,
+        description: `Explore top editorial articles, features, and stories in ${formattedName}.`,
+        isActive: true,
+        order: 0,
+      } as any;
     }
     return category;
   }

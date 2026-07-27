@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticate, authorize } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 import { mediaController } from "../controllers/mediaController";
+import { uploadSingle, handleMulterError } from "../middleware/upload";
 import {
   mediaIdSchema,
   mediaQuerySchema,
@@ -31,6 +32,24 @@ const router = Router();
  *     summary: Replace media asset
  *     tags: [Editorial Media]
  */
+
+router.post(
+  "/upload",
+  authenticate,
+  authorize("admin", "editor", "publisher"),
+  uploadSingle("file"),
+  handleMulterError,
+  mediaController.uploadMedia.bind(mediaController),
+);
+
+router.post(
+  "/",
+  authenticate,
+  authorize("admin", "editor", "publisher"),
+  uploadSingle("file"),
+  handleMulterError,
+  mediaController.uploadMedia.bind(mediaController),
+);
 
 router.get(
   "/",

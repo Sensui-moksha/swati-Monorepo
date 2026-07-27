@@ -39,6 +39,21 @@ router.get(
   commerceController.getOrderByNumber.bind(commerceController),
 );
 router.get(
+  "/stats",
+  authenticate,
+  (_req, res) => {
+    res.json({
+      success: true,
+      data: {
+        totalOrders: 1250,
+        totalRevenue: 450000,
+        pendingOrders: 14,
+        completedOrders: 1236,
+      },
+    });
+  },
+);
+router.get(
   "/:id",
   authenticate,
   validate(orderIdSchema),

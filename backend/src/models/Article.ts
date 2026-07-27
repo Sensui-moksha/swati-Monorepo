@@ -76,6 +76,7 @@ export interface IArticle extends Document {
   createdAt: Date;
   updatedAt: Date;
   url?: string;
+  pdfUrl?: string;
   isPublished?: boolean;
   isScheduled?: boolean;
 }
@@ -135,8 +136,9 @@ const articleSchema = new Schema<IArticle, IArticleModel>(
       trim: true,
       maxlength: [500, "Summary cannot exceed 500 characters"],
     },
-    content: { type: String, required: [true, "Content is required"] },
+    content: { type: String, default: "PDF Document" },
     contentHtml: { type: String },
+    pdfUrl: { type: String, trim: true },
     featuredImage: { type: Schema.Types.ObjectId, ref: "Media" },
     gallery: [{ type: Schema.Types.ObjectId, ref: "Media" }],
     author: {

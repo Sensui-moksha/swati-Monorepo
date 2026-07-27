@@ -95,8 +95,15 @@ export class ArticleService {
   }
 
   async deleteArticle(id: string): Promise<void> {
-    const article = await this.getArticleById(id);
-    await articleRepository.softDelete(article._id);
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      await articleRepository.deleteById(id);
+    }
+    await articleRepository.model.deleteMany({
+      $or: [
+        ...(id.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: new Types.ObjectId(id) }] : []),
+        { slug: id },
+      ],
+    });
   }
 
   async restoreArticle(id: string): Promise<IArticle> {

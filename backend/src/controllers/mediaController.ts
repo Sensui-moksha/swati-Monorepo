@@ -167,6 +167,23 @@ export class MediaController {
       next(error);
     }
   }
+  async uploadMedia(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const file = req.file;
+      const userId = req.user?._id?.toString();
+      const media = await mediaService.uploadMedia(file, userId, req.body);
+      res.status(201).json({
+        success: true,
+        data: media,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const mediaController = new MediaController();

@@ -47,16 +47,14 @@ export class ArticleRepository extends BaseRepository<IArticle> {
       endDate,
       ...restFilter
     } = filter;
-    const query: FilterQuery<IArticle> = { ...restFilter };
+    const query: FilterQuery<IArticle> = { isDeleted: { $ne: true }, ...restFilter };
 
     if (search) {
       query.$text = { $search: search };
     }
 
     if (status) {
-      query.status = status;
-    } else {
-      query.status = "published";
+      query.status = status as any;
     }
 
     if (category) {

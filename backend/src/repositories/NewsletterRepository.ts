@@ -47,7 +47,7 @@ export class NewsletterRepository extends BaseRepository<INewsletter> {
       if (endDate) query.subscribedAt.$lte = endDate;
     }
 
-    return this.findWithPagination(query, {
+    return super.findWithPagination(query, {
       ...options,
       sort: options.sort || { subscribedAt: -1 },
     });

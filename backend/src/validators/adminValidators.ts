@@ -37,7 +37,7 @@ export const adminSchemas = {
 
   userById: z.object({
     params: z.object({
-      id: commonSchemas.objectId,
+      id: z.string().min(1),
     }),
   }),
 
@@ -54,7 +54,7 @@ export const adminSchemas = {
 
   userUpdate: z.object({
     params: z.object({
-      id: commonSchemas.objectId,
+      id: z.string().min(1),
     }),
     body: z
       .object({

@@ -39,7 +39,7 @@ export class TagRepository extends BaseRepository<ITag> {
       ];
     }
 
-    return this.findWithPagination(query, {
+    return super.findWithPagination(query, {
       ...options,
       sort: options.sort || { usageCount: -1, name: 1 },
     });

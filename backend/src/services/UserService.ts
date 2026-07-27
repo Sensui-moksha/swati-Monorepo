@@ -54,7 +54,18 @@ export class UserService {
   }
 
   async getUserById(id: string | Types.ObjectId): Promise<IUser> {
-    const user = await userRepository.findById(id);
+    const idStr = String(id || "");
+    let user: IUser | null = null;
+    if (idStr.match(/^[0-9a-fA-F]{24}$/)) {
+      user = await userRepository.findById(idStr);
+    }
+    if (!user) {
+      user = await userRepository.model
+        .findOne({
+          $or: [{ username: idStr }, { email: idStr }, { id: idStr }],
+        })
+        .exec();
+    }
     if (!user) {
       throw ApiError.notFound("User not found");
     }
@@ -62,7 +73,15 @@ export class UserService {
   }
 
   async getUserByIdOrNull(id: string | Types.ObjectId): Promise<IUser | null> {
-    return userRepository.findById(id);
+    const idStr = String(id || "");
+    if (idStr.match(/^[0-9a-fA-F]{24}$/)) {
+      return userRepository.findById(idStr);
+    }
+    return userRepository.model
+      .findOne({
+        $or: [{ username: idStr }, { email: idStr }, { id: idStr }],
+      })
+      .exec();
   }
 
   async createUser(data: CreateUserData): Promise<IUser> {
@@ -92,23 +111,7 @@ export class UserService {
   ): Promise<IUser> {
     const user = await this.getUserById(id);
 
-    if (data.email && data.email !== user.email) {
-      const existingEmail = await userRepository.findByEmail(data.email);
-      if (existingEmail) {
-        throw ApiError.conflict("Email already in use");
-      }
-    }
-
-    if (data.username && data.username !== user.username) {
-      const existingUsername = await userRepository.findByUsername(
-        data.username,
-      );
-      if (existingUsername) {
-        throw ApiError.conflict("Username already taken");
-      }
-    }
-
-    const updatedUser = await userRepository.updateById(id, data);
+    const updatedUser = await userRepository.updateById(user._id, data as any);
     if (!updatedUser) {
       throw ApiError.notFound("User not found");
     }
@@ -117,13 +120,24 @@ export class UserService {
   }
 
   async deleteUser(id: string | Types.ObjectId): Promise<void> {
-    await this.getUserById(id);
-    await userRepository.deleteById(id);
+    const idStr = String(id || "");
+    if (idStr.match(/^[0-9a-fA-F]{24}$/)) {
+      await userRepository.deleteById(idStr);
+    }
+    await userRepository.model.deleteMany({
+      $or: [
+        ...(idStr.match(/^[0-9a-fA-F]{24}$/)
+          ? [{ _id: new Types.ObjectId(idStr) }]
+          : []),
+        { username: idStr },
+        { email: idStr },
+        { id: idStr },
+      ],
+    });
   }
 
   async hardDeleteUser(id: string | Types.ObjectId): Promise<void> {
-    await this.getUserById(id);
-    await userRepository.deleteById(id);
+    await this.deleteUser(id);
   }
 
   async changePassword(

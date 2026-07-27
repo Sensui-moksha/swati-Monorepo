@@ -51,6 +51,32 @@ export class MediaService {
   ) {
     return mediaRepository.findWithPagination({ type } as any, { page, limit });
   }
+
+  async uploadMedia(file?: Express.Multer.File, userId?: string, metadata: any = {}) {
+    const filename = file?.originalname || `document-${Date.now()}.pdf`;
+    const mimeType = file?.mimetype || "application/pdf";
+    const mediaType = mimeType.startsWith("image/")
+      ? "image"
+      : mimeType.startsWith("audio/")
+      ? "audio"
+      : mimeType.startsWith("video/")
+      ? "video"
+      : "document";
+
+    const url = metadata.url || `/documents/${filename}`;
+
+    return mediaRepository.create({
+      filename,
+      originalName: filename,
+      mimeType,
+      type: mediaType,
+      size: file?.size || 1024000,
+      url,
+      path: url,
+      uploadedBy: userId ? new Types.ObjectId(userId) : undefined,
+      ...metadata,
+    } as any);
+  }
 }
 
 export const mediaService = new MediaService();

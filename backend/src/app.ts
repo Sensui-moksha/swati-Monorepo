@@ -100,15 +100,15 @@ const startServer = async (): Promise<void> => {
     
     app.listen(env.PORT, () => {
       console.log(`
-╔══════════════════════════════════════════════════════════════╗
-║  Prototype v0 Server Started Successfully                   ║
-╠══════════════════════════════════════════════════════════════╣
-║  Environment: ${env.NODE_ENV.padEnd(47)}║
-║  Port: ${String(env.PORT).padEnd(48)}║
-║  API URL: http://localhost:${env.PORT}/api${' '.repeat(36 - String(env.PORT).length)}║
-║  Health: http://localhost:${env.PORT}/health${' '.repeat(32 - String(env.PORT).length)}║
-║  Docs: http://localhost:${env.PORT}${swaggerConfig.path}${' '.repeat(38 - String(env.PORT).length - swaggerConfig.path.length)}║
-╚══════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════╗
+║  Prototype v0 Server Started Successfully                                ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║  Environment: ${env.NODE_ENV.padEnd(47)}            ║
+║  Port: ${String(env.PORT).padEnd(48)}                  ║
+║  API URL: http://localhost:${env.PORT}/api${' '.repeat(36 - String(env.PORT).length)}      ║
+║  Health: http://localhost:${env.PORT}/health${' '.repeat(32 - String(env.PORT).length)}        ║
+║  Docs: http://localhost:${env.PORT}${swaggerConfig.path}${' '.repeat(38 - String(env.PORT).length - swaggerConfig.path.length)}           ║
+╚══════════════════════════════════════════════════════════════════════════╝
       `);
     });
   } catch (error) {
