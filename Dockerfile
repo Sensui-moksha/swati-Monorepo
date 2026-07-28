@@ -1,0 +1,37 @@
+# Multistage Dockerfile for swati-clientside (TanStack Start / Vite)
+
+# 1. Base stage
+FROM node:20-alpine AS base
+WORKDIR /app
+
+# 2. Dependencies stage
+FROM base AS deps
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# 3. Build stage
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ENV NODE_ENV=production
+RUN npm run build
+
+# 4. Production runner stage
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+
+EXPOSE 3000
+
+# Copy runtime files
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public ./public
+
+# Start server in production preview mode
+CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
