@@ -43,29 +43,66 @@ export function PdfThumbnail({
 
         const container = containerRef.current!;
         const canvas = canvasRef.current!;
-        const dpr = window.devicePixelRatio || 1;
-        const vp = page.getViewport({ scale: 1 });
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rawVp = page.getViewport({ scale: 1 });
 
-        // Scale to fill container width, multiply by DPR for clarity
-        const cssScale = container.clientWidth / vp.width;
-        const renderScale = cssScale * dpr;
-        const renderVp = page.getViewport({ scale: renderScale });
+        // Strip out 4.8% prepress margin containing printer target crosshairs, scope marks & dots
+        const trimPct = 0.048;
+        const cropX = rawVp.width * trimPct;
+        const cropY = rawVp.height * trimPct;
+        const liveW = rawVp.width - 2 * cropX;
+        const liveH = rawVp.height - 2 * cropY;
 
-        canvas.width = renderVp.width;
-        canvas.height = renderVp.height;
-        canvas.style.width = `${renderVp.width / dpr}px`;
-        canvas.style.height = `${renderVp.height / dpr}px`;
+        const targetW = container.clientWidth || 300;
+        const scale = (targetW / liveW) * dpr;
+        const renderVp = page.getViewport({ scale });
 
-        const ctx = canvas.getContext("2d")!;
-        await page.render({ canvasContext: ctx, viewport: renderVp }).promise;
-        if (!cancelled) setLoaded(true);
+        const offscreen = document.createElement("canvas");
+        offscreen.width = Math.round(renderVp.width);
+        offscreen.height = Math.round(renderVp.height);
+        const offCtx = offscreen.getContext("2d", { alpha: false });
+
+        if (!offCtx) return;
+        offCtx.imageSmoothingEnabled = true;
+        offCtx.imageSmoothingQuality = "high";
+
+        await page.render({ canvasContext: offCtx, viewport: renderVp }).promise;
+        if (cancelled) return;
+
+        const finalW = Math.round(liveW * scale);
+        const finalH = Math.round(liveH * scale);
+
+        canvas.width = finalW;
+        canvas.height = finalH;
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+
+        const ctx = canvas.getContext("2d", { alpha: false });
+        if (ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(
+            offscreen,
+            cropX * scale,
+            cropY * scale,
+            finalW,
+            finalH,
+            0,
+            0,
+            finalW,
+            finalH,
+          );
+          setLoaded(true);
+        }
       } catch {
         // Failed to load — show placeholder
       }
     };
 
     render();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [isPdf, src]);
 
   if (!isPdf) {

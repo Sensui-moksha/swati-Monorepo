@@ -393,10 +393,15 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     setIsDragging(false);
   };
 
-  // Mobile Multi-Touch Gestures: Two-finger Pinch Zoom & Pan
+  // Mobile Multi-Touch Gestures: Two-finger Pinch Zoom, Pan & Swipe Page Flip
   const touchPinchDistRef = useRef<number | null>(null);
   const touchStartZoomRef = useRef<number>(1);
-  const touchPanStartRef = useRef<{ x: number; y: number } | null>(null);
+  const touchPanStartRef = useRef<{
+    x: number;
+    y: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
@@ -407,10 +412,12 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
       touchPinchDistRef.current = dist;
       touchStartZoomRef.current = zoomLevel;
       touchPanStartRef.current = null;
-    } else if (e.touches.length === 1 && zoomLevel > 1) {
+    } else if (e.touches.length === 1) {
       touchPanStartRef.current = {
         x: e.touches[0].clientX - panOffset.x,
         y: e.touches[0].clientY - panOffset.y,
+        startX: e.touches[0].clientX,
+        startY: e.touches[0].clientY,
       };
       touchPinchDistRef.current = null;
     }
@@ -429,16 +436,36 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
       if (newZoom <= 1.05) {
         setPanOffset({ x: 0, y: 0 });
       }
-    } else if (e.touches.length === 1 && touchPanStartRef.current !== null && zoomLevel > 1) {
-      if (e.cancelable) e.preventDefault();
-      setPanOffset({
-        x: e.touches[0].clientX - touchPanStartRef.current.x,
-        y: e.touches[0].clientY - touchPanStartRef.current.y,
-      });
+    } else if (e.touches.length === 1 && touchPanStartRef.current !== null) {
+      if (zoomLevel > 1) {
+        if (e.cancelable) e.preventDefault();
+        setPanOffset({
+          x: e.touches[0].clientX - touchPanStartRef.current.x,
+          y: e.touches[0].clientY - touchPanStartRef.current.y,
+        });
+      }
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchPanStartRef.current && e.changedTouches.length > 0) {
+      const deltaX = e.changedTouches[0].clientX - touchPanStartRef.current.startX;
+      const deltaY = e.changedTouches[0].clientY - touchPanStartRef.current.startY;
+
+      // Horizontal swipe gesture detection for page flip (works both zoomed in and normal)
+      if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.1) {
+        if (deltaX < 0) {
+          // Swipe Left -> Next Page
+          handleNext();
+          setPanOffset({ x: 0, y: 0 });
+        } else {
+          // Swipe Right -> Previous Page
+          handlePrev();
+          setPanOffset({ x: 0, y: 0 });
+        }
+      }
+    }
+
     if (e.touches.length < 2) {
       touchPinchDistRef.current = null;
     }
