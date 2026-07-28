@@ -22,10 +22,10 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=5173
+ENV PORT=3000
 ENV HOST=0.0.0.0
 
-EXPOSE 5173
+EXPOSE 3000
 
 # Copy runtime files
 COPY --from=builder /app/package.json ./package.json
@@ -34,4 +34,4 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
 
 # Start server in production preview mode
-CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "3000", "--allowed-hosts", "all"]
