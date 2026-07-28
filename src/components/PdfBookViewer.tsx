@@ -12,12 +12,15 @@ import {
   ZoomOut,
   RotateCcw,
   LayoutGrid,
-  Layers,
 } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
 import pageFlipPkg from "page-flip";
 
-const PageFlip = (pageFlipPkg as any)?.PageFlip || (pageFlipPkg as any)?.default?.PageFlip || (pageFlipPkg as any)?.default || pageFlipPkg;
+const PageFlip =
+  (pageFlipPkg as any)?.PageFlip ||
+  (pageFlipPkg as any)?.default?.PageFlip ||
+  (pageFlipPkg as any)?.default ||
+  pageFlipPkg;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -77,7 +80,7 @@ function renderPdfPageToCanvas(
   pdfDoc: pdfjsLib.PDFDocumentProxy,
   pageNum: number,
   canvas: HTMLCanvasElement,
-  targetWidth = 900,
+  targetWidth = 1000,
 ) {
   pdfDoc.getPage(pageNum).then((page) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -87,11 +90,13 @@ function renderPdfPageToCanvas(
 
     canvas.width = renderVp.width;
     canvas.height = renderVp.height;
-    canvas.style.width = `${renderVp.width / dpr}px`;
-    canvas.style.height = `${renderVp.height / dpr}px`;
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false });
     if (ctx) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       page.render({ canvasContext: ctx, viewport: renderVp });
     }
   });
@@ -110,7 +115,9 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [trimCropMarks, setTrimCropMarks] = useState(true);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bookElementRef = useRef<HTMLDivElement>(null);
@@ -144,28 +151,35 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
   // Dynamic responsive page size calculator
   const updateDimensions = useCallback(() => {
-    if (!isOpen || !pdf || !pagesContainerRef.current || !containerRef.current || totalPages === 0) return;
+    if (
+      !isOpen ||
+      !pdf ||
+      !pagesContainerRef.current ||
+      !containerRef.current ||
+      totalPages === 0
+    )
+      return;
 
     const container = containerRef.current;
     const containerW = container.clientWidth || window.innerWidth;
-    const containerH = container.clientHeight || (window.innerHeight - 48);
+    const containerH = container.clientHeight || window.innerHeight - 48;
 
     pdf.getPage(1).then((page1) => {
-      // Use exact PDF page bounds so no page content is cut off or cropped
       const rawVp = page1.getViewport({ scale: 1 });
       const page1Any = page1 as any;
-      const cropBox = page1Any.cropBox && page1Any.cropBox.length === 4 ? page1Any.cropBox : null;
+      const cropBox =
+        page1Any.cropBox && page1Any.cropBox.length === 4 ? page1Any.cropBox : null;
 
-      const paperW = cropBox ? (cropBox[2] - cropBox[0]) : rawVp.width;
-      const paperH = cropBox ? (cropBox[3] - cropBox[1]) : rawVp.height;
+      const paperW = cropBox ? cropBox[2] - cropBox[0] : rawVp.width;
+      const paperH = cropBox ? cropBox[3] - cropBox[1] : rawVp.height;
 
       const isMobile = containerW < 768;
       const isSingleMode = totalPages === 1 || isMobile;
       const pagesInSpread = isSingleMode ? 1 : 2;
 
-      // Calculate max available dimensions with 48px safety margin to ensure ZERO vertical scrolling
-      const maxH = Math.max(containerH - 52, 300);
-      const maxW = Math.max((containerW - (isMobile ? 16 : 48)) / pagesInSpread, 200);
+      // Strict viewport boundary bounds to ensure 100% zero vertical/horizontal scrolling
+      const maxH = Math.max(containerH - 40, 280);
+      const maxW = Math.max((containerW - (isMobile ? 16 : 40)) / pagesInSpread, 180);
 
       const scale = Math.min(maxH / paperH, maxW / paperW);
       const pageW = Math.round(paperW * scale);
@@ -240,7 +254,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     };
   }, [isOpen, pdf, totalPages, updateDimensions]);
 
-  // ResizeObserver for continuous responsive adaptation to window / orientation changes
+  // ResizeObserver for continuous responsive adaptation
   useEffect(() => {
     if (!isOpen || !containerRef.current) return;
     const observer = new ResizeObserver(() => {
@@ -259,7 +273,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         `canvas[data-page="${p}"]`,
       ) as HTMLCanvasElement;
       if (canvas) {
-        renderPdfPageToCanvas(pdf, p, canvas, 950);
+        renderPdfPageToCanvas(pdf, p, canvas, 1000);
       }
     }
   }, [pdf, totalPages]);
@@ -304,11 +318,52 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     }
   };
 
+  // Wheel zoom support
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.1 : -0.1;
+      setZoomLevel((z) => Math.min(Math.max(0.8, z + delta), 2.5));
+    }
+  };
+
+  // Double click zoom toggle
+  const handleDoubleClick = () => {
+    if (zoomLevel === 1) {
+      setZoomLevel(1.5);
+    } else {
+      setZoomLevel(1);
+      setPanOffset({ x: 0, y: 0 });
+    }
+  };
+
+  // Pan dragging when zoomed
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoomLevel > 1) {
+      setPanOffset({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   if (!isOpen) return null;
 
-  // Compute mathematical centering offset for Cover, Open Spreads, and Back Cover
+  // Compute mathematical centering transform for Cover (Pg 1), Spreads, and Back Cover
   const getCenterTransform = () => {
-    if (totalPages <= 1) return `scale(${zoomLevel})`;
+    if (totalPages <= 1)
+      return `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`;
 
     let translateX = "0%";
     if (currentPage === 1) {
@@ -317,7 +372,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
       translateX = "25%"; // Dead-center Back Cover on screen
     }
 
-    return `scale(${zoomLevel}) translateX(${translateX})`;
+    return `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px) translateX(${translateX})`;
   };
 
   return (
@@ -389,14 +444,17 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           <div className="h-4 w-px bg-stone-800 mx-1" />
 
           <button
-            onClick={() => setZoomLevel((z) => Math.min(z + 0.25, 2))}
+            onClick={() => setZoomLevel((z) => Math.min(z + 0.25, 2.5))}
             className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white"
             title="Zoom In"
           >
             <ZoomIn className="h-4 w-4" />
           </button>
           <button
-            onClick={() => setZoomLevel((z) => Math.max(z - 0.25, 0.75))}
+            onClick={() => {
+              setZoomLevel((z) => Math.max(z - 0.25, 0.8));
+              if (zoomLevel <= 1.25) setPanOffset({ x: 0, y: 0 });
+            }}
             className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white"
             title="Zoom Out"
           >
@@ -404,7 +462,10 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           </button>
           {zoomLevel !== 1 && (
             <button
-              onClick={() => setZoomLevel(1)}
+              onClick={() => {
+                setZoomLevel(1);
+                setPanOffset({ x: 0, y: 0 });
+              }}
               className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white"
               title="Reset Zoom"
             >
@@ -437,7 +498,15 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
       {/* ──── Book Stage — Premium Ambient Atmosphere ──── */}
       <div
         ref={containerRef}
-        className="flex-1 relative flex items-center justify-center p-4 overflow-hidden"
+        onWheel={handleWheel}
+        onDoubleClick={handleDoubleClick}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        className={`flex-1 relative flex items-center justify-center p-2 md:p-4 overflow-hidden ${
+          zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""
+        }`}
         style={{
           background:
             "radial-gradient(ellipse at 50% 45%, #24201c 0%, #151210 60%, #090807 100%)",
@@ -449,13 +518,12 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         {/* 3D PageFlip Container with mathematical Cover & Spread Centering */}
         <div
           ref={bookElementRef}
-          className="relative transition-transform duration-500 ease-out"
+          className="relative transition-transform duration-500 ease-out flex items-center justify-center max-w-full max-h-full"
           style={{ transform: getCenterTransform() }}
         >
           <div ref={pagesContainerRef} className="st-flip-book shadow-2xl">
             {Array.from({ length: totalPages }).map((_, idx) => {
               const pageNum = idx + 1;
-              const isCover = pageNum === 1;
 
               return (
                 <div
