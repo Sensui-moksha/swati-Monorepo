@@ -43,6 +43,7 @@ coverage/
 uploads/
 *.tmp
 *.temp
+*.zip
 
 # Cache
 .cache/
