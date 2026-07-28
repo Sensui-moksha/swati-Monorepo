@@ -72,60 +72,28 @@ function playPaperFlipSound(isMuted: boolean) {
   }
 }
 
-/** Renders a single PDF page into a canvas, trimming print crop marks if present */
+/** Renders a single PDF page into a canvas with crisp high-DPI resolution without cutting off text */
 function renderPdfPageToCanvas(
   pdfDoc: pdfjsLib.PDFDocumentProxy,
   pageNum: number,
   canvas: HTMLCanvasElement,
   targetWidth = 900,
-  trimCropMarks = true,
 ) {
   pdfDoc.getPage(pageNum).then((page) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const rawVp = page.getViewport({ scale: 1 });
-
-    // Print bleed / crop mark margin trimming (~3.4% of page dimensions)
-    const cropX = trimCropMarks ? rawVp.width * 0.034 : 0;
-    const cropY = trimCropMarks ? rawVp.height * 0.034 : 0;
-    const croppedW = rawVp.width - 2 * cropX;
-    const croppedH = rawVp.height - 2 * cropY;
-
-    const scale = (targetWidth / croppedW) * dpr;
+    const vp = page.getViewport({ scale: 1 });
+    const scale = (targetWidth / vp.width) * dpr;
     const renderVp = page.getViewport({ scale });
 
-    // Offscreen render canvas
-    const offscreen = document.createElement("canvas");
-    offscreen.width = renderVp.width;
-    offscreen.height = renderVp.height;
-    const offCtx = offscreen.getContext("2d");
+    canvas.width = renderVp.width;
+    canvas.height = renderVp.height;
+    canvas.style.width = `${renderVp.width / dpr}px`;
+    canvas.style.height = `${renderVp.height / dpr}px`;
 
-    if (!offCtx) return;
-
-    page.render({ canvasContext: offCtx, viewport: renderVp }).promise.then(() => {
-      // Set target canvas size to cropped paper dimensions
-      const finalW = Math.round(croppedW * scale);
-      const finalH = Math.round(croppedH * scale);
-
-      canvas.width = finalW;
-      canvas.height = finalH;
-      canvas.style.width = `${finalW / dpr}px`;
-      canvas.style.height = `${finalH / dpr}px`;
-
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.drawImage(
-          offscreen,
-          cropX * scale,
-          cropY * scale,
-          finalW,
-          finalH,
-          0,
-          0,
-          finalW,
-          finalH,
-        );
-      }
-    });
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      page.render({ canvasContext: ctx, viewport: renderVp });
+    }
   });
 }
 
