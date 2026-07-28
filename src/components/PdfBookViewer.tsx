@@ -16,7 +16,9 @@ import {
   Layers,
 } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
-import { PageFlip } from "page-flip";
+import pageFlipPkg from "page-flip";
+
+const PageFlip = (pageFlipPkg as any)?.PageFlip || (pageFlipPkg as any)?.default?.PageFlip || (pageFlipPkg as any)?.default || pageFlipPkg;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -145,7 +147,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bookElementRef = useRef<HTMLDivElement>(null);
-  const pageFlipRef = useRef<PageFlip | null>(null);
+  const pageFlipRef = useRef<any>(null);
   const pagesContainerRef = useRef<HTMLDivElement>(null);
 
   const targetPdfUrl = pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
@@ -173,11 +175,89 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     };
   }, [targetPdfUrl, isOpen]);
 
-  // Initialize PageFlip engine once PDF is loaded and modal is visible
-  useEffect(() => {
-    if (!isOpen || !pdf || !pagesContainerRef.current || totalPages === 0) return;
+  // Dynamic responsive page size calculator
+  const updateDimensions = useCallback(() => {
+    if (!isOpen || !pdf || !pagesContainerRef.current || !containerRef.current || totalPages === 0) return;
 
-    // Destroy existing instance if any
+    const container = containerRef.current;
+    const containerW = container.clientWidth || window.innerWidth;
+    const containerH = container.clientHeight || window.innerHeight;
+
+    pdf.getPage(1).then((page1) => {
+      const rawVp = page1.getViewport({ scale: 1 });
+      const cropBox = page1.cropBox && page1.cropBox.length === 4 ? page1.cropBox : null;
+
+      let paperW = rawVp.width;
+      let paperH = rawVp.height;
+
+      if (cropBox) {
+        paperW = cropBox[2] - cropBox[0];
+        paperH = cropBox[3] - cropBox[1];
+      } else if (trimCropMarks) {
+        paperW = rawVp.width * 0.932;
+        paperH = rawVp.height * 0.932;
+      }
+
+      const isMobile = containerW < 768;
+      const isSingleMode = totalPages === 1 || isMobile;
+      const pagesInSpread = isSingleMode ? 1 : 2;
+
+      // Tight padding to maximize reading area across mobile and desktop
+      const maxH = containerH - (isMobile ? 12 : 28);
+      const maxW = (containerW - (isMobile ? 12 : 36)) / pagesInSpread;
+
+      const scale = Math.min(maxH / paperH, maxW / paperW);
+      const pageW = Math.round(paperW * scale);
+      const pageH = Math.round(paperH * scale);
+
+      // Create or update PageFlip instance
+      if (!pageFlipRef.current) {
+        const pageFlip = new PageFlip(pagesContainerRef.current!, {
+          width: pageW,
+          height: pageH,
+          size: "fixed",
+          minWidth: 160,
+          maxWidth: 1400,
+          minHeight: 240,
+          maxHeight: 1800,
+          drawShadow: true,
+          maxShadowOpacity: 0.7,
+          showCover: totalPages > 1 && !isMobile,
+          mobileScrollSupport: true,
+          usePortrait: isSingleMode,
+          startPage: 0,
+        });
+
+        const pageElements = pagesContainerRef.current!.querySelectorAll(".st-page");
+        if (pageElements.length > 0) {
+          pageFlip.loadFromHTML(pageElements as any);
+          pageFlipRef.current = pageFlip;
+
+          pageFlip.on("flip", (e: any) => {
+            const newPage = (e.data as number) + 1;
+            setCurrentPage(newPage);
+            playPaperFlipSound(isMuted);
+          });
+        }
+      } else {
+        try {
+          pageFlipRef.current.update({
+            width: pageW,
+            height: pageH,
+            usePortrait: isSingleMode,
+            showCover: totalPages > 1 && !isMobile,
+          });
+        } catch {
+          // Fallback update
+        }
+      }
+    });
+  }, [isOpen, pdf, totalPages, trimCropMarks, isMuted]);
+
+  // Initialize PageFlip engine once PDF is loaded
+  useEffect(() => {
+    if (!isOpen || !pdf || totalPages === 0) return;
+
     if (pageFlipRef.current) {
       try {
         pageFlipRef.current.destroy();
@@ -185,63 +265,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
       pageFlipRef.current = null;
     }
 
-    const container = containerRef.current;
-    if (!container) return;
-
-    const containerW = container.clientWidth || 1000;
-    const containerH = container.clientHeight || 700;
-
-    // Determine page dimensions based on actual paper aspect ratio of page 1
-    pdf.getPage(1).then((page1) => {
-      const rawVp = page1.getViewport({ scale: 1 });
-      const cropX = trimCropMarks ? rawVp.width * 0.034 : 0;
-      const cropY = trimCropMarks ? rawVp.height * 0.034 : 0;
-      const paperW = rawVp.width - 2 * cropX;
-      const paperH = rawVp.height - 2 * cropY;
-
-      const isMobile = containerW < 768;
-      const isSingleMode = totalPages === 1 || isMobile;
-      const pagesInSpread = isSingleMode ? 1 : 2;
-
-      // Fit page perfectly within container maintaining exact paper aspect ratio
-      const maxH = containerH - 32;
-      const maxW = (containerW - (isMobile ? 16 : 48)) / pagesInSpread;
-
-      const scaleH = maxH / paperH;
-      const scaleW = maxW / paperW;
-      const scale = Math.min(scaleH, scaleW);
-
-      const pageW = Math.round(paperW * scale);
-      const pageH = Math.round(paperH * scale);
-
-      const pageFlip = new PageFlip(pagesContainerRef.current!, {
-        width: pageW,
-        height: pageH,
-        size: "fixed",
-        minWidth: 160,
-        maxWidth: 1200,
-        minHeight: 240,
-        maxHeight: 1600,
-        drawShadow: true,
-        maxShadowOpacity: 0.7,
-        showCover: totalPages > 1 && !isMobile,
-        mobileScrollSupport: true,
-        usePortrait: isSingleMode,
-        startPage: 0,
-      });
-
-      const pageElements = pagesContainerRef.current!.querySelectorAll(".st-page");
-      if (pageElements.length > 0) {
-        pageFlip.loadFromHTML(pageElements as any);
-        pageFlipRef.current = pageFlip;
-
-        pageFlip.on("flip", (e: any) => {
-          const newPage = (e.data as number) + 1;
-          setCurrentPage(newPage);
-          playPaperFlipSound(isMuted);
-        });
-      }
-    });
+    updateDimensions();
 
     return () => {
       if (pageFlipRef.current) {
@@ -251,7 +275,17 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         pageFlipRef.current = null;
       }
     };
-  }, [isOpen, pdf, totalPages]);
+  }, [isOpen, pdf, totalPages, updateDimensions]);
+
+  // ResizeObserver for continuous responsive adaptation to window / orientation changes
+  useEffect(() => {
+    if (!isOpen || !containerRef.current) return;
+    const observer = new ResizeObserver(() => {
+      updateDimensions();
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [isOpen, updateDimensions]);
 
   // Render individual page canvases when PDF doc is ready
   useEffect(() => {
