@@ -8,7 +8,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { MotionConfig } from "framer-motion";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -141,18 +141,9 @@ function RootComponent() {
         {isReader ? (
           <Outlet />
         ) : (
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
-              transition={{ duration: 0.45 }}
-              style={{ willChange: "opacity, transform, filter" }}
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+          <div key={pathname} className="animate-in fade-in duration-300">
+            <Outlet />
+          </div>
         )}
       </MotionConfig>
     </QueryClientProvider>

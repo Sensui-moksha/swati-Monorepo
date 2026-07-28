@@ -38,7 +38,33 @@ function PublicationDetail() {
   }
 
   if (error || !publication) {
-    return <PublicPage title="Issue not found"><Link to="/publications" className="text-primary hover:underline">← All publications</Link></PublicPage>;
+    const demoTitle = "Swathi Weekly Magazine (Demo Issue)";
+    const demoPdf = "/documents/EDITOR GARI SANMANAPATRAM.pdf";
+
+    return (
+      <PublicPage eyebrow="Swathi Interactive Demo" title={demoTitle}>
+        <div className="max-w-xl py-8">
+          <p className="font-serif text-lg leading-relaxed text-muted-foreground mb-6">
+            Explore Swathi Publications interactive flipbook viewer with high-DPI rendering and 3D page flip animation.
+          </p>
+          <Btn onClick={() => setIsBookViewerOpen(true)} className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" /> Open Interactive Book Viewer
+          </Btn>
+          <div className="mt-4">
+            <Link to="/publications" className="text-sm text-primary hover:underline">
+              ← Return to All Publications
+            </Link>
+          </div>
+        </div>
+
+        <PdfBookViewer
+          isOpen={isBookViewerOpen}
+          onClose={() => setIsBookViewerOpen(false)}
+          title={demoTitle}
+          pdfUrl={demoPdf}
+        />
+      </PublicPage>
+    );
   }
 
   const pdfUrl = (publication as any).pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";

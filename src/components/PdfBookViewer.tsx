@@ -86,8 +86,8 @@ function renderPdfPageToCanvas(
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const rawVp = page.getViewport({ scale: 1 });
 
-    // Prepress trim: strip out 2.7% outer margin containing registration target dots & alignment crosshairs
-    const trimPct = 0.027;
+    // Prepress trim: strip out 4.8% outer margin containing registration target dots & alignment crosshairs / aim marks
+    const trimPct = 0.048;
     const cropX = rawVp.width * trimPct;
     const cropY = rawVp.height * trimPct;
     const liveW = rawVp.width - 2 * cropX;
@@ -196,11 +196,11 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
     const container = containerRef.current;
     const containerW = container.clientWidth || window.innerWidth;
-    const containerH = container.clientHeight || window.innerHeight - 48;
+    const containerH = container.clientHeight || window.innerHeight - 44;
 
     pdf.getPage(1).then((page1) => {
       const rawVp = page1.getViewport({ scale: 1 });
-      const trimPct = 0.027;
+      const trimPct = 0.048;
       const paperW = rawVp.width * (1 - 2 * trimPct);
       const paperH = rawVp.height * (1 - 2 * trimPct);
 
@@ -208,11 +208,14 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
       const isSingleMode = totalPages === 1 || isMobile;
       const pagesInSpread = isSingleMode ? 1 : 2;
 
-      // Strict viewport boundary bounds to ensure 100% zero vertical/horizontal scrolling
-      const maxH = Math.max(containerH - 40, 280);
-      const maxW = Math.max((containerW - (isMobile ? 16 : 40)) / pagesInSpread, 180);
+      // Fill 90% of viewport on desktop, 94% on mobile for optimal prominence
+      const fillRatio = isMobile ? 0.94 : 0.90;
+      const availW = Math.max(containerW * fillRatio, 280);
+      const availH = Math.max(containerH * fillRatio, 320);
 
-      const scale = Math.min(maxH / paperH, maxW / paperW);
+      const spreadPaperW = paperW * pagesInSpread;
+      const scale = Math.min(availW / spreadPaperW, availH / paperH);
+
       const pageW = Math.round(paperW * scale);
       const pageH = Math.round(paperH * scale);
 
@@ -222,12 +225,13 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           width: pageW,
           height: pageH,
           size: "fixed",
-          minWidth: 160,
-          maxWidth: 1400,
-          minHeight: 240,
-          maxHeight: 1800,
+          minWidth: Math.round(pageW * 0.4),
+          maxWidth: Math.round(pageW * 2.0),
+          minHeight: Math.round(pageH * 0.4),
+          maxHeight: Math.round(pageH * 2.0),
           drawShadow: true,
-          maxShadowOpacity: 0.6,
+          maxShadowOpacity: 0.4,
+          flippingTime: 700,
           showCover: totalPages > 1,
           mobileScrollSupport: false,
           usePortrait: isSingleMode,
@@ -389,65 +393,111 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     setIsDragging(false);
   };
 
-  if (!isOpen) return null;
+  // Mobile Multi-Touch Gestures: Two-finger Pinch Zoom & Pan
+  const touchPinchDistRef = useRef<number | null>(null);
+  const touchStartZoomRef = useRef<number>(1);
+  const touchPanStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Compute mathematical centering transform for Cover (Pg 1), Spreads, and Back Cover
-  const getCenterTransform = () => {
-    if (totalPages <= 1)
-      return `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`;
-
-    let translateX = "0%";
-    if (currentPage === 1) {
-      translateX = "-25%"; // Dead-center Front Cover (Page 1) on screen
-    } else if (currentPage === totalPages && totalPages % 2 === 0) {
-      translateX = "25%"; // Dead-center Back Cover on screen
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY,
+      );
+      touchPinchDistRef.current = dist;
+      touchStartZoomRef.current = zoomLevel;
+      touchPanStartRef.current = null;
+    } else if (e.touches.length === 1 && zoomLevel > 1) {
+      touchPanStartRef.current = {
+        x: e.touches[0].clientX - panOffset.x,
+        y: e.touches[0].clientY - panOffset.y,
+      };
+      touchPinchDistRef.current = null;
     }
-
-    return `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px) translateX(${translateX})`;
   };
 
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && touchPinchDistRef.current !== null) {
+      if (e.cancelable) e.preventDefault();
+      const currentDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY,
+      );
+      const scaleRatio = currentDist / touchPinchDistRef.current;
+      const newZoom = Math.min(Math.max(0.8, touchStartZoomRef.current * scaleRatio), 3.0);
+      setZoomLevel(newZoom);
+      if (newZoom <= 1.05) {
+        setPanOffset({ x: 0, y: 0 });
+      }
+    } else if (e.touches.length === 1 && touchPanStartRef.current !== null && zoomLevel > 1) {
+      if (e.cancelable) e.preventDefault();
+      setPanOffset({
+        x: e.touches[0].clientX - touchPanStartRef.current.x,
+        y: e.touches[0].clientY - touchPanStartRef.current.y,
+      });
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      touchPinchDistRef.current = null;
+    }
+    if (e.touches.length === 0) {
+      touchPanStartRef.current = null;
+    }
+  };
+
+  if (!isOpen) return null;
+
+  // Compute mathematical transform for zoom & user pan
+  const getCenterTransform = () => {
+    return `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`;
+  };
+
+  const isMobileViewport = typeof window !== "undefined" && window.innerWidth < 768;
+  const isSinglePage = totalPages <= 1 || isMobileViewport;
+
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#12100e] text-stone-100 select-none overflow-hidden font-sans">
-      {/* ──── FlippingBook Header ──── */}
-      <header className="flex h-12 items-center justify-between border-b border-stone-800/80 bg-stone-900/95 px-4 z-30 shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="h-8 w-8 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-500 grid place-items-center shadow-inner">
-            <BookOpen className="h-4 w-4" />
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0d0b0a] text-stone-100 select-none overflow-hidden font-sans">
+      {/* ──── FlippingBook Compact Studio Header ──── */}
+      <header className="flex h-11 items-center justify-between border-b border-stone-800/80 bg-stone-900/95 px-3 z-30 shrink-0 shadow-md">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="h-7 w-7 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-400 grid place-items-center shrink-0 shadow-inner">
+            <BookOpen className="h-3.5 w-3.5" />
           </div>
           <div className="min-w-0">
-            <h2 className="truncate font-serif text-sm font-semibold text-stone-100">
+            <h2 className="truncate font-serif text-xs font-semibold text-stone-100 tracking-wide">
               {title}
             </h2>
-            <p className="text-[10px] text-stone-400 font-mono uppercase tracking-wider">
-              Swathi Interactive Flipbook
-            </p>
           </div>
         </div>
 
         {/* Page counter display */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={handlePrev}
-            className="p-1.5 rounded hover:bg-stone-800 text-stone-300 hover:text-white transition disabled:opacity-30"
+            disabled={currentPage <= 1}
+            className="p-1 rounded hover:bg-stone-800 text-stone-300 hover:text-white transition disabled:opacity-20"
             title="Previous Page (Left Arrow)"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <div className="flex items-center gap-1 px-3 py-1 rounded bg-stone-800/90 text-xs font-mono border border-stone-700/60 shadow-sm">
-            <span className="text-stone-400">Page</span>
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-stone-800/90 text-xs font-mono border border-stone-700/60 shadow-inner">
+            <span className="text-stone-400 text-[11px]">Page</span>
             <input
               type="number"
               min={1}
               max={totalPages}
               value={currentPage}
               onChange={(e) => jumpToPage(parseInt(e.target.value, 10) || 1)}
-              className="w-8 text-center bg-stone-950 text-amber-400 font-bold rounded border border-stone-700 outline-none focus:border-amber-500"
+              className="w-8 text-center bg-stone-950 text-amber-400 font-bold text-xs rounded border border-stone-700 outline-none focus:border-amber-500"
             />
-            <span className="text-stone-400">of {totalPages || "…"}</span>
+            <span className="text-stone-400 text-[11px]">of {totalPages || "…"}</span>
           </div>
           <button
             onClick={handleNext}
-            className="p-1.5 rounded hover:bg-stone-800 text-stone-300 hover:text-white transition disabled:opacity-30"
+            disabled={currentPage >= totalPages}
+            className="p-1 rounded hover:bg-stone-800 text-stone-300 hover:text-white transition disabled:opacity-20"
             title="Next Page (Right Arrow)"
           >
             <ChevronRight className="h-4 w-4" />
@@ -455,10 +505,10 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className={`p-2 rounded-md transition ${isMuted ? "text-stone-500 hover:text-stone-300" : "text-amber-400 hover:bg-stone-800"}`}
+            className={`p-1.5 rounded transition ${isMuted ? "text-stone-500 hover:text-stone-300" : "text-amber-400 hover:bg-stone-800"}`}
             title={isMuted ? "Unmute Sound" : "Mute Sound"}
           >
             {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -466,17 +516,17 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
           <button
             onClick={() => setShowThumbnails(!showThumbnails)}
-            className={`p-2 rounded-md transition ${showThumbnails ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" : "text-stone-300 hover:bg-stone-800"}`}
-            title="Toggle Thumbnails Bar"
+            className={`p-1.5 rounded transition ${showThumbnails ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" : "text-stone-300 hover:bg-stone-800"}`}
+            title="Toggle Page Thumbnails"
           >
             <LayoutGrid className="h-4 w-4" />
           </button>
 
-          <div className="h-4 w-px bg-stone-800 mx-1" />
+          <div className="h-3.5 w-px bg-stone-800 mx-1" />
 
           <button
             onClick={() => setZoomLevel((z) => Math.min(z + 0.25, 2.5))}
-            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white"
+            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white transition"
             title="Zoom In"
           >
             <ZoomIn className="h-4 w-4" />
@@ -486,7 +536,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
               setZoomLevel((z) => Math.max(z - 0.25, 0.8));
               if (zoomLevel <= 1.25) setPanOffset({ x: 0, y: 0 });
             }}
-            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white"
+            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white transition"
             title="Zoom Out"
           >
             <ZoomOut className="h-4 w-4" />
@@ -497,18 +547,18 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
                 setZoomLevel(1);
                 setPanOffset({ x: 0, y: 0 });
               }}
-              className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white"
-              title="Reset Zoom"
+              className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white transition"
+              title="Reset Zoom (Fit to Screen)"
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </button>
           )}
 
-          <div className="h-4 w-px bg-stone-800 mx-1" />
+          <div className="h-3.5 w-px bg-stone-800 mx-1" />
 
           <button
             onClick={toggleFullscreen}
-            className="p-2 hover:bg-stone-800 rounded-md text-stone-300 hover:text-white"
+            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white transition"
             title="Toggle Fullscreen"
           >
             {isFullscreen ? (
@@ -519,14 +569,15 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           </button>
           <button
             onClick={onClose}
-            className="ml-1 h-7 w-7 grid place-items-center rounded-full bg-stone-800 hover:bg-red-600 text-stone-300 hover:text-white border border-stone-700 transition"
+            className="ml-1 h-6 w-6 grid place-items-center rounded-full bg-stone-800 hover:bg-red-600 text-stone-300 hover:text-white border border-stone-700/80 transition"
+            title="Close Viewer"
           >
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
       </header>
 
-      {/* ──── Book Stage — Premium Ambient Atmosphere ──── */}
+      {/* ──── Book Stage — Studio Radial Atmosphere ──── */}
       <div
         ref={containerRef}
         onWheel={handleWheel}
@@ -535,66 +586,98 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        className={`flex-1 relative flex items-center justify-center p-2 md:p-4 overflow-hidden ${
-          zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+        className={`flex-1 relative flex items-center justify-center overflow-hidden ${
+          zoomLevel > 1 ? "cursor-grab active:cursor-grabbing touch-none" : ""
         }`}
         style={{
           background:
-            "radial-gradient(ellipse at 50% 45%, #24201c 0%, #151210 60%, #090807 100%)",
+            "radial-gradient(circle at 50% 50%, #1c1917 0%, #12100e 55%, #080706 100%)",
         }}
       >
-        {/* Subtle Ambient Vignette Highlight */}
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-black/30 pointer-events-none" />
+        {/* Warm Ambient Spotlight behind the Book */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% 50%, rgba(217, 119, 6, 0.07) 0%, transparent 70%)",
+          }}
+        />
 
-        {/* 3D PageFlip Container with mathematical Cover & Spread Centering */}
+        {/* Dedicated Relative Book Container (Anchors navigation arrows directly to book edges) */}
         <div
           ref={bookElementRef}
-          className="relative transition-transform duration-500 ease-out flex items-center justify-center max-w-full max-h-full"
+          className="relative transition-transform duration-300 ease-out flex items-center justify-center"
           style={{ transform: getCenterTransform() }}
         >
-          <div ref={pagesContainerRef} className="st-flip-book shadow-2xl">
+          {/* Book-relative Previous Button */}
+          <button
+            onClick={handlePrev}
+            disabled={currentPage <= 1}
+            className="absolute -left-3 md:-left-16 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-stone-900/80 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-60 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95"
+            title="Previous Page (Left Arrow)"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+
+          {/* Book-relative Next Button */}
+          <button
+            onClick={handleNext}
+            disabled={currentPage >= totalPages}
+            className="absolute -right-3 md:-right-16 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-stone-900/80 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-60 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95"
+            title="Next Page (Right Arrow)"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+
+          {/* PageFlip Container with Commercial Drop Shadows & Edge Depth */}
+          <div
+            ref={pagesContainerRef}
+            className="st-flip-book relative rounded-[2px] transition-shadow duration-300"
+            style={{
+              boxShadow:
+                "0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 12px 24px -8px rgba(0, 0, 0, 0.45)",
+            }}
+          >
             {Array.from({ length: totalPages }).map((_, idx) => {
               const pageNum = idx + 1;
 
               return (
                 <div
                   key={pageNum}
-                  className="st-page bg-[#fdfcfa] overflow-hidden relative shadow-lg select-none"
+                  className="st-page bg-[#fdfcfa] overflow-hidden relative select-none rounded-[1px]"
                   data-density="soft"
                 >
                   <canvas
                     data-page={pageNum}
                     className="w-full h-full object-contain mx-auto block"
+                    style={{ imageRendering: "-webkit-optimize-contrast" }}
                   />
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/70 text-stone-200 text-[9px] font-mono px-2 py-0.5 rounded pointer-events-none z-10">
+                  <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-stone-900/60 text-stone-300 text-[9px] font-mono px-2 py-0.5 rounded-full pointer-events-none z-10 border border-stone-700/40 backdrop-blur-sm opacity-80">
                     {pageNum}
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
 
-        {/* Left & Right Edge Drag/Click Navigation Indicators */}
-        <button
-          onClick={handlePrev}
-          disabled={currentPage <= 1}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-stone-900/70 hover:bg-stone-900 text-stone-200 border border-stone-700/60 shadow-2xl backdrop-blur transition opacity-40 hover:opacity-100 disabled:opacity-0"
-          title="Previous Page"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={currentPage >= totalPages}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-stone-900/70 hover:bg-stone-900 text-stone-200 border border-stone-700/60 shadow-2xl backdrop-blur transition opacity-40 hover:opacity-100 disabled:opacity-0"
-          title="Next Page"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </button>
+          {/* Soft Natural Spine Crease Overlay (Blends seamlessly into open gutter without dark vertical lines during flip) */}
+          {!isSinglePage && currentPage > 1 && currentPage < totalPages && (
+            <div
+              className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[18px] pointer-events-none z-10 opacity-35 mix-blend-multiply"
+              style={{
+                background:
+                  "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.15) 65%, transparent 100%)",
+              }}
+            />
+          )}
+        </div>
       </div>
 
-      {/* ──── FlippingBook Bottom Filmstrip Thumbnail Navigation ──── */}
+      {/* ──── Bottom Filmstrip Thumbnail Navigation ──── */}
       {showThumbnails && pdf && (
         <div className="h-28 border-t border-stone-800 bg-stone-950/95 p-2 flex items-center gap-3 overflow-x-auto z-30 shrink-0 shadow-inner">
           {Array.from({ length: totalPages }).map((_, idx) => {
@@ -625,3 +708,4 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     </div>
   );
 };
+
