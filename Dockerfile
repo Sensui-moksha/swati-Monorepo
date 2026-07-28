@@ -1,13 +1,13 @@
 # Multistage Dockerfile for swati-clientside (TanStack Start / Vite)
 
-# 1. Base stage
-FROM node:20-alpine AS base
+# 1. Base stage (Node 22 required by @tanstack/react-start >= 22.12.0)
+FROM node:22-alpine AS base
 WORKDIR /app
 
 # 2. Dependencies stage
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 # 3. Build stage
 FROM base AS builder
