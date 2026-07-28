@@ -153,7 +153,8 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     pdf.getPage(1).then((page1) => {
       // Use exact PDF page bounds so no page content is cut off or cropped
       const rawVp = page1.getViewport({ scale: 1 });
-      const cropBox = page1.cropBox && page1.cropBox.length === 4 ? page1.cropBox : null;
+      const page1Any = page1 as any;
+      const cropBox = page1Any.cropBox && page1Any.cropBox.length === 4 ? page1Any.cropBox : null;
 
       const paperW = cropBox ? (cropBox[2] - cropBox[0]) : rawVp.width;
       const paperH = cropBox ? (cropBox[3] - cropBox[1]) : rawVp.height;
@@ -258,10 +259,10 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         `canvas[data-page="${p}"]`,
       ) as HTMLCanvasElement;
       if (canvas) {
-        renderPdfPageToCanvas(pdf, p, canvas, 950, trimCropMarks);
+        renderPdfPageToCanvas(pdf, p, canvas, 950);
       }
     }
-  }, [pdf, totalPages, trimCropMarks]);
+  }, [pdf, totalPages]);
 
   // Keyboard navigation
   const handlePrev = useCallback(() => {
