@@ -199,12 +199,13 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
       const paperW = rawVp.width - 2 * cropX;
       const paperH = rawVp.height - 2 * cropY;
 
-      const isSingleMode = totalPages === 1;
+      const isMobile = containerW < 768;
+      const isSingleMode = totalPages === 1 || isMobile;
       const pagesInSpread = isSingleMode ? 1 : 2;
 
       // Fit page perfectly within container maintaining exact paper aspect ratio
       const maxH = containerH - 32;
-      const maxW = (containerW - 48) / pagesInSpread;
+      const maxW = (containerW - (isMobile ? 16 : 48)) / pagesInSpread;
 
       const scaleH = maxH / paperH;
       const scaleW = maxW / paperW;
@@ -217,14 +218,14 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         width: pageW,
         height: pageH,
         size: "fixed",
-        minWidth: 200,
+        minWidth: 160,
         maxWidth: 1200,
-        minHeight: 300,
+        minHeight: 240,
         maxHeight: 1600,
         drawShadow: true,
         maxShadowOpacity: 0.7,
-        showCover: totalPages > 1,
-        mobileScrollSupport: false,
+        showCover: totalPages > 1 && !isMobile,
+        mobileScrollSupport: true,
         usePortrait: isSingleMode,
         startPage: 0,
       });
