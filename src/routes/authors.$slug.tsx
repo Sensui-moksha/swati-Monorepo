@@ -4,7 +4,7 @@ import { BookCard, Btn, SectionTitle } from "@/components/ui-primitives";
 import { useAuthorBySlug, useAuthorBooks } from "@/lib/api/hooks";
 import { PdfBookViewer } from "@/components/PdfBookViewer";
 import { useState } from "react";
-import { BookOpen, FileText, Download } from "lucide-react";
+import { BookOpen, FileText } from "lucide-react";
 
 const FEATURED_PROFILES: Record<string, { name: string; role: string; bio: string; avatar: string; pdfUrl: string }> = {
   "vemuri-balaram": {
@@ -101,13 +101,6 @@ function AuthorDetailPage() {
             <Btn onClick={() => setIsBookViewerOpen(true)} className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" /> Read Profile PDF in Book View
             </Btn>
-            <a
-              href={author.pdfUrl}
-              download
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-rule rounded-md hover:bg-secondary transition-colors"
-            >
-              <Download className="h-4 w-4" /> Download PDF
-            </a>
           </div>
         </div>
       </div>

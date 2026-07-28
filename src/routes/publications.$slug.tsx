@@ -3,7 +3,7 @@ import { PublicPage } from "@/components/shells";
 import { Btn } from "@/components/ui-primitives";
 import { usePublicationBySlug, useIssues } from "@/lib/api/hooks";
 import { formatDate } from "@/lib/utils";
-import { BookOpen, Download } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { PdfBookViewer } from "@/components/PdfBookViewer";
 import { PdfThumbnail } from "@/components/PdfThumbnail";
 import { useState } from "react";
@@ -56,13 +56,6 @@ function PublicationDetail() {
             <Btn onClick={() => setIsBookViewerOpen(true)} className="flex items-center gap-2">
               <BookOpen className="w-4 h-4" /> Read in Book Viewer
             </Btn>
-            <a
-              href={encodeURI(pdfUrl)}
-              download
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-rule rounded-md hover:bg-secondary transition-colors"
-            >
-              <Download className="w-4 h-4" /> Download PDF
-            </a>
           </div>
 
           <div className="mt-8 pt-6 border-t border-rule">

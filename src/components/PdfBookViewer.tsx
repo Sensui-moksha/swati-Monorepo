@@ -4,7 +4,6 @@ import {
   ChevronRight,
   Maximize2,
   Minimize2,
-  Download,
   X,
   BookOpen,
   Volume2,
@@ -432,14 +431,6 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
           <div className="h-4 w-px bg-stone-800 mx-1" />
 
-          <a
-            href={encodeURI(targetPdfUrl)}
-            download
-            className="p-2 hover:bg-stone-800 rounded-md text-stone-300 hover:text-white"
-            title="Download PDF"
-          >
-            <Download className="h-4 w-4" />
-          </a>
           <button
             onClick={toggleFullscreen}
             className="p-2 hover:bg-stone-800 rounded-md text-stone-300 hover:text-white"
