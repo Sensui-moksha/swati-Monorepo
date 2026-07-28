@@ -7,33 +7,12 @@ import { useState } from "react";
 import { BookOpen, FileText, Download } from "lucide-react";
 
 const FEATURED_PROFILES: Record<string, { name: string; role: string; bio: string; avatar: string; pdfUrl: string }> = {
-  "dr-swathi-ramachandran": {
-    name: "Dr. Swathi Ramachandran",
-    role: "Editor-in-Chief & Founder",
-    bio: "Ph.D. in Constitutional Law & Public Policy from Harvard University. Lead editor at Swathi Publications since 1998, specializing in constitutional analysis and editorial direction.",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop",
-    pdfUrl: "/documents/sample-issue.pdf",
-  },
-  "prof-kv-narayana": {
-    name: "Prof. K. V. Narayana",
-    role: "Senior Political Analyst & Academic Chair",
-    bio: "Former Chair of Humanities at JNU. Author of 14 acclaimed treatises on South Asian Governance, public policy, and institutional frameworks.",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
-    pdfUrl: "/documents/sample-issue.pdf",
-  },
-  "ananya-deshmukh": {
-    name: "Ananya Deshmukh",
-    role: "Chief Foreign Correspondent",
-    bio: "Award-winning journalist specializing in international relations, geopolitics, and environmental policy reporting across South Asia.",
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
-    pdfUrl: "/documents/sample-issue.pdf",
-  },
-  "vikramaditya-sharma": {
-    name: "Vikramaditya Sharma",
-    role: "Senior Economic Editor",
-    bio: "Former Financial Express columnist. Focuses on macroeconomic trends, trade policies, and monetary policy analysis.",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
-    pdfUrl: "/documents/sample-issue.pdf",
+  "vemuri-balaram": {
+    name: "Vemuri Balaram",
+    role: "Founder, Owner & Editor-in-Chief",
+    bio: "Vemuri Balaram (popularly known as Swathi Balaram) is the founder, owner, and editor-in-chief of Swathi Publications, headquartered in Vijayawada, Andhra Pradesh. Born in 1947 in Ghantasala Palem, he worked at the Survey of India before founding Swathi Monthly in 1970 and Swathi Weekly in 1984. Under his vision, Swathi grew into one of the largest-circulated Telugu publications, shaping Telugu literature, journalism, and family reading culture for decades. He was honored with the AP Kala Ratna Award (2025) and the Lok Nayak Foundation Award.",
+    avatar: "/images/dr-swathi-ramachandran.jpg",
+    pdfUrl: "/documents/EDITOR GARI SANMANAPATRAM.pdf",
   },
 };
 
@@ -52,25 +31,25 @@ function AuthorDetailPage() {
 
   const author = featuredProfile
     ? {
-        id: slug,
-        name: featuredProfile.name,
-        role: featuredProfile.role,
-        bio: featuredProfile.bio,
-        avatar: featuredProfile.avatar,
-        pdfUrl: featuredProfile.pdfUrl,
-        bookCount: 12,
-      }
+      id: slug,
+      name: featuredProfile.name,
+      role: featuredProfile.role,
+      bio: featuredProfile.bio,
+      avatar: featuredProfile.avatar,
+      pdfUrl: featuredProfile.pdfUrl,
+      bookCount: 12,
+    }
     : fetchedAuthor
-    ? {
+      ? {
         id: fetchedAuthor.id,
         name: fetchedAuthor.name,
         role: "Editorial Contributor",
         bio: fetchedAuthor.bio || "Staff writer and contributor at Swathi Publications.",
         avatar: undefined,
-        pdfUrl: (fetchedAuthor as any).pdfUrl || "/documents/sample-issue.pdf",
+        pdfUrl: (fetchedAuthor as any).pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf",
         bookCount: fetchedAuthor.bookCount || 0,
       }
-    : null;
+      : null;
 
   const { data: booksData } = useAuthorBooks(fetchedAuthor?.id ?? '', { limit: 4 });
   const books = booksData?.data ?? [];

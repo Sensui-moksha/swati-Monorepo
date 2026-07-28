@@ -1,9 +1,12 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicPage } from "@/components/shells";
 import { Btn } from "@/components/ui-primitives";
 import { usePublicationBySlug, useIssues } from "@/lib/api/hooks";
 import { formatDate } from "@/lib/utils";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Download } from "lucide-react";
+import { PdfBookViewer } from "@/components/PdfBookViewer";
+import { PdfThumbnail } from "@/components/PdfThumbnail";
+import { useState } from "react";
 
 export const Route = createFileRoute("/publications/$slug")({
   head: () => ({ meta: [{ title: "Publication — Swathi Publications" }] }),
@@ -15,13 +18,12 @@ function PublicationDetail() {
   const { slug } = Route.useParams();
   const { data, isLoading, error } = usePublicationBySlug(slug);
   const publication = data?.data;
+  const [isBookViewerOpen, setIsBookViewerOpen] = useState(false);
 
-  // We only fetch issues if we have a publication ID
   const { data: issuesData, isLoading: isLoadingIssues } = useIssues(
     publication?.id as string, 
     { limit: 10 }
   );
-  // Ensure we only use this hook when we have an ID
   const issues = (publication?.id && issuesData?.data) ? issuesData.data : [];
 
   if (isLoading) {
@@ -39,13 +41,30 @@ function PublicationDetail() {
     return <PublicPage title="Issue not found"><Link to="/publications" className="text-primary hover:underline">← All publications</Link></PublicPage>;
   }
 
+  const pdfUrl = (publication as any).pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
+  const coverSrc = publication.coverImage ?? pdfUrl;
+
   return (
     <PublicPage eyebrow={`${publication.type} · ${publication.title}`} title={publication.title} description={formatDate(publication.createdAt)}>
-      <div className="grid md:grid-cols-[300px_1fr] gap-10">
-        <img src={publication.coverImage ?? ''} alt="" className="rounded-sm shadow-2xl aspect-[3/4] object-cover" />
+      <div className="grid md:grid-cols-[300px_1fr] gap-10 mb-12">
+        {/* Cover — renders PDF page 1 as canvas if coverImage is a .pdf path */}
+        <PdfThumbnail src={coverSrc} alt={publication.title} className="rounded-sm shadow-2xl aspect-[3/4] object-cover" />
+
         <div>
-          <p className="font-serif text-lg leading-relaxed">{publication.description || "A considered issue for the season. Long-form reporting, criticism, and columns that reward attention."}</p>
-          <div className="mt-6"><Btn><BookOpen className="w-4 h-4 mr-2" />Read Issue</Btn></div>
+          <p className="font-serif text-lg leading-relaxed">{publication.description || "A considered issue for the season."}</p>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Btn onClick={() => setIsBookViewerOpen(true)} className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" /> Read in Book Viewer
+            </Btn>
+            <a
+              href={encodeURI(pdfUrl)}
+              download
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-rule rounded-md hover:bg-secondary transition-colors"
+            >
+              <Download className="w-4 h-4" /> Download PDF
+            </a>
+          </div>
+
           <div className="mt-8 pt-6 border-t border-rule">
             <div className="text-xs uppercase text-muted-foreground mb-3">In this issue</div>
             {isLoadingIssues ? (
@@ -61,11 +80,18 @@ function PublicationDetail() {
                 ))}
               </ul>
             ) : (
-              <div className="text-sm opacity-60 text-muted-foreground">No issues published yet.</div>
+              <div className="text-sm opacity-60 text-muted-foreground">Swathi PDF document — open the Book Viewer for interactive reading.</div>
             )}
           </div>
         </div>
       </div>
+
+      <PdfBookViewer
+        isOpen={isBookViewerOpen}
+        onClose={() => setIsBookViewerOpen(false)}
+        title={publication.title}
+        pdfUrl={pdfUrl}
+      />
     </PublicPage>
   );
 }

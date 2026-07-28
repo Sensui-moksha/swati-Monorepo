@@ -11,7 +11,7 @@ export function SiteFooter() {
               <span className="text-primary">Swathi</span> Publications
             </div>
             <p className="mt-3 text-sm text-muted-foreground max-w-xs">
-              Independent journalism, long-form analysis, and cultural criticism since 1998.
+              Independent journalism, long-form analysis, and cultural criticism since 1970.
             </p>
             <div className="mt-5 flex items-center gap-3 text-muted-foreground">
               <a href="#" aria-label="Facebook" className="hover:text-primary"><Facebook className="h-4 w-4" /></a>

@@ -3,6 +3,8 @@ import { PublicPage } from "@/components/shells";
 import { Btn, BookCard, SectionTitle } from "@/components/ui-primitives";
 import { useBookBySlug, useBooks } from "@/lib/api/hooks";
 import { BookOpen, ShoppingCart, Bookmark, Share2, Star } from "lucide-react";
+import { PdfBookViewer } from "@/components/PdfBookViewer";
+import { useState } from "react";
 
 export const Route = createFileRoute("/library/book/$slug")({
   head: () => ({ meta: [{ title: "Book — Swathi Publications" }] }),
@@ -17,6 +19,7 @@ function BookDetailPage() {
   const book = bookData?.data;
   const allBooks = allBooksData?.data ?? [];
   const related = allBooks.filter((b) => b.id !== book?.id).slice(0, 4);
+  const [isBookViewerOpen, setIsBookViewerOpen] = useState(false);
 
   if (bookLoading) {
     return (
@@ -33,6 +36,8 @@ function BookDetailPage() {
     return <PublicPage title="Book not found"><Link to="/library" className="text-primary hover:underline">← Back to library</Link></PublicPage>;
   }
 
+  const pdfUrl = (book as any).pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
+
   return (
     <PublicPage eyebrow={book.format ?? "Book"} title={book.title} description={book.description}>
       <div className="grid md:grid-cols-[320px_1fr] gap-10 mb-16">
@@ -42,7 +47,7 @@ function BookDetailPage() {
             <div className="absolute inset-y-0 left-0 w-3 bg-black/30" />
           </div>
           <div className="mt-4 flex gap-2">
-            <Link to="/reader/$bookId" params={{ bookId: book.id }} className="flex-1"><Btn className="w-full"><BookOpen className="w-4 h-4 mr-2" />Read Now</Btn></Link>
+            <Btn onClick={() => setIsBookViewerOpen(true)} className="flex-1"><BookOpen className="w-4 h-4 mr-2" />Read Book</Btn>
             <Link to="/cart"><Btn variant="outline"><ShoppingCart className="w-4 h-4" /></Btn></Link>
             <Btn variant="outline"><Bookmark className="w-4 h-4" /></Btn>
             <Btn variant="outline"><Share2 className="w-4 h-4" /></Btn>
@@ -84,6 +89,12 @@ function BookDetailPage() {
           </div>
         </>
       )}
+      <PdfBookViewer
+        isOpen={isBookViewerOpen}
+        onClose={() => setIsBookViewerOpen(false)}
+        title={book.title}
+        pdfUrl={pdfUrl}
+      />
     </PublicPage>
   );
 }
