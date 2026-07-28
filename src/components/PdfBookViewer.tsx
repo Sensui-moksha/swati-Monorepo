@@ -76,7 +76,7 @@ function renderPdfPageToCanvas(
   pdfDoc: pdfjsLib.PDFDocumentProxy,
   pageNum: number,
   canvas: HTMLCanvasElement,
-  targetWidth = 700,
+  targetWidth = 900,
 ) {
   pdfDoc.getPage(pageNum).then((page) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -158,27 +158,38 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     const containerW = container.clientWidth || 1000;
     const containerH = container.clientHeight || 700;
 
-    // Determine page dimensions based on aspect ratio of page 1
+    // Determine page dimensions based on aspect ratio of page 1 to fill available stage space
     pdf.getPage(1).then((page1) => {
       const vp = page1.getViewport({ scale: 1 });
       const aspectRatio = vp.width / vp.height;
 
-      const pageH = Math.min(containerH - 120, 800);
-      const pageW = Math.round(pageH * aspectRatio);
+      const isSingleMode = totalPages === 1;
+      const pagesInSpread = isSingleMode ? 1 : 2;
+
+      // Tight margins to maximize reading area and eliminate blank borders
+      const maxH = containerH - 24; // 12px padding top/bottom
+      const maxW = (containerW - 32) / pagesInSpread; // 16px padding left/right
+
+      const scaleH = maxH / vp.height;
+      const scaleW = maxW / vp.width;
+      const scale = Math.min(scaleH, scaleW);
+
+      const pageH = Math.round(vp.height * scale);
+      const pageW = Math.round(vp.width * scale);
 
       const pageFlip = new PageFlip(pagesContainerRef.current!, {
         width: pageW,
         height: pageH,
         size: "fixed",
-        minWidth: 300,
-        maxWidth: 900,
-        minHeight: 400,
-        maxHeight: 1200,
+        minWidth: 250,
+        maxWidth: 1200,
+        minHeight: 350,
+        maxHeight: 1600,
         drawShadow: true,
-        maxShadowOpacity: 0.8,
+        maxShadowOpacity: 0.7,
         showCover: totalPages > 1,
         mobileScrollSupport: false,
-        usePortrait: totalPages === 1,
+        usePortrait: isSingleMode,
         startPage: 0,
       });
 
@@ -409,7 +420,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
               return (
                 <div
                   key={pageNum}
-                  className="st-page bg-[#fdfcfa] overflow-hidden relative border border-stone-300/40 shadow-md select-none"
+                  className="st-page bg-[#fdfcfa] overflow-hidden relative shadow-lg select-none"
                   data-density={isCover ? "hard" : "soft"}
                 >
                   <canvas
