@@ -34,7 +34,7 @@ export interface User {
   email: string;
   name: string;
   avatar?: string;
-  role: 'user' | 'admin' | 'editor' | 'author';
+  role: "user" | "admin" | "editor" | "author";
   emailVerified: boolean;
   twoFactorEnabled: boolean;
   createdAt: string;
@@ -82,7 +82,7 @@ export interface Article {
   content: string;
   pdfUrl?: string;
   coverImage?: string;
-  status: 'draft' | 'published' | 'archived' | 'scheduled';
+  status: "draft" | "published" | "archived" | "scheduled";
   publishedAt?: string;
   scheduledAt?: string;
   authorId: string;
@@ -155,10 +155,10 @@ export interface Book {
   pageCount?: number;
   publishedAt?: string;
   language: string;
-  format: 'ebook' | 'paperback' | 'hardcover' | 'audiobook';
+  format: "ebook" | "paperback" | "hardcover" | "audiobook";
   price: number;
   salePrice?: number;
-  status: 'draft' | 'published' | 'archived';
+  status: "draft" | "published" | "archived";
   chapters?: Chapter[];
   createdAt: string;
   updatedAt: string;
@@ -231,7 +231,7 @@ export interface Product {
   slug: string;
   description: string;
   shortDescription?: string;
-  type: 'book' | 'magazine' | 'subscription' | 'digital' | 'bundle';
+  type: "book" | "magazine" | "subscription" | "digital" | "bundle";
   categoryId: string;
   category?: Category;
   price: number;
@@ -252,7 +252,7 @@ export interface Product {
   inventoryQuantity?: number;
   lowStockThreshold?: number;
   trackInventory?: boolean;
-  status: 'draft' | 'published' | 'archived' | 'out_of_stock';
+  status: "draft" | "published" | "archived" | "out_of_stock";
   createdAt: string;
   updatedAt: string;
 }
@@ -286,13 +286,13 @@ export interface Publication {
   slug: string;
   description: string;
   coverImage?: string;
-  type: 'magazine' | 'journal' | 'newsletter' | 'weekly' | 'monthly' | 'special';
+  type: "magazine" | "journal" | "newsletter" | "weekly" | "monthly" | "special";
   frequency: string;
   publisherId?: string;
   publisher?: Publisher;
   editorId?: string;
   editor?: User;
-  status: 'draft' | 'published' | 'archived';
+  status: "draft" | "published" | "archived";
   issueCount: number;
   subscriberCount: number;
   createdAt: string;
@@ -310,7 +310,7 @@ export interface Issue {
   coverImage?: string;
   description?: string;
   publishedAt?: string;
-  status: 'draft' | 'published' | 'archived';
+  status: "draft" | "published" | "archived";
   articleIds: string[];
   articles?: Article[];
   createdAt: string;
@@ -321,7 +321,7 @@ export interface Issue {
 export interface Bookmark {
   id: string;
   userId: string;
-  resourceType: 'article' | 'book' | 'issue' | 'publication';
+  resourceType: "article" | "book" | "issue" | "publication";
   resourceId: string;
   resource?: Article | Book | Issue | Publication;
   createdAt: string;
@@ -330,7 +330,7 @@ export interface Bookmark {
 export interface Favorite {
   id: string;
   userId: string;
-  resourceType: 'article' | 'book' | 'author' | 'publisher' | 'series' | 'genre';
+  resourceType: "article" | "book" | "author" | "publisher" | "series" | "genre";
   resourceId: string;
   resource?: Article | Book | Author | Publisher | Series | Genre;
   createdAt: string;
@@ -340,12 +340,12 @@ export interface Comment {
   id: string;
   userId: string;
   user?: User;
-  resourceType: 'article' | 'book' | 'issue';
+  resourceType: "article" | "book" | "issue";
   resourceId: string;
   parentId?: string;
   parent?: Comment;
   content: string;
-  status: 'pending' | 'approved' | 'rejected' | 'spam';
+  status: "pending" | "approved" | "rejected" | "spam";
   isPinned: boolean;
   likeCount: number;
   replyCount: number;
@@ -356,7 +356,7 @@ export interface Comment {
 export interface Highlight {
   id: string;
   userId: string;
-  resourceType: 'article' | 'book' | 'issue';
+  resourceType: "article" | "book" | "issue";
   resourceId: string;
   text: string;
   location: string; // JSON string of location data
@@ -369,7 +369,7 @@ export interface Highlight {
 export interface Note {
   id: string;
   userId: string;
-  resourceType: 'article' | 'book' | 'issue';
+  resourceType: "article" | "book" | "issue";
   resourceId: string;
   content: string;
   isPrivate: boolean;
@@ -380,7 +380,7 @@ export interface Note {
 export interface ReadingHistory {
   id: string;
   userId: string;
-  resourceType: 'article' | 'book' | 'issue';
+  resourceType: "article" | "book" | "issue";
   resourceId: string;
   resource?: Article | Book | Issue;
   progress: number; // 0-100
@@ -391,7 +391,7 @@ export interface ReadingHistory {
 export interface ReadingProgress {
   id: string;
   userId: string;
-  resourceType: 'article' | 'book' | 'issue';
+  resourceType: "article" | "book" | "issue";
   resourceId: string;
   currentPosition: string;
   totalLength: number;
@@ -416,7 +416,7 @@ export interface Collection {
 export interface CollectionItem {
   id: string;
   collectionId: string;
-  resourceType: 'article' | 'book' | 'issue' | 'publication' | 'author' | 'series';
+  resourceType: "article" | "book" | "issue" | "publication" | "author" | "series";
   resourceId: string;
   order: number;
   addedAt: string;
@@ -426,7 +426,7 @@ export interface CollectionItem {
 export interface Notification {
   id: string;
   userId: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'system';
+  type: "info" | "success" | "warning" | "error" | "system";
   title: string;
   message: string;
   actionUrl?: string;
@@ -443,8 +443,8 @@ export interface Order {
   userId: string;
   user?: User;
   orderNumber: string;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refunded';
-  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded';
+  status: "pending" | "processing" | "completed" | "cancelled" | "refunded";
+  paymentStatus?: "pending" | "paid" | "failed" | "refunded" | "partially_refunded";
   subtotal: number;
   tax: number;
   shipping: number;
@@ -462,7 +462,7 @@ export interface Order {
 export interface OrderItem {
   id: string;
   orderId: string;
-  resourceType: 'book' | 'subscription' | 'issue';
+  resourceType: "book" | "subscription" | "issue";
   resourceId: string;
   resource?: Book | SubscriptionPlan | Issue;
   quantity: number;
@@ -473,7 +473,7 @@ export interface OrderItem {
 export interface Address {
   id: string;
   userId: string;
-  type: 'shipping' | 'billing';
+  type: "shipping" | "billing";
   firstName: string;
   lastName: string;
   company?: string;
@@ -490,7 +490,7 @@ export interface Address {
 export interface PaymentMethod {
   id: string;
   userId: string;
-  type: 'card' | 'paypal' | 'bank_transfer';
+  type: "card" | "paypal" | "bank_transfer";
   provider: string;
   last4?: string;
   brand?: string;
@@ -505,7 +505,7 @@ export interface Invoice {
   orderId: string;
   order?: Order;
   number: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
   subtotal: number;
   tax: number;
   total: number;
@@ -524,7 +524,7 @@ export interface SubscriptionPlan {
   description: string;
   price: number;
   currency: string;
-  interval: 'month' | 'year' | 'lifetime';
+  interval: "month" | "year" | "lifetime";
   trialDays?: number;
   features: string[];
   publicationIds: string[];
@@ -542,7 +542,7 @@ export interface Subscription {
   user?: User;
   planId: string;
   plan?: SubscriptionPlan;
-  status: 'active' | 'past_due' | 'cancelled' | 'expired' | 'trialing';
+  status: "active" | "past_due" | "cancelled" | "expired" | "trialing";
   currentPeriodStart: string;
   currentPeriodEnd: string;
   trialEnd?: string;
@@ -558,7 +558,7 @@ export interface Coupon {
   code: string;
   name: string;
   description?: string;
-  type: 'percentage' | 'fixed';
+  type: "percentage" | "fixed";
   value: number;
   minAmount?: number;
   maxUses?: number;
@@ -577,7 +577,7 @@ export interface Promotion {
   name: string;
   slug: string;
   description?: string;
-  type: 'discount' | 'bogo' | 'free_shipping' | 'bundle';
+  type: "discount" | "bogo" | "free_shipping" | "bundle";
   value: number;
   conditions?: Record<string, unknown>;
   startDate: string;
@@ -616,7 +616,7 @@ export interface DashboardStats {
 
 export interface ActivityItem {
   id: string;
-  type: 'read' | 'bookmark' | 'favorite' | 'highlight' | 'note' | 'purchase' | 'subscription';
+  type: "read" | "bookmark" | "favorite" | "highlight" | "note" | "purchase" | "subscription";
   resourceType: string;
   resourceId: string;
   resourceTitle: string;
@@ -633,7 +633,7 @@ export interface ReadingHeatmap {
 export interface ReadingGoal {
   id: string;
   userId: string;
-  type: 'books_per_year' | 'minutes_per_day' | 'articles_per_week';
+  type: "books_per_year" | "minutes_per_day" | "articles_per_week";
   target: number;
   current: number;
   periodStart: string;
@@ -645,7 +645,7 @@ export interface ReadingGoal {
 export interface Recommendation {
   id: string;
   userId: string;
-  resourceType: 'article' | 'book' | 'publication' | 'author';
+  resourceType: "article" | "book" | "publication" | "author";
   resourceId: string;
   resource?: Article | Book | Publication | Author;
   score: number;
@@ -701,7 +701,7 @@ export interface StorageItem {
   id: string;
   name: string;
   path: string;
-  type: 'file' | 'folder';
+  type: "file" | "folder";
   size?: number;
   mimeType?: string;
   checksum?: string;
@@ -713,8 +713,8 @@ export interface StorageItem {
 
 export interface ScanJob {
   id: string;
-  type: 'full' | 'incremental' | 'targeted' | 'deep';
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  type: "full" | "incremental" | "targeted" | "deep";
+  status: "pending" | "running" | "completed" | "failed" | "cancelled";
   path: string;
   progress: number;
   totalFiles: number;
@@ -729,7 +729,7 @@ export interface ScanSchedule {
   id: string;
   name: string;
   path: string;
-  type: 'full' | 'incremental' | 'targeted' | 'deep';
+  type: "full" | "incremental" | "targeted" | "deep";
   cronExpression: string;
   isEnabled: boolean;
   lastRun?: string;
@@ -744,7 +744,7 @@ export interface AdminUser {
   email: string;
   name: string;
   role: string;
-  status: 'active' | 'inactive' | 'suspended';
+  status: "active" | "inactive" | "suspended";
   emailVerified: boolean;
   lastLoginAt?: string;
   createdAt: string;
@@ -856,7 +856,7 @@ export interface WebhookLog {
   id: string;
   event: string;
   payload: Record<string, unknown>;
-  status: 'pending' | 'delivered' | 'failed';
+  status: "pending" | "delivered" | "failed";
   attempts: number;
   lastAttemptAt?: string;
   responseStatus?: number;
