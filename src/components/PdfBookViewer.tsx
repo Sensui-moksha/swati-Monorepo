@@ -75,7 +75,7 @@ function playPaperFlipSound(isMuted: boolean) {
   }
 }
 
-/** Renders a single PDF page into a canvas with crisp high-DPI resolution without cutting off text */
+/** Renders a single PDF page into a canvas with high-DPI quality, stripping prepress target dots and alignment markers */
 function renderPdfPageToCanvas(
   pdfDoc: pdfjsLib.PDFDocumentProxy,
   pageNum: number,
@@ -84,21 +84,55 @@ function renderPdfPageToCanvas(
 ) {
   pdfDoc.getPage(pageNum).then((page) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const vp = page.getViewport({ scale: 1 });
-    const scale = (targetWidth / vp.width) * dpr;
+    const rawVp = page.getViewport({ scale: 1 });
+
+    // Prepress trim: strip out 2.7% outer margin containing registration target dots & alignment crosshairs
+    const trimPct = 0.027;
+    const cropX = rawVp.width * trimPct;
+    const cropY = rawVp.height * trimPct;
+    const liveW = rawVp.width - 2 * cropX;
+    const liveH = rawVp.height - 2 * cropY;
+
+    const scale = (targetWidth / liveW) * dpr;
     const renderVp = page.getViewport({ scale });
 
-    canvas.width = renderVp.width;
-    canvas.height = renderVp.height;
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
+    // High resolution offscreen render
+    const offscreen = document.createElement("canvas");
+    offscreen.width = Math.round(renderVp.width);
+    offscreen.height = Math.round(renderVp.height);
+    const offCtx = offscreen.getContext("2d", { alpha: false });
 
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (ctx) {
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-      page.render({ canvasContext: ctx, viewport: renderVp });
-    }
+    if (!offCtx) return;
+
+    offCtx.imageSmoothingEnabled = true;
+    offCtx.imageSmoothingQuality = "high";
+
+    page.render({ canvasContext: offCtx, viewport: renderVp }).promise.then(() => {
+      const finalW = Math.round(liveW * scale);
+      const finalH = Math.round(liveH * scale);
+
+      canvas.width = finalW;
+      canvas.height = finalH;
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+
+      const ctx = canvas.getContext("2d", { alpha: false });
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(
+          offscreen,
+          cropX * scale,
+          cropY * scale,
+          finalW,
+          finalH,
+          0,
+          0,
+          finalW,
+          finalH,
+        );
+      }
+    });
   });
 }
 
@@ -166,12 +200,9 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
     pdf.getPage(1).then((page1) => {
       const rawVp = page1.getViewport({ scale: 1 });
-      const page1Any = page1 as any;
-      const cropBox =
-        page1Any.cropBox && page1Any.cropBox.length === 4 ? page1Any.cropBox : null;
-
-      const paperW = cropBox ? cropBox[2] - cropBox[0] : rawVp.width;
-      const paperH = cropBox ? cropBox[3] - cropBox[1] : rawVp.height;
+      const trimPct = 0.027;
+      const paperW = rawVp.width * (1 - 2 * trimPct);
+      const paperH = rawVp.height * (1 - 2 * trimPct);
 
       const isMobile = containerW < 768;
       const isSingleMode = totalPages === 1 || isMobile;
