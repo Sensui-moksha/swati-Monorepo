@@ -181,30 +181,23 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
     const container = containerRef.current;
     const containerW = container.clientWidth || window.innerWidth;
-    const containerH = container.clientHeight || window.innerHeight;
+    const containerH = container.clientHeight || (window.innerHeight - 48);
 
     pdf.getPage(1).then((page1) => {
+      // Use exact PDF page bounds so no page content is cut off or cropped
       const rawVp = page1.getViewport({ scale: 1 });
       const cropBox = page1.cropBox && page1.cropBox.length === 4 ? page1.cropBox : null;
 
-      let paperW = rawVp.width;
-      let paperH = rawVp.height;
-
-      if (cropBox) {
-        paperW = cropBox[2] - cropBox[0];
-        paperH = cropBox[3] - cropBox[1];
-      } else if (trimCropMarks) {
-        paperW = rawVp.width * 0.932;
-        paperH = rawVp.height * 0.932;
-      }
+      const paperW = cropBox ? (cropBox[2] - cropBox[0]) : rawVp.width;
+      const paperH = cropBox ? (cropBox[3] - cropBox[1]) : rawVp.height;
 
       const isMobile = containerW < 768;
       const isSingleMode = totalPages === 1 || isMobile;
       const pagesInSpread = isSingleMode ? 1 : 2;
 
-      // Tight padding to maximize reading area across mobile and desktop
-      const maxH = containerH - (isMobile ? 12 : 28);
-      const maxW = (containerW - (isMobile ? 12 : 36)) / pagesInSpread;
+      // Calculate max available dimensions with 48px safety margin to ensure ZERO vertical scrolling
+      const maxH = Math.max(containerH - 52, 300);
+      const maxW = Math.max((containerW - (isMobile ? 16 : 48)) / pagesInSpread, 200);
 
       const scale = Math.min(maxH / paperH, maxW / paperW);
       const pageW = Math.round(paperW * scale);
@@ -221,10 +214,11 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           minHeight: 240,
           maxHeight: 1800,
           drawShadow: true,
-          maxShadowOpacity: 0.7,
-          showCover: totalPages > 1 && !isMobile,
-          mobileScrollSupport: true,
+          maxShadowOpacity: 0.6,
+          showCover: totalPages > 1,
+          mobileScrollSupport: false,
           usePortrait: isSingleMode,
+          autoCenter: true,
           startPage: 0,
         });
 
@@ -245,14 +239,15 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
             width: pageW,
             height: pageH,
             usePortrait: isSingleMode,
-            showCover: totalPages > 1 && !isMobile,
+            showCover: totalPages > 1,
+            autoCenter: true,
           });
         } catch {
           // Fallback update
         }
       }
     });
-  }, [isOpen, pdf, totalPages, trimCropMarks, isMuted]);
+  }, [isOpen, pdf, totalPages, isMuted]);
 
   // Initialize PageFlip engine once PDF is loaded
   useEffect(() => {
@@ -492,7 +487,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
                 <div
                   key={pageNum}
                   className="st-page bg-[#fdfcfa] overflow-hidden relative shadow-lg select-none"
-                  data-density={isCover ? "hard" : "soft"}
+                  data-density="soft"
                 >
                   <canvas
                     data-page={pageNum}
