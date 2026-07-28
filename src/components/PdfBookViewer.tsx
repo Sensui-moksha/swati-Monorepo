@@ -305,6 +305,20 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
   if (!isOpen) return null;
 
+  // Compute mathematical centering offset for Cover, Open Spreads, and Back Cover
+  const getCenterTransform = () => {
+    if (totalPages <= 1) return `scale(${zoomLevel})`;
+
+    let translateX = "0%";
+    if (currentPage === 1) {
+      translateX = "-25%"; // Dead-center Front Cover (Page 1) on screen
+    } else if (currentPage === totalPages && totalPages % 2 === 0) {
+      translateX = "25%"; // Dead-center Back Cover on screen
+    }
+
+    return `scale(${zoomLevel}) translateX(${translateX})`;
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[#12100e] text-stone-100 select-none overflow-hidden font-sans">
       {/* ──── FlippingBook Header ──── */}
@@ -431,11 +445,11 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         {/* Subtle Ambient Vignette Highlight */}
         <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-black/30 pointer-events-none" />
 
-        {/* 3D PageFlip Container */}
+        {/* 3D PageFlip Container with mathematical Cover & Spread Centering */}
         <div
           ref={bookElementRef}
-          className="relative transition-transform duration-200"
-          style={{ transform: `scale(${zoomLevel})` }}
+          className="relative transition-transform duration-500 ease-out"
+          style={{ transform: getCenterTransform() }}
         >
           <div ref={pagesContainerRef} className="st-flip-book shadow-2xl">
             {Array.from({ length: totalPages }).map((_, idx) => {
