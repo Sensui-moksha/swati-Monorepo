@@ -71,28 +71,60 @@ function playPaperFlipSound(isMuted: boolean) {
   }
 }
 
-/** Renders a single PDF page into a canvas ref */
+/** Renders a single PDF page into a canvas, trimming print crop marks if present */
 function renderPdfPageToCanvas(
   pdfDoc: pdfjsLib.PDFDocumentProxy,
   pageNum: number,
   canvas: HTMLCanvasElement,
   targetWidth = 900,
+  trimCropMarks = true,
 ) {
   pdfDoc.getPage(pageNum).then((page) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const vp = page.getViewport({ scale: 1 });
-    const scale = (targetWidth / vp.width) * dpr;
+    const rawVp = page.getViewport({ scale: 1 });
+
+    // Print bleed / crop mark margin trimming (~3.4% of page dimensions)
+    const cropX = trimCropMarks ? rawVp.width * 0.034 : 0;
+    const cropY = trimCropMarks ? rawVp.height * 0.034 : 0;
+    const croppedW = rawVp.width - 2 * cropX;
+    const croppedH = rawVp.height - 2 * cropY;
+
+    const scale = (targetWidth / croppedW) * dpr;
     const renderVp = page.getViewport({ scale });
 
-    canvas.width = renderVp.width;
-    canvas.height = renderVp.height;
-    canvas.style.width = `${renderVp.width / dpr}px`;
-    canvas.style.height = `${renderVp.height / dpr}px`;
+    // Offscreen render canvas
+    const offscreen = document.createElement("canvas");
+    offscreen.width = renderVp.width;
+    offscreen.height = renderVp.height;
+    const offCtx = offscreen.getContext("2d");
 
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      page.render({ canvasContext: ctx, viewport: renderVp });
-    }
+    if (!offCtx) return;
+
+    page.render({ canvasContext: offCtx, viewport: renderVp }).promise.then(() => {
+      // Set target canvas size to cropped paper dimensions
+      const finalW = Math.round(croppedW * scale);
+      const finalH = Math.round(croppedH * scale);
+
+      canvas.width = finalW;
+      canvas.height = finalH;
+      canvas.style.width = `${finalW / dpr}px`;
+      canvas.style.height = `${finalH / dpr}px`;
+
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(
+          offscreen,
+          cropX * scale,
+          cropY * scale,
+          finalW,
+          finalH,
+          0,
+          0,
+          finalW,
+          finalH,
+        );
+      }
+    });
   });
 }
 
@@ -109,6 +141,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [trimCropMarks, setTrimCropMarks] = useState(true);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bookElementRef = useRef<HTMLDivElement>(null);
@@ -158,32 +191,35 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     const containerW = container.clientWidth || 1000;
     const containerH = container.clientHeight || 700;
 
-    // Determine page dimensions based on aspect ratio of page 1 to fill available stage space
+    // Determine page dimensions based on actual paper aspect ratio of page 1
     pdf.getPage(1).then((page1) => {
-      const vp = page1.getViewport({ scale: 1 });
-      const aspectRatio = vp.width / vp.height;
+      const rawVp = page1.getViewport({ scale: 1 });
+      const cropX = trimCropMarks ? rawVp.width * 0.034 : 0;
+      const cropY = trimCropMarks ? rawVp.height * 0.034 : 0;
+      const paperW = rawVp.width - 2 * cropX;
+      const paperH = rawVp.height - 2 * cropY;
 
       const isSingleMode = totalPages === 1;
       const pagesInSpread = isSingleMode ? 1 : 2;
 
-      // Tight margins to maximize reading area and eliminate blank borders
-      const maxH = containerH - 24; // 12px padding top/bottom
-      const maxW = (containerW - 32) / pagesInSpread; // 16px padding left/right
+      // Fit page perfectly within container maintaining exact paper aspect ratio
+      const maxH = containerH - 32;
+      const maxW = (containerW - 48) / pagesInSpread;
 
-      const scaleH = maxH / vp.height;
-      const scaleW = maxW / vp.width;
+      const scaleH = maxH / paperH;
+      const scaleW = maxW / paperW;
       const scale = Math.min(scaleH, scaleW);
 
-      const pageH = Math.round(vp.height * scale);
-      const pageW = Math.round(vp.width * scale);
+      const pageW = Math.round(paperW * scale);
+      const pageH = Math.round(paperH * scale);
 
       const pageFlip = new PageFlip(pagesContainerRef.current!, {
         width: pageW,
         height: pageH,
         size: "fixed",
-        minWidth: 250,
+        minWidth: 200,
         maxWidth: 1200,
-        minHeight: 350,
+        minHeight: 300,
         maxHeight: 1600,
         drawShadow: true,
         maxShadowOpacity: 0.7,
@@ -225,10 +261,10 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         `canvas[data-page="${p}"]`,
       ) as HTMLCanvasElement;
       if (canvas) {
-        renderPdfPageToCanvas(pdf, p, canvas, 750);
+        renderPdfPageToCanvas(pdf, p, canvas, 950, trimCropMarks);
       }
     }
-  }, [pdf, totalPages]);
+  }, [pdf, totalPages, trimCropMarks]);
 
   // Keyboard navigation
   const handlePrev = useCallback(() => {
