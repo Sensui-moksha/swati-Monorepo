@@ -234,7 +234,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         pageFlip.loadFromHTML(pageElements as any);
         pageFlipRef.current = pageFlip;
 
-        pageFlip.on("flip", (e) => {
+        pageFlip.on("flip", (e: any) => {
           const newPage = (e.data as number) + 1;
           setCurrentPage(newPage);
           playPaperFlipSound(isMuted);
