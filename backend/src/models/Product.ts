@@ -107,7 +107,6 @@ const productSchema = new Schema<IProduct, IProductModel>(
 
 productSchema.index({ status: 1, isDeleted: 1, sortOrder: 1 });
 productSchema.index({ categoryId: 1, status: 1 });
-productSchema.index({ slug: 1 }, { unique: true });
 productSchema.index({ sku: 1 }, { unique: true, sparse: true });
 productSchema.index({ isFeatured: 1, status: 1 });
 
