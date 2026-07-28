@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicPage } from "@/components/shells";
 import { BookCard, Btn, SectionTitle } from "@/components/ui-primitives";
 import { useAuthorBySlug, useAuthorBooks } from "@/lib/api/hooks";
-import { PdfBookViewer } from "@/components/PdfBookViewer";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
+
+const LazyPdfBookViewer = lazy(() => import("@/components/PdfBookViewer").then(m => ({ default: m.PdfBookViewer })));
 import { BookOpen, FileText } from "lucide-react";
 
 const FEATURED_PROFILES: Record<string, { name: string; role: string; bio: string; avatar: string; pdfUrl: string }> = {
@@ -11,7 +12,7 @@ const FEATURED_PROFILES: Record<string, { name: string; role: string; bio: strin
     name: "Vemuri Balaram",
     role: "Founder, Owner & Editor-in-Chief",
     bio: "Vemuri Balaram (popularly known as Swathi Balaram) is the founder, owner, and editor-in-chief of Swathi Publications, headquartered in Vijayawada, Andhra Pradesh. Born in 1947 in Ghantasala Palem, he worked at the Survey of India before founding Swathi Monthly in 1970 and Swathi Weekly in 1984. Under his vision, Swathi grew into one of the largest-circulated Telugu publications, shaping Telugu literature, journalism, and family reading culture for decades. He was honored with the AP Kala Ratna Award (2025) and the Lok Nayak Foundation Award.",
-    avatar: "/images/dr-swathi-ramachandran.jpg",
+    avatar: "/images/vemuri-balaram.jpg",
     pdfUrl: "/documents/EDITOR GARI SANMANAPATRAM.pdf",
   },
 };
@@ -157,12 +158,16 @@ function AuthorDetailPage() {
       )}
 
       {/* Interactive Book View Reader Modal */}
-      <PdfBookViewer
-        isOpen={isBookViewerOpen}
-        onClose={() => setIsBookViewerOpen(false)}
-        title={`${author.name} — Profile & Credentials`}
-        pdfUrl={author.pdfUrl}
-      />
+      {isBookViewerOpen && (
+        <Suspense fallback={null}>
+          <LazyPdfBookViewer
+            isOpen={isBookViewerOpen}
+            onClose={() => setIsBookViewerOpen(false)}
+            title={`${author.name} — Profile & Credentials`}
+            pdfUrl={author.pdfUrl}
+          />
+        </Suspense>
+      )}
     </PublicPage>
   );
 }

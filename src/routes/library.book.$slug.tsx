@@ -3,8 +3,9 @@ import { PublicPage } from "@/components/shells";
 import { Btn, BookCard, SectionTitle } from "@/components/ui-primitives";
 import { useBookBySlug, useBooks } from "@/lib/api/hooks";
 import { BookOpen, ShoppingCart, Bookmark, Share2, Star } from "lucide-react";
-import { PdfBookViewer } from "@/components/PdfBookViewer";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
+
+const PdfBookViewer = lazy(() => import("@/components/PdfBookViewer").then(m => ({ default: m.PdfBookViewer })));
 
 export const Route = createFileRoute("/library/book/$slug")({
   head: () => ({ meta: [{ title: "Book — Swathi Publications" }] }),
@@ -89,12 +90,16 @@ function BookDetailPage() {
           </div>
         </>
       )}
-      <PdfBookViewer
-        isOpen={isBookViewerOpen}
-        onClose={() => setIsBookViewerOpen(false)}
-        title={book.title}
-        pdfUrl={pdfUrl}
-      />
+      {isBookViewerOpen && (
+        <Suspense fallback={null}>
+          <PdfBookViewer
+            isOpen={isBookViewerOpen}
+            onClose={() => setIsBookViewerOpen(false)}
+            title={book.title}
+            pdfUrl={pdfUrl}
+          />
+        </Suspense>
+      )}
     </PublicPage>
   );
 }

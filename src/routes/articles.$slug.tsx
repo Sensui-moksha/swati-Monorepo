@@ -3,9 +3,10 @@ import { SiteLayout } from "@/components/site-layout";
 import { useArticleBySlug, useArticles } from "@/lib/api/hooks";
 import { formatDate } from "@/lib/utils";
 import { Crumbs } from "./articles";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Bookmark, Share2, MessageSquare, Heart, Lock, BookOpen, FileText } from "lucide-react";
-import { PdfBookViewer } from "@/components/PdfBookViewer";
+
+const PdfBookViewer = lazy(() => import("@/components/PdfBookViewer").then(m => ({ default: m.PdfBookViewer })));
 
 export const Route = createFileRoute("/articles/$slug")({
   head: () => ({ meta: [{ title: "Article — Swathi Publications" }] }),
@@ -107,12 +108,16 @@ function ArticleDetail() {
         </section>
 
         {/* In-App Book View Flipbook Reader Modal */}
-        <PdfBookViewer
-          isOpen={isViewerOpen}
-          title={article.title}
-          pdfUrl={article.pdfUrl || "/documents/sample-issue.pdf"}
-          onClose={() => setIsViewerOpen(false)}
-        />
+        {isViewerOpen && (
+          <Suspense fallback={null}>
+            <PdfBookViewer
+              isOpen={isViewerOpen}
+              title={article.title}
+              pdfUrl={article.pdfUrl || "/documents/sample-issue.pdf"}
+              onClose={() => setIsViewerOpen(false)}
+            />
+          </Suspense>
+        )}
 
         <figure className="mt-8">
           <img src={article.coverImage ?? ''} alt={article.title} className="w-full aspect-[16/9] object-cover bg-secondary" />

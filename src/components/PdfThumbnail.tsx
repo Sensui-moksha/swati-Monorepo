@@ -8,6 +8,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 
 /**
  * Renders page 1 of a PDF as a <canvas> thumbnail.
+ * Lazy-loaded via IntersectionObserver — only renders when scrolled into view.
  * If coverImage is NOT a PDF path (doesn't end in .pdf), falls back to <img>.
  */
 export function PdfThumbnail({
@@ -23,6 +24,7 @@ export function PdfThumbnail({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPdf, setIsPdf] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (src.toLowerCase().endsWith(".pdf")) {
@@ -30,8 +32,25 @@ export function PdfThumbnail({
     }
   }, [src]);
 
+  // Lazy visibility detection — only start rendering when in viewport
   useEffect(() => {
-    if (!isPdf || !canvasRef.current || !containerRef.current) return;
+    if (!isPdf || !containerRef.current) return;
+    const el = containerRef.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isPdf]);
+
+  useEffect(() => {
+    if (!isPdf || !isVisible || !canvasRef.current || !containerRef.current) return;
     let cancelled = false;
 
     const render = async () => {
@@ -46,14 +65,14 @@ export function PdfThumbnail({
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const rawVp = page.getViewport({ scale: 1 });
 
-        // Strip out 4.8% prepress margin containing printer target crosshairs, scope marks & dots
         const trimPct = 0.048;
         const cropX = rawVp.width * trimPct;
         const cropY = rawVp.height * trimPct;
         const liveW = rawVp.width - 2 * cropX;
         const liveH = rawVp.height - 2 * cropY;
 
-        const targetW = container.clientWidth || 300;
+        // Use smaller target width for thumbnails (300px CSS → 600px canvas max)
+        const targetW = Math.min(container.clientWidth || 300, 400);
         const scale = (targetW / liveW) * dpr;
         const renderVp = page.getViewport({ scale });
 
@@ -81,17 +100,7 @@ export function PdfThumbnail({
         if (ctx) {
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(
-            offscreen,
-            cropX * scale,
-            cropY * scale,
-            finalW,
-            finalH,
-            0,
-            0,
-            finalW,
-            finalH,
-          );
+          ctx.drawImage(offscreen, cropX * scale, cropY * scale, finalW, finalH, 0, 0, finalW, finalH);
           setLoaded(true);
         }
       } catch {
@@ -103,10 +112,10 @@ export function PdfThumbnail({
     return () => {
       cancelled = true;
     };
-  }, [isPdf, src]);
+  }, [isPdf, isVisible, src]);
 
   if (!isPdf) {
-    return <img src={src} alt={alt || ""} className={className} />;
+    return <img src={src} alt={alt || ""} className={className} loading="lazy" />;
   }
 
   return (

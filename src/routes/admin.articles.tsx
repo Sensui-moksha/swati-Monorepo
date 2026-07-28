@@ -5,11 +5,12 @@ import { formatShortDate } from "@/lib/utils";
 import { Card, StatusBadge } from "./admin.index";
 import { Btn, Input, Label } from "@/components/ui-primitives";
 import { Plus, Search, FileText } from "lucide-react";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Article } from "@/lib/api/types";
-import { PdfBookViewer } from "@/components/PdfBookViewer";
+
+const PdfBookViewer = lazy(() => import("@/components/PdfBookViewer").then(m => ({ default: m.PdfBookViewer })));
 
 export const Route = createFileRoute("/admin/articles")({
   component: AdminArticlesPage,
@@ -278,12 +279,14 @@ function AdminArticlesPage() {
 
         {/* In-App Book View Flipbook Reader Modal */}
         {selectedBookPdf && (
-          <PdfBookViewer
-            isOpen={!!selectedBookPdf}
-            title={selectedBookPdf.title}
-            pdfUrl={selectedBookPdf.pdfUrl}
-            onClose={() => setSelectedBookPdf(null)}
-          />
+          <Suspense fallback={null}>
+            <PdfBookViewer
+              isOpen={!!selectedBookPdf}
+              title={selectedBookPdf.title}
+              pdfUrl={selectedBookPdf.pdfUrl}
+              onClose={() => setSelectedBookPdf(null)}
+            />
+          </Suspense>
         )}
       </Card>
     </div>

@@ -4,9 +4,10 @@ import { Btn } from "@/components/ui-primitives";
 import { usePublicationBySlug, useIssues } from "@/lib/api/hooks";
 import { formatDate } from "@/lib/utils";
 import { BookOpen } from "lucide-react";
-import { PdfBookViewer } from "@/components/PdfBookViewer";
 import { PdfThumbnail } from "@/components/PdfThumbnail";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
+
+const PdfBookViewer = lazy(() => import("@/components/PdfBookViewer").then(m => ({ default: m.PdfBookViewer })));
 
 export const Route = createFileRoute("/publications/$slug")({
   head: () => ({ meta: [{ title: "Publication — Swathi Publications" }] }),
@@ -57,12 +58,16 @@ function PublicationDetail() {
           </div>
         </div>
 
-        <PdfBookViewer
-          isOpen={isBookViewerOpen}
-          onClose={() => setIsBookViewerOpen(false)}
-          title={demoTitle}
-          pdfUrl={demoPdf}
-        />
+        {isBookViewerOpen && (
+          <Suspense fallback={null}>
+            <PdfBookViewer
+              isOpen={isBookViewerOpen}
+              onClose={() => setIsBookViewerOpen(false)}
+              title={demoTitle}
+              pdfUrl={demoPdf}
+            />
+          </Suspense>
+        )}
       </PublicPage>
     );
   }
@@ -105,12 +110,16 @@ function PublicationDetail() {
         </div>
       </div>
 
-      <PdfBookViewer
-        isOpen={isBookViewerOpen}
-        onClose={() => setIsBookViewerOpen(false)}
-        title={publication.title}
-        pdfUrl={pdfUrl}
-      />
+      {isBookViewerOpen && (
+        <Suspense fallback={null}>
+          <PdfBookViewer
+            isOpen={isBookViewerOpen}
+            onClose={() => setIsBookViewerOpen(false)}
+            title={publication.title}
+            pdfUrl={pdfUrl}
+          />
+        </Suspense>
+      )}
     </PublicPage>
   );
 }

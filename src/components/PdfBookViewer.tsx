@@ -75,33 +75,37 @@ function playPaperFlipSound(isMuted: boolean) {
   }
 }
 
-/** Renders a single PDF page into a canvas with high-DPI quality, stripping prepress target dots and alignment markers */
+/** Adaptive target width: mobile gets 600px, desktop gets 1000px for fast rendering */
+const getTargetWidth = () => (typeof window !== "undefined" && window.innerWidth < 768 ? 600 : 1000);
+
+/** Renders a single PDF page into a canvas with high-DPI quality, stripping prepress margins */
 function renderPdfPageToCanvas(
   pdfDoc: pdfjsLib.PDFDocumentProxy,
   pageNum: number,
   canvas: HTMLCanvasElement,
-  targetWidth = 1000,
+  targetWidth?: number,
 ) {
+  // Skip if already rendered at this resolution
+  if (canvas.dataset.rendered === String(targetWidth ?? getTargetWidth())) return;
+
+  const tw = targetWidth ?? getTargetWidth();
   pdfDoc.getPage(pageNum).then((page) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const rawVp = page.getViewport({ scale: 1 });
 
-    // Prepress trim: strip out 4.8% outer margin containing registration target dots & alignment crosshairs / aim marks
     const trimPct = 0.048;
     const cropX = rawVp.width * trimPct;
     const cropY = rawVp.height * trimPct;
     const liveW = rawVp.width - 2 * cropX;
     const liveH = rawVp.height - 2 * cropY;
 
-    const scale = (targetWidth / liveW) * dpr;
+    const scale = (tw / liveW) * dpr;
     const renderVp = page.getViewport({ scale });
 
-    // High resolution offscreen render
     const offscreen = document.createElement("canvas");
     offscreen.width = Math.round(renderVp.width);
     offscreen.height = Math.round(renderVp.height);
     const offCtx = offscreen.getContext("2d", { alpha: false });
-
     if (!offCtx) return;
 
     offCtx.imageSmoothingEnabled = true;
@@ -120,18 +124,9 @@ function renderPdfPageToCanvas(
       if (ctx) {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(
-          offscreen,
-          cropX * scale,
-          cropY * scale,
-          finalW,
-          finalH,
-          0,
-          0,
-          finalW,
-          finalH,
-        );
+        ctx.drawImage(offscreen, cropX * scale, cropY * scale, finalW, finalH, 0, 0, finalW, finalH);
       }
+      canvas.dataset.rendered = String(tw);
     });
   });
 }
@@ -299,18 +294,45 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     return () => observer.disconnect();
   }, [isOpen, updateDimensions]);
 
-  // Render individual page canvases when PDF doc is ready
+  // Progressive page rendering: visible pages first, rest deferred to idle time
   useEffect(() => {
     if (!pdf || totalPages === 0 || !pagesContainerRef.current) return;
+    const container = pagesContainerRef.current;
+    const tw = getTargetWidth();
 
-    for (let p = 1; p <= totalPages; p++) {
-      const canvas = pagesContainerRef.current.querySelector(
-        `canvas[data-page="${p}"]`,
-      ) as HTMLCanvasElement;
-      if (canvas) {
-        renderPdfPageToCanvas(pdf, p, canvas, 1000);
+    const renderPage = (p: number) => {
+      const canvas = container.querySelector(`canvas[data-page="${p}"]`) as HTMLCanvasElement;
+      if (canvas) renderPdfPageToCanvas(pdf, p, canvas, tw);
+    };
+
+    // Priority: render current spread first (pages 1-4 on load)
+    const priorityPages = [1, 2, 3, 4].filter((p) => p <= totalPages);
+    priorityPages.forEach(renderPage);
+
+    // Defer remaining pages to idle time for fast initial paint
+    const remaining = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
+      (p) => !priorityPages.includes(p),
+    );
+
+    const idleIds: number[] = [];
+    const schedule = typeof requestIdleCallback !== "undefined" ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 16) as unknown as number;
+    const cancelSchedule = typeof cancelIdleCallback !== "undefined" ? cancelIdleCallback : clearTimeout;
+
+    // Render in small batches of 3 during idle time
+    let i = 0;
+    const renderBatch = () => {
+      const batch = remaining.slice(i, i + 3);
+      batch.forEach(renderPage);
+      i += 3;
+      if (i < remaining.length) {
+        idleIds.push(schedule(renderBatch));
       }
+    };
+    if (remaining.length > 0) {
+      idleIds.push(schedule(renderBatch));
     }
+
+    return () => idleIds.forEach(cancelSchedule);
   }, [pdf, totalPages]);
 
   // Keyboard navigation

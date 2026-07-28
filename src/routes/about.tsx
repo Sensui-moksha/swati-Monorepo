@@ -46,7 +46,7 @@ export const Route = createFileRoute("/about")({
               {/* Single Image */}
               <div className="aspect-[4/5] w-full overflow-hidden rounded-xl bg-secondary border border-rule">
                 <img
-                  src="/images/dr-swathi-ramachandran.jpg"
+                  src="/images/vemuri-balaram.jpg"
                   alt="Vemuri Balaram"
                   className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />

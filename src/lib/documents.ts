@@ -23,7 +23,7 @@ export const PUBLICATION_DOCUMENTS: PublicationDocument[] = [
     subtitle: "Honorary Credentials & Profile",
     type: "special",
     pdfUrl: "/documents/EDITOR GARI SANMANAPATRAM.pdf",
-    coverImage: "/images/dr-swathi-ramachandran.jpg", // special keeps custom
+    coverImage: "/images/vemuri-balaram.jpg", // special keeps custom
     createdAt: "2025-01-01T00:00:00.000Z",
     description: "Official profile and credentials of Swathi Publications founder Vemuri Balaram.",
     author: "Vemuri Balaram",
@@ -155,7 +155,7 @@ export const PUBLICATION_DOCUMENTS: PublicationDocument[] = [
     subtitle: "Curated by Vemuri Balaram",
     type: "monthly",
     pdfUrl: "/documents/EDITOR GARI SANMANAPATRAM.pdf",
-    coverImage: "/images/dr-swathi-ramachandran.jpg",
+    coverImage: "/images/vemuri-balaram.jpg",
     createdAt: "2026-06-01T00:00:00.000Z",
     description: "Special monthly compilation curated by founder Vemuri Balaram.",
     author: "Vemuri Balaram",
