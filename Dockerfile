@@ -34,4 +34,4 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
 
 # Start server in production preview mode
-CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "3000", "--allowed-hosts", "all"]
+CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
