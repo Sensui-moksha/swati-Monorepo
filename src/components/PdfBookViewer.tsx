@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,12 +7,17 @@ import {
   Download,
   X,
   BookOpen,
-  Columns,
-  Square,
+  Volume2,
+  VolumeX,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  LayoutGrid,
+  Layers,
 } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
+import { PageFlip } from "page-flip";
 
-// Use the bundled worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url,
@@ -26,64 +30,70 @@ interface PdfBookViewerProps {
   onClose: () => void;
 }
 
-/** Renders a single PDF page to a canvas */
-function PdfPageCanvas({
-  pdf,
-  pageNum,
-  containerRef,
-}: {
-  pdf: pdfjsLib.PDFDocumentProxy | null;
-  pageNum: number;
-  containerRef: React.RefObject<HTMLDivElement | null>;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const renderTaskRef = useRef<any>(null);
+/** Synthesize realistic paper flip sound using Web Audio API */
+function playPaperFlipSound(isMuted: boolean) {
+  if (isMuted) return;
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const duration = 0.16;
+    const bufferSize = Math.floor(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
 
-  useEffect(() => {
-    if (!pdf || !canvasRef.current || !containerRef.current) return;
-    if (pageNum < 1 || pageNum > pdf.numPages) return;
-
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-
-    if (renderTaskRef.current) {
-      renderTaskRef.current.cancel();
+    for (let i = 0; i < bufferSize; i++) {
+      const t = i / bufferSize;
+      const envelope = Math.sin(t * Math.PI) * Math.exp(-t * 3);
+      data[i] = (Math.random() * 2 - 1) * envelope;
     }
 
-    pdf.getPage(pageNum).then((page) => {
-      const dpr = window.devicePixelRatio || 1;
-      const containerW = container.clientWidth;
-      const containerH = container.clientHeight;
-      const vp = page.getViewport({ scale: 1 });
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
 
-      // Scale to fill container, then multiply by DPR for crisp rendering
-      const cssScale = Math.min(containerW / vp.width, containerH / vp.height);
-      const renderScale = cssScale * dpr;
-      const renderVp = page.getViewport({ scale: renderScale });
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(1400, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + duration);
+    filter.Q.value = 2.0;
 
-      // Set canvas pixel size to high-res, but CSS size to container fit
-      canvas.width = renderVp.width;
-      canvas.height = renderVp.height;
-      canvas.style.width = `${renderVp.width / dpr}px`;
-      canvas.style.height = `${renderVp.height / dpr}px`;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.35, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
 
-      const ctx = canvas.getContext("2d")!;
-      const renderTask = page.render({ canvasContext: ctx, viewport: renderVp });
-      renderTaskRef.current = renderTask;
-      renderTask.promise.catch(() => {});
-    });
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
 
-    return () => {
-      if (renderTaskRef.current) renderTaskRef.current.cancel();
-    };
-  }, [pdf, pageNum]);
+    source.start();
+  } catch {
+    // Audio Context blocked or unavailable
+  }
+}
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="max-w-full max-h-full object-contain mx-auto block"
-    />
-  );
+/** Renders a single PDF page into a canvas ref */
+function renderPdfPageToCanvas(
+  pdfDoc: pdfjsLib.PDFDocumentProxy,
+  pageNum: number,
+  canvas: HTMLCanvasElement,
+  targetWidth = 700,
+) {
+  pdfDoc.getPage(pageNum).then((page) => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const vp = page.getViewport({ scale: 1 });
+    const scale = (targetWidth / vp.width) * dpr;
+    const renderVp = page.getViewport({ scale });
+
+    canvas.width = renderVp.width;
+    canvas.height = renderVp.height;
+    canvas.style.width = `${renderVp.width / dpr}px`;
+    canvas.style.height = `${renderVp.height / dpr}px`;
+
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      page.render({ canvasContext: ctx, viewport: renderVp });
+    }
+  });
 }
 
 export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
@@ -92,80 +102,152 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [currentSpread, setCurrentSpread] = useState(0);
-  const [viewMode, setViewMode] = useState<"spread" | "single">("spread");
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [turning, setTurning] = useState<null | "next" | "prev">(null);
   const [pdf, setPdf] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [totalPages, setTotalPages] = useState(0);
-  const leftRef = useRef<HTMLDivElement>(null);
-  const rightRef = useRef<HTMLDivElement>(null);
-  const singleRef = useRef<HTMLDivElement>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showThumbnails, setShowThumbnails] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const bookElementRef = useRef<HTMLDivElement>(null);
+  const pageFlipRef = useRef<PageFlip | null>(null);
+  const pagesContainerRef = useRef<HTMLDivElement>(null);
 
   const targetPdfUrl = pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
 
-  // Load PDF document
+  // Load PDF Document
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
 
-    const loadPdf = async () => {
+    const load = async () => {
       try {
         const doc = await pdfjsLib.getDocument(encodeURI(targetPdfUrl)).promise;
         if (cancelled) return;
         setPdf(doc);
         setTotalPages(doc.numPages);
-        setCurrentSpread(0);
-        if (doc.numPages === 1) {
-          setViewMode("single");
-        } else {
-          setViewMode("spread");
-        }
-      } catch (e) {
-        console.error("PDF load error:", e);
+        setCurrentPage(1);
+      } catch (err) {
+        console.error("PDF load error:", err);
       }
     };
 
-    loadPdf();
-    return () => { cancelled = true; };
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [targetPdfUrl, isOpen]);
 
-  // Page calculations
-  const leftPageNum = viewMode === "spread" ? currentSpread * 2 + 1 : currentSpread + 1;
-  const rightPageNum = viewMode === "spread" ? currentSpread * 2 + 2 : null;
-  const maxSpreads = viewMode === "spread" ? Math.ceil(totalPages / 2) : totalPages;
+  // Initialize PageFlip engine once PDF is loaded and modal is visible
+  useEffect(() => {
+    if (!isOpen || !pdf || !pagesContainerRef.current || totalPages === 0) return;
 
-  const handleNext = useCallback(() => {
-    if (currentSpread >= maxSpreads - 1 || turning) return;
-    setTurning("next");
-    setTimeout(() => {
-      setCurrentSpread((s) => s + 1);
-      setTurning(null);
-    }, 500);
-  }, [currentSpread, maxSpreads, turning]);
+    // Destroy existing instance if any
+    if (pageFlipRef.current) {
+      try {
+        pageFlipRef.current.destroy();
+      } catch {}
+      pageFlipRef.current = null;
+    }
 
-  const handlePrev = useCallback(() => {
-    if (currentSpread <= 0 || turning) return;
-    setTurning("prev");
-    setTimeout(() => {
-      setCurrentSpread((s) => s - 1);
-      setTurning(null);
-    }, 500);
-  }, [currentSpread, turning]);
+    const container = containerRef.current;
+    if (!container) return;
+
+    const containerW = container.clientWidth || 1000;
+    const containerH = container.clientHeight || 700;
+
+    // Determine page dimensions based on aspect ratio of page 1
+    pdf.getPage(1).then((page1) => {
+      const vp = page1.getViewport({ scale: 1 });
+      const aspectRatio = vp.width / vp.height;
+
+      const pageH = Math.min(containerH - 120, 800);
+      const pageW = Math.round(pageH * aspectRatio);
+
+      const pageFlip = new PageFlip(pagesContainerRef.current!, {
+        width: pageW,
+        height: pageH,
+        size: "fixed",
+        minWidth: 300,
+        maxWidth: 900,
+        minHeight: 400,
+        maxHeight: 1200,
+        drawShadow: true,
+        maxShadowOpacity: 0.8,
+        showCover: totalPages > 1,
+        mobileScrollSupport: false,
+        usePortrait: totalPages === 1,
+        startPage: 0,
+      });
+
+      const pageElements = pagesContainerRef.current!.querySelectorAll(".st-page");
+      if (pageElements.length > 0) {
+        pageFlip.loadFromHTML(pageElements as any);
+        pageFlipRef.current = pageFlip;
+
+        pageFlip.on("flip", (e) => {
+          const newPage = (e.data as number) + 1;
+          setCurrentPage(newPage);
+          playPaperFlipSound(isMuted);
+        });
+      }
+    });
+
+    return () => {
+      if (pageFlipRef.current) {
+        try {
+          pageFlipRef.current.destroy();
+        } catch {}
+        pageFlipRef.current = null;
+      }
+    };
+  }, [isOpen, pdf, totalPages]);
+
+  // Render individual page canvases when PDF doc is ready
+  useEffect(() => {
+    if (!pdf || totalPages === 0 || !pagesContainerRef.current) return;
+
+    for (let p = 1; p <= totalPages; p++) {
+      const canvas = pagesContainerRef.current.querySelector(
+        `canvas[data-page="${p}"]`,
+      ) as HTMLCanvasElement;
+      if (canvas) {
+        renderPdfPageToCanvas(pdf, p, canvas, 750);
+      }
+    }
+  }, [pdf, totalPages]);
 
   // Keyboard navigation
+  const handlePrev = useCallback(() => {
+    if (pageFlipRef.current) {
+      pageFlipRef.current.flipPrev();
+    }
+  }, []);
+
+  const handleNext = useCallback(() => {
+    if (pageFlipRef.current) {
+      pageFlipRef.current.flipNext();
+    }
+  }, []);
+
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === "PageDown") handleNext();
       if (e.key === "ArrowLeft" || e.key === "PageUp") handlePrev();
+      if (e.key === "ArrowRight" || e.key === "PageDown") handleNext();
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, handleNext, handlePrev, onClose]);
+  }, [isOpen, handlePrev, handleNext, onClose]);
 
-  if (!isOpen) return null;
+  const jumpToPage = (pageNum: number) => {
+    if (pageFlipRef.current && pageNum >= 1 && pageNum <= totalPages) {
+      pageFlipRef.current.flip(pageNum - 1);
+    }
+  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -177,204 +259,219 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     }
   };
 
-  const pageLabel = viewMode === "spread"
-    ? `${leftPageNum}${rightPageNum && rightPageNum <= totalPages ? `–${rightPageNum}` : ""}`
-    : String(leftPageNum);
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-stone-950 text-stone-100 select-none overflow-hidden">
-      {/* Header Bar */}
-      <header className="flex h-12 items-center justify-between border-b border-stone-800 bg-stone-900/95 px-4 z-30 shrink-0">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="h-8 w-8 rounded-lg bg-primary/20 text-primary grid place-items-center">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#12100e] text-stone-100 select-none overflow-hidden font-sans">
+      {/* ──── FlippingBook Header ──── */}
+      <header className="flex h-12 items-center justify-between border-b border-stone-800/80 bg-stone-900/95 px-4 z-30 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="h-8 w-8 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-500 grid place-items-center shadow-inner">
             <BookOpen className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <h2 className="truncate font-serif text-sm font-semibold">{title}</h2>
-            <p className="text-[10px] text-stone-400">Swathi Book Viewer</p>
+            <h2 className="truncate font-serif text-sm font-semibold text-stone-100">
+              {title}
+            </h2>
+            <p className="text-[10px] text-stone-400 font-mono uppercase tracking-wider">
+              Swathi Interactive Flipbook
+            </p>
           </div>
         </div>
 
-        {/* Nav */}
-        <div className="flex items-center gap-1.5">
-          <button onClick={handlePrev} disabled={currentSpread <= 0 || !!turning}
-            className="flex items-center gap-0.5 rounded px-2 py-1 text-xs bg-stone-800 hover:bg-stone-700 disabled:opacity-30 border border-stone-700">
-            <ChevronLeft className="h-3.5 w-3.5" /> Prev
+        {/* Page counter display */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePrev}
+            className="p-1.5 rounded hover:bg-stone-800 text-stone-300 hover:text-white transition disabled:opacity-30"
+            title="Previous Page (Left Arrow)"
+          >
+            <ChevronLeft className="h-4 w-4" />
           </button>
-          <div className="px-2 py-1 rounded bg-stone-800/80 text-xs font-mono border border-stone-700/60">
-            <span className="text-stone-400">Pg </span>
-            <span className="font-bold text-primary">{pageLabel}</span>
-            <span className="text-stone-400"> / {totalPages || "…"}</span>
+          <div className="flex items-center gap-1 px-3 py-1 rounded bg-stone-800/90 text-xs font-mono border border-stone-700/60 shadow-sm">
+            <span className="text-stone-400">Page</span>
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={currentPage}
+              onChange={(e) => jumpToPage(parseInt(e.target.value, 10) || 1)}
+              className="w-8 text-center bg-stone-950 text-amber-400 font-bold rounded border border-stone-700 outline-none focus:border-amber-500"
+            />
+            <span className="text-stone-400">of {totalPages || "…"}</span>
           </div>
-          <button onClick={handleNext} disabled={currentSpread >= maxSpreads - 1 || !!turning}
-            className="flex items-center gap-0.5 rounded px-2 py-1 text-xs bg-stone-800 hover:bg-stone-700 disabled:opacity-30 border border-stone-700">
-            Next <ChevronRight className="h-3.5 w-3.5" />
+          <button
+            onClick={handleNext}
+            className="p-1.5 rounded hover:bg-stone-800 text-stone-300 hover:text-white transition disabled:opacity-30"
+            title="Next Page (Right Arrow)"
+          >
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Tools */}
+        {/* Controls */}
         <div className="flex items-center gap-1.5">
-          <div className="flex bg-stone-800 rounded p-0.5 border border-stone-700">
-            <button onClick={() => { setViewMode("spread"); setCurrentSpread(0); }}
-              className={`px-2 py-0.5 rounded text-xs ${viewMode === "spread" ? "bg-primary text-primary-foreground font-semibold" : "text-stone-300 hover:text-white"}`}>
-              <Columns className="h-3 w-3 inline mr-1" />Spread
+          <button
+            onClick={() => setIsMuted(!isMuted)}
+            className={`p-2 rounded-md transition ${isMuted ? "text-stone-500 hover:text-stone-300" : "text-amber-400 hover:bg-stone-800"}`}
+            title={isMuted ? "Unmute Sound" : "Mute Sound"}
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+
+          <button
+            onClick={() => setShowThumbnails(!showThumbnails)}
+            className={`p-2 rounded-md transition ${showThumbnails ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" : "text-stone-300 hover:bg-stone-800"}`}
+            title="Toggle Thumbnails Bar"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
+
+          <div className="h-4 w-px bg-stone-800 mx-1" />
+
+          <button
+            onClick={() => setZoomLevel((z) => Math.min(z + 0.25, 2))}
+            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white"
+            title="Zoom In"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setZoomLevel((z) => Math.max(z - 0.25, 0.75))}
+            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white"
+            title="Zoom Out"
+          >
+            <ZoomOut className="h-4 w-4" />
+          </button>
+          {zoomLevel !== 1 && (
+            <button
+              onClick={() => setZoomLevel(1)}
+              className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white"
+              title="Reset Zoom"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
             </button>
-            <button onClick={() => { setViewMode("single"); setCurrentSpread(0); }}
-              className={`px-2 py-0.5 rounded text-xs ${viewMode === "single" ? "bg-primary text-primary-foreground font-semibold" : "text-stone-300 hover:text-white"}`}>
-              <Square className="h-3 w-3 inline mr-1" />Single
-            </button>
-          </div>
-          <a href={encodeURI(targetPdfUrl)} download className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white">
+          )}
+
+          <div className="h-4 w-px bg-stone-800 mx-1" />
+
+          <a
+            href={encodeURI(targetPdfUrl)}
+            download
+            className="p-2 hover:bg-stone-800 rounded-md text-stone-300 hover:text-white"
+            title="Download PDF"
+          >
             <Download className="h-4 w-4" />
           </a>
-          <button onClick={toggleFullscreen} className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white">
-            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          <button
+            onClick={toggleFullscreen}
+            className="p-2 hover:bg-stone-800 rounded-md text-stone-300 hover:text-white"
+            title="Toggle Fullscreen"
+          >
+            {isFullscreen ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
           </button>
-          <button onClick={onClose} className="ml-1 h-7 w-7 grid place-items-center rounded-full bg-stone-800 hover:bg-red-600 text-stone-300 hover:text-white border border-stone-700">
+          <button
+            onClick={onClose}
+            className="ml-1 h-7 w-7 grid place-items-center rounded-full bg-stone-800 hover:bg-red-600 text-stone-300 hover:text-white border border-stone-700 transition"
+          >
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
       </header>
 
-      {/* Book Stage — Premium ambient reading environment */}
+      {/* ──── Book Stage — Premium Ambient Atmosphere ──── */}
       <div
-        className="flex-1 flex items-center justify-center p-3 md:p-6 overflow-hidden relative"
+        ref={containerRef}
+        className="flex-1 relative flex items-center justify-center p-4 overflow-hidden"
         style={{
           background:
-            "radial-gradient(circle at 50% 40%, #26221f 0%, #171412 55%, #0b0908 100%)",
+            "radial-gradient(ellipse at 50% 45%, #24201c 0%, #151210 60%, #090807 100%)",
         }}
       >
-        {/* Ambient lighting subtle top highlight */}
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent pointer-events-none" />
+        {/* Subtle Ambient Vignette Highlight */}
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-black/30 pointer-events-none" />
 
-        {/* Click zones for navigation */}
+        {/* 3D PageFlip Container */}
+        <div
+          ref={bookElementRef}
+          className="relative transition-transform duration-200"
+          style={{ transform: `scale(${zoomLevel})` }}
+        >
+          <div ref={pagesContainerRef} className="st-flip-book shadow-2xl">
+            {Array.from({ length: totalPages }).map((_, idx) => {
+              const pageNum = idx + 1;
+              const isCover = pageNum === 1;
+
+              return (
+                <div
+                  key={pageNum}
+                  className="st-page bg-[#fdfcfa] overflow-hidden relative border border-stone-300/40 shadow-md select-none"
+                  data-density={isCover ? "hard" : "soft"}
+                >
+                  <canvas
+                    data-page={pageNum}
+                    className="w-full h-full object-contain mx-auto block"
+                  />
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/70 text-stone-200 text-[9px] font-mono px-2 py-0.5 rounded pointer-events-none z-10">
+                    {pageNum}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Left & Right Edge Drag/Click Navigation Indicators */}
         <button
           onClick={handlePrev}
-          disabled={currentSpread <= 0 || !!turning}
-          className="absolute left-0 top-12 bottom-0 w-20 z-20 cursor-pointer opacity-0 hover:opacity-100 transition-opacity disabled:cursor-default disabled:opacity-0 flex items-center justify-center"
-          aria-label="Previous page"
+          disabled={currentPage <= 1}
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-stone-900/70 hover:bg-stone-900 text-stone-200 border border-stone-700/60 shadow-2xl backdrop-blur transition opacity-40 hover:opacity-100 disabled:opacity-0"
+          title="Previous Page"
         >
-          <div className="bg-stone-900/80 backdrop-blur border border-stone-700/60 rounded-full p-2.5 shadow-xl">
-            <ChevronLeft className="h-6 w-6 text-stone-100" />
-          </div>
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <button
           onClick={handleNext}
-          disabled={currentSpread >= maxSpreads - 1 || !!turning}
-          className="absolute right-0 top-12 bottom-0 w-20 z-20 cursor-pointer opacity-0 hover:opacity-100 transition-opacity disabled:cursor-default disabled:opacity-0 flex items-center justify-center"
-          aria-label="Next page"
+          disabled={currentPage >= totalPages}
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-stone-900/70 hover:bg-stone-900 text-stone-200 border border-stone-700/60 shadow-2xl backdrop-blur transition opacity-40 hover:opacity-100 disabled:opacity-0"
+          title="Next Page"
         >
-          <div className="bg-stone-900/80 backdrop-blur border border-stone-700/60 rounded-full p-2.5 shadow-xl">
-            <ChevronRight className="h-6 w-6 text-stone-100" />
-          </div>
+          <ChevronRight className="h-6 w-6" />
         </button>
-
-        <div
-          className="relative w-full h-full flex items-center justify-center"
-          style={{ perspective: 2000 }}
-        >
-          {viewMode === "spread" ? (
-            /* ──── TWO-PAGE BOOK SPREAD ──── */
-            <div
-              className="relative flex h-[calc(100vh-5.5rem)] w-full max-w-[1150px] rounded-lg overflow-hidden shadow-[0_25px_70px_-15px_rgba(0,0,0,0.95),0_0_40px_rgba(0,0,0,0.5)] border border-stone-800/40"
-              style={{ transformStyle: "preserve-3d" }}
-            >
-              {/* Left page */}
-              <div
-                ref={leftRef}
-                className="relative flex-1 h-full bg-[#fdfbf7] flex items-center justify-center overflow-hidden"
-                style={{ boxShadow: "inset -12px 0 24px -10px rgba(0,0,0,0.35)" }}
-              >
-                {pdf && leftPageNum <= totalPages ? (
-                  <PdfPageCanvas pdf={pdf} pageNum={leftPageNum} containerRef={leftRef} />
-                ) : (
-                  <div className="text-stone-400 font-serif text-sm">Loading…</div>
-                )}
-                <div className="absolute bottom-3 left-4 bg-stone-900/80 backdrop-blur text-stone-200 text-[10px] font-mono px-2.5 py-0.5 rounded-full pointer-events-none z-10 border border-stone-700/50">
-                  Page {leftPageNum}
-                </div>
-              </div>
-
-              {/* Spine shadow & binding groove */}
-              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-6 bg-gradient-to-r from-black/50 via-black/15 to-black/50 z-20 pointer-events-none border-x border-black/20" />
-
-              {/* Right page */}
-              <div
-                ref={rightRef}
-                className="relative flex-1 h-full bg-[#fdfbf7] flex items-center justify-center overflow-hidden"
-                style={{ boxShadow: "inset 12px 0 24px -10px rgba(0,0,0,0.35)" }}
-              >
-                {pdf && rightPageNum && rightPageNum <= totalPages ? (
-                  <PdfPageCanvas pdf={pdf} pageNum={rightPageNum} containerRef={rightRef} />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-[#211c18] text-stone-300 p-8 text-center border-l border-stone-800">
-                    <div className="h-12 w-12 rounded-full bg-amber-500/10 border border-amber-500/20 grid place-items-center mb-3 text-amber-500">
-                      <BookOpen className="h-6 w-6" />
-                    </div>
-                    <div className="font-serif text-base font-semibold text-stone-200 tracking-wide">
-                      Swathi Publications
-                    </div>
-                    <div className="text-xs text-stone-400 mt-1 max-w-[200px]">
-                      End of Document
-                    </div>
-                  </div>
-                )}
-                {rightPageNum && rightPageNum <= totalPages && (
-                  <div className="absolute bottom-3 right-4 bg-stone-900/80 backdrop-blur text-stone-200 text-[10px] font-mono px-2.5 py-0.5 rounded-full pointer-events-none z-10 border border-stone-700/50">
-                    Page {rightPageNum}
-                  </div>
-                )}
-              </div>
-
-              {/* Page flip animation overlay */}
-              <AnimatePresence>
-                {turning === "next" && (
-                  <motion.div
-                    key="flip-next"
-                    className="absolute top-0 bottom-0 left-1/2 w-1/2 bg-[#f5f0e6] z-30 overflow-hidden"
-                    initial={{ rotateY: 0 }}
-                    animate={{ rotateY: -180 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5, ease: [0.645, 0.045, 0.355, 1] }}
-                    style={{ transformOrigin: "left center", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-transparent to-black/10 pointer-events-none z-10" />
-                  </motion.div>
-                )}
-                {turning === "prev" && (
-                  <motion.div
-                    key="flip-prev"
-                    className="absolute top-0 bottom-0 right-1/2 w-1/2 bg-[#f5f0e6] z-30 overflow-hidden"
-                    initial={{ rotateY: 180 }}
-                    animate={{ rotateY: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5, ease: [0.645, 0.045, 0.355, 1] }}
-                    style={{ transformOrigin: "right center", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-l from-black/25 via-transparent to-black/10 pointer-events-none z-10" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ) : (
-            /* ──── SINGLE PAGE VIEW ──── */
-            <div
-              ref={singleRef}
-              className="relative h-[calc(100vh-5rem)] w-full max-w-[600px] bg-[#f5f0e6] rounded-md overflow-hidden flex items-center justify-center"
-              style={{ boxShadow: "0 20px 60px -10px rgba(0,0,0,0.8)" }}
-            >
-              {pdf && leftPageNum <= totalPages ? (
-                <PdfPageCanvas pdf={pdf} pageNum={leftPageNum} containerRef={singleRef} />
-              ) : (
-                <div className="text-stone-400 font-serif text-sm">Loading…</div>
-              )}
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-stone-900/70 text-stone-200 text-[10px] font-mono px-2 py-0.5 rounded pointer-events-none z-10">
-                Page {leftPageNum}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
+
+      {/* ──── FlippingBook Bottom Filmstrip Thumbnail Navigation ──── */}
+      {showThumbnails && pdf && (
+        <div className="h-28 border-t border-stone-800 bg-stone-950/95 p-2 flex items-center gap-3 overflow-x-auto z-30 shrink-0 shadow-inner">
+          {Array.from({ length: totalPages }).map((_, idx) => {
+            const pageNum = idx + 1;
+            const active = currentPage === pageNum;
+
+            return (
+              <button
+                key={pageNum}
+                onClick={() => jumpToPage(pageNum)}
+                className={`relative flex-shrink-0 aspect-[3/4] h-20 rounded border overflow-hidden transition-all ${
+                  active
+                    ? "border-amber-500 ring-2 ring-amber-500/40 scale-105"
+                    : "border-stone-800 hover:border-stone-600 opacity-70 hover:opacity-100"
+                }`}
+              >
+                <div className="w-full h-full bg-stone-900 flex items-center justify-center text-[10px] font-mono text-stone-400">
+                  Pg {pageNum}
+                </div>
+                <div className="absolute bottom-1 right-1 bg-stone-900/90 text-amber-400 text-[8px] font-mono px-1 rounded">
+                  {pageNum}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
