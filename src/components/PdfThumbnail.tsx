@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import * as pdfjsLib from "pdfjs-dist";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
+import { getPdfDocument } from "./PdfBookViewer";
 
 /**
  * Renders page 1 of a PDF as a <canvas> thumbnail.
@@ -55,14 +50,14 @@ export function PdfThumbnail({
 
     const render = async () => {
       try {
-        const doc = await pdfjsLib.getDocument(encodeURI(src)).promise;
+        const doc = await getPdfDocument(src);
         if (cancelled) return;
         const page = await doc.getPage(1);
         if (cancelled) return;
 
         const container = containerRef.current!;
         const canvas = canvasRef.current!;
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
         const rawVp = page.getViewport({ scale: 1 });
 
         const trimPct = 0.048;
@@ -71,22 +66,9 @@ export function PdfThumbnail({
         const liveW = rawVp.width - 2 * cropX;
         const liveH = rawVp.height - 2 * cropY;
 
-        // Use smaller target width for thumbnails (300px CSS → 600px canvas max)
         const targetW = Math.min(container.clientWidth || 300, 400);
         const scale = (targetW / liveW) * dpr;
         const renderVp = page.getViewport({ scale });
-
-        const offscreen = document.createElement("canvas");
-        offscreen.width = Math.round(renderVp.width);
-        offscreen.height = Math.round(renderVp.height);
-        const offCtx = offscreen.getContext("2d", { alpha: false });
-
-        if (!offCtx) return;
-        offCtx.imageSmoothingEnabled = true;
-        offCtx.imageSmoothingQuality = "high";
-
-        await page.render({ canvasContext: offCtx, viewport: renderVp }).promise;
-        if (cancelled) return;
 
         const finalW = Math.round(liveW * scale);
         const finalH = Math.round(liveH * scale);
@@ -97,10 +79,13 @@ export function PdfThumbnail({
         canvas.style.height = "100%";
 
         const ctx = canvas.getContext("2d", { alpha: false });
-        if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(offscreen, cropX * scale, cropY * scale, finalW, finalH, 0, 0, finalW, finalH);
+        if (!ctx) return;
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+
+        await page.render({ canvasContext: ctx, viewport: renderVp }).promise;
+        if (!cancelled) {
           setLoaded(true);
         }
       } catch {

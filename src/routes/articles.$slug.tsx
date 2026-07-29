@@ -6,10 +6,22 @@ import { Crumbs } from "./articles";
 import { useState, lazy, Suspense } from "react";
 import { Bookmark, Share2, MessageSquare, Heart, Lock, BookOpen, FileText } from "lucide-react";
 
-const PdfBookViewer = lazy(() => import("@/components/PdfBookViewer").then(m => ({ default: m.PdfBookViewer })));
+import { articlesApi } from "@/lib/api/endpoints/articles";
+import { queryKeys } from "@/lib/api/queryKeys";
+
+const loadPdfViewer = () => import("@/components/PdfBookViewer").then((m) => ({ default: m.PdfBookViewer }));
+const PdfBookViewer = lazy(loadPdfViewer);
 
 export const Route = createFileRoute("/articles/$slug")({
-  head: () => ({ meta: [{ title: "Article — Swathi Publications" }] }),
+  loader: async ({ context: { queryClient }, params: { slug } }) => {
+    return queryClient.ensureQueryData({
+      queryKey: queryKeys.articles.slug(slug),
+      queryFn: () => articlesApi.getBySlug(slug),
+    }).catch(() => null);
+  },
+  head: ({ loaderData }) => ({
+    meta: [{ title: `${loaderData?.data?.title ?? "Article"} — Swathi Publications` }],
+  }),
   notFoundComponent: () => (
     <SiteLayout>
       <div className="container-edit py-24 text-center">
@@ -77,6 +89,7 @@ function ArticleDetail() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsViewerOpen(true)}
+                onMouseEnter={loadPdfViewer}
                 className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 text-sm font-medium rounded hover:bg-primary/90 transition-colors shadow-sm"
               >
                 <BookOpen className="h-4 w-4" /> Read PDF in Book View
@@ -101,6 +114,7 @@ function ArticleDetail() {
           </p>
           <button
             onClick={() => setIsViewerOpen(true)}
+            onMouseEnter={loadPdfViewer}
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 text-sm font-medium rounded-lg hover:bg-primary/90 transition-all shadow-md hover:shadow-lg"
           >
             <BookOpen className="h-5 w-5" /> Open Interactive Flipbook Reader

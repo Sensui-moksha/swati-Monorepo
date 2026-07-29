@@ -22,6 +22,7 @@ export function useArticles(params?: PaginationParams & { categoryId?: string; t
   return useQuery({
     queryKey: queryKeys.articles.list(params),
     queryFn: () => articlesApi.list(params),
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -44,6 +45,7 @@ export function useLatestArticles(params?: PaginationParams) {
   return useQuery({
     queryKey: queryKeys.articles.latest(params),
     queryFn: () => articlesApi.getLatest(params),
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -67,6 +69,7 @@ export function useCategories(params?: PaginationParams) {
   return useQuery({
     queryKey: queryKeys.categories.list(params),
     queryFn: () => articlesApi.listCategories(params),
+    placeholderData: (prev) => prev,
   });
 }
 

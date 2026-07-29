@@ -75,22 +75,44 @@ function playPaperFlipSound(isMuted: boolean) {
   }
 }
 
+/** Shared PDF document cache to prevent duplicate fetches across modal opens */
+const pdfDocCache = new Map<string, Promise<pdfjsLib.PDFDocumentProxy>>();
+
+export function getPdfDocument(url: string): Promise<pdfjsLib.PDFDocumentProxy> {
+  const cached = pdfDocCache.get(url);
+  if (cached) return cached;
+
+  const loadingTask = pdfjsLib.getDocument({
+    url: encodeURI(url),
+    cMapUrl: "https://unpkg.com/pdfjs-dist@4.0.379/cmaps/",
+    cMapPacked: true,
+    standardFontDataUrl: "https://unpkg.com/pdfjs-dist@4.0.379/standard_fonts/",
+    rangeChunkSize: 65536,
+    disableAutoFetch: false,
+    disableStream: false,
+  });
+
+  const promise = loadingTask.promise;
+  pdfDocCache.set(url, promise);
+  return promise;
+}
+
 /** Adaptive target width: mobile gets 600px, desktop gets 1000px for fast rendering */
 const getTargetWidth = () => (typeof window !== "undefined" && window.innerWidth < 768 ? 600 : 1000);
 
-/** Renders a single PDF page into a canvas with high-DPI quality, stripping prepress margins */
+/** Renders a single PDF page into a canvas with high-DPI quality, stripping prepress margins directly */
 function renderPdfPageToCanvas(
   pdfDoc: pdfjsLib.PDFDocumentProxy,
   pageNum: number,
   canvas: HTMLCanvasElement,
   targetWidth?: number,
 ) {
-  // Skip if already rendered at this resolution
-  if (canvas.dataset.rendered === String(targetWidth ?? getTargetWidth())) return;
-
   const tw = targetWidth ?? getTargetWidth();
+  const renderKey = `${pageNum}_${tw}`;
+  if (canvas.dataset.rendered === renderKey) return;
+
   pdfDoc.getPage(pageNum).then((page) => {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const rawVp = page.getViewport({ scale: 1 });
 
     const trimPct = 0.048;
@@ -102,31 +124,25 @@ function renderPdfPageToCanvas(
     const scale = (tw / liveW) * dpr;
     const renderVp = page.getViewport({ scale });
 
-    const offscreen = document.createElement("canvas");
-    offscreen.width = Math.round(renderVp.width);
-    offscreen.height = Math.round(renderVp.height);
-    const offCtx = offscreen.getContext("2d", { alpha: false });
-    if (!offCtx) return;
+    const finalW = Math.round(liveW * scale);
+    const finalH = Math.round(liveH * scale);
 
-    offCtx.imageSmoothingEnabled = true;
-    offCtx.imageSmoothingQuality = "high";
+    canvas.width = finalW;
+    canvas.height = finalH;
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
 
-    page.render({ canvasContext: offCtx, viewport: renderVp }).promise.then(() => {
-      const finalW = Math.round(liveW * scale);
-      const finalH = Math.round(liveH * scale);
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) return;
 
-      canvas.width = finalW;
-      canvas.height = finalH;
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
 
-      const ctx = canvas.getContext("2d", { alpha: false });
-      if (ctx) {
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(offscreen, cropX * scale, cropY * scale, finalW, finalH, 0, 0, finalW, finalH);
-      }
-      canvas.dataset.rendered = String(tw);
+    page.render({
+      canvasContext: ctx,
+      viewport: renderVp,
+    }).promise.then(() => {
+      canvas.dataset.rendered = renderKey;
     });
   });
 }
@@ -162,7 +178,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
     const load = async () => {
       try {
-        const doc = await pdfjsLib.getDocument(encodeURI(targetPdfUrl)).promise;
+        const doc = await getPdfDocument(targetPdfUrl);
         if (cancelled) return;
         setPdf(doc);
         setTotalPages(doc.numPages);
@@ -294,19 +310,22 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     return () => observer.disconnect();
   }, [isOpen, updateDimensions]);
 
-  // Progressive page rendering: visible pages first, rest deferred to idle time
+  // Progressive page rendering: active spread pages rendered immediately, rest deferred to idle time
   useEffect(() => {
     if (!pdf || totalPages === 0 || !pagesContainerRef.current) return;
     const container = pagesContainerRef.current;
     const tw = getTargetWidth();
 
     const renderPage = (p: number) => {
+      if (p < 1 || p > totalPages) return;
       const canvas = container.querySelector(`canvas[data-page="${p}"]`) as HTMLCanvasElement;
       if (canvas) renderPdfPageToCanvas(pdf, p, canvas, tw);
     };
 
-    // Priority: render current spread first (pages 1-4 on load)
-    const priorityPages = [1, 2, 3, 4].filter((p) => p <= totalPages);
+    // Priority: render current spread and immediate neighbors (currentPage ± 2) immediately
+    const priorityPages = [currentPage - 1, currentPage, currentPage + 1, currentPage + 2].filter(
+      (p) => p >= 1 && p <= totalPages,
+    );
     priorityPages.forEach(renderPage);
 
     // Defer remaining pages to idle time for fast initial paint
@@ -318,12 +337,12 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     const schedule = typeof requestIdleCallback !== "undefined" ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 16) as unknown as number;
     const cancelSchedule = typeof cancelIdleCallback !== "undefined" ? cancelIdleCallback : clearTimeout;
 
-    // Render in small batches of 3 during idle time
+    // Render in small batches during idle time
     let i = 0;
     const renderBatch = () => {
-      const batch = remaining.slice(i, i + 3);
+      const batch = remaining.slice(i, i + 4);
       batch.forEach(renderPage);
-      i += 3;
+      i += 4;
       if (i < remaining.length) {
         idleIds.push(schedule(renderBatch));
       }
@@ -333,7 +352,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     }
 
     return () => idleIds.forEach(cancelSchedule);
-  }, [pdf, totalPages]);
+  }, [pdf, totalPages, currentPage]);
 
   // Keyboard navigation
   const handlePrev = useCallback(() => {

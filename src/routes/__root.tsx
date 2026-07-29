@@ -110,10 +110,17 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+import { prewarmAppCache } from "@/lib/api/cachePrewarmer";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isReader = pathname.startsWith("/reader");
+
+  // Pre-warm cache & PDF assets in the background during idle time
+  useEffect(() => {
+    prewarmAppCache(queryClient);
+  }, [queryClient]);
 
   // Block copy / cut / right-click sitewide (allow inside inputs & .selectable)
   useEffect(() => {
