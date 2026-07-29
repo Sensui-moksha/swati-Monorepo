@@ -97,7 +97,7 @@ export function getPdfDocument(url: string): Promise<pdfjsLib.PDFDocumentProxy> 
   return promise;
 }
 
-/** Extracts exact TrimBox bounds or dynamically calculates printable content bounds, removing all prepress printer marks */
+/** Extracts exact TrimBox bounds or dynamically calculates printable content bounds for even/odd pages, removing all prepress printer marks */
 export function getTrimBoxCrop(page: pdfjsLib.PDFPageProxy): [number, number, number, number] {
   const mediaBox = page.view; // [0, 0, width, height]
   const mediaW = Math.abs(mediaBox[2] - mediaBox[0]);
@@ -122,8 +122,8 @@ export function getTrimBoxCrop(page: pdfjsLib.PDFPageProxy): [number, number, nu
   // 2. Dynamic Operator Stream & Clipping Box Detection
   let cropLeft = 0.035;
   let cropRight = 0.035;
-  let cropTop = 0.035;
-  let cropBottom = 0.035;
+  let cropTop = 0.026;
+  let cropBottom = 0.026;
 
   const opList = (page as any)._operatorList;
   if (opList && opList.argsArray) {
@@ -133,12 +133,18 @@ export function getTrimBoxCrop(page: pdfjsLib.PDFPageProxy): [number, number, nu
         for (const item of args) {
           if (Array.isArray(item) && item.length === 4 && typeof item[0] === "number") {
             const [x1, y1, x2, y2] = item;
-            if (x1 >= 10 && y1 >= 10 && x2 > x1 && y2 > y1 && x2 < mediaW - 10 && y2 < mediaH - 10) {
-              cropLeft = x1 / mediaW;
-              cropBottom = y1 / mediaH;
-              cropRight = (mediaW - x2) / mediaW;
-              cropTop = (mediaH - y2) / mediaH;
-              break;
+            if (x1 >= 15 && y1 >= 15 && x2 > x1 && y2 > y1 && x2 <= mediaW - 15 && y2 <= mediaH - 15) {
+              const candidateLeft = x1 / mediaW;
+              const candidateBottom = y1 / mediaH;
+              const candidateRight = (mediaW - x2) / mediaW;
+              const candidateTop = (mediaH - y2) / mediaH;
+
+              if (candidateLeft < 0.15 && candidateRight < 0.15 && candidateTop < 0.15 && candidateBottom < 0.15) {
+                cropLeft = Math.max(cropLeft, candidateLeft);
+                cropBottom = Math.max(cropBottom, candidateBottom);
+                cropRight = Math.max(cropRight, candidateRight);
+                cropTop = Math.max(cropTop, candidateTop);
+              }
             }
           }
         }
@@ -146,12 +152,21 @@ export function getTrimBoxCrop(page: pdfjsLib.PDFPageProxy): [number, number, nu
     }
   }
 
-  // Prepress mark removal: ensure outer crop margin fully encompasses prepress slug areas
-  // Top slug (with crosshair & filename text) is ~5.4%, Right slug is ~6.8%, Left is ~3.6%, Bottom is ~3.6%
-  cropLeft = Math.max(cropLeft, 0.036);
-  cropRight = Math.max(cropRight, 0.068);
-  cropTop = Math.max(cropTop, 0.054);
-  cropBottom = Math.max(cropBottom, 0.036);
+  // Prepress mark safety: ensure outer crop margin fully crops out printer crosshairs, L-marks, and registration targets
+  const pageNumber = (page as any).pageNumber || 1;
+  const isEvenPage = pageNumber % 2 === 0;
+
+  // Left pages (even) have larger top (5.3%) and right (6.8%) prepress slugs
+  // Right pages (odd) have 3.4% margins
+  const minTop = isEvenPage ? 0.053 : 0.035;
+  const minRight = isEvenPage ? 0.068 : 0.035;
+  const minLeft = 0.035;
+  const minBottom = 0.035;
+
+  cropLeft = Math.max(cropLeft, minLeft);
+  cropRight = Math.max(cropRight, minRight);
+  cropTop = Math.max(cropTop, minTop);
+  cropBottom = Math.max(cropBottom, minBottom);
 
   const minX = mediaBox[0] + mediaW * cropLeft;
   const maxX = mediaBox[2] - mediaW * cropRight;
@@ -412,16 +427,16 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     return () => idleIds.forEach(cancelSchedule);
   }, [pdf, totalPages, currentPage]);
 
-  // Keyboard navigation
+  // Keyboard & stage navigation (side page turn physics)
   const handlePrev = useCallback(() => {
     if (pageFlipRef.current) {
-      pageFlipRef.current.flipPrev();
+      pageFlipRef.current.flipPrev("side");
     }
   }, []);
 
   const handleNext = useCallback(() => {
     if (pageFlipRef.current) {
-      pageFlipRef.current.flipNext();
+      pageFlipRef.current.flipNext("side");
     }
   }, []);
 
