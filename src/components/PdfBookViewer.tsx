@@ -97,6 +97,70 @@ export function getPdfDocument(url: string): Promise<pdfjsLib.PDFDocumentProxy> 
   return promise;
 }
 
+/** Extracts exact TrimBox bounds or dynamically calculates printable content bounds, removing all prepress printer marks */
+export function getTrimBoxCrop(page: pdfjsLib.PDFPageProxy): [number, number, number, number] {
+  const mediaBox = page.view; // [0, 0, width, height]
+  const mediaW = Math.abs(mediaBox[2] - mediaBox[0]);
+  const mediaH = Math.abs(mediaBox[3] - mediaBox[1]);
+
+  // 1. Check if explicit TrimBox or CropBox is defined in PDF dictionary
+  const trimBox = (page as any).trimBox || (page as any).cropBox;
+  if (trimBox && Array.isArray(trimBox) && trimBox.length === 4) {
+    const [tX1, tY1, tX2, tY2] = trimBox;
+    const trimW = Math.abs(tX2 - tX1);
+    const trimH = Math.abs(tY2 - tY1);
+
+    if (trimW > 0 && trimH > 0 && (trimW < mediaW * 0.98 || trimH < mediaH * 0.98)) {
+      const minX = Math.min(tX1, tX2);
+      const maxX = Math.max(tX1, tX2);
+      const minY = Math.min(tY1, tY2);
+      const maxY = Math.max(tY1, tY2);
+      return [minX, minY, maxX, maxY];
+    }
+  }
+
+  // 2. Dynamic Operator Stream & Clipping Box Detection
+  let cropLeft = 0.035;
+  let cropRight = 0.035;
+  let cropTop = 0.035;
+  let cropBottom = 0.035;
+
+  const opList = (page as any)._operatorList;
+  if (opList && opList.argsArray) {
+    for (let i = 0; i < opList.argsArray.length; i++) {
+      const args = opList.argsArray[i];
+      if (Array.isArray(args)) {
+        for (const item of args) {
+          if (Array.isArray(item) && item.length === 4 && typeof item[0] === "number") {
+            const [x1, y1, x2, y2] = item;
+            if (x1 >= 10 && y1 >= 10 && x2 > x1 && y2 > y1 && x2 < mediaW - 10 && y2 < mediaH - 10) {
+              cropLeft = x1 / mediaW;
+              cropBottom = y1 / mediaH;
+              cropRight = (mediaW - x2) / mediaW;
+              cropTop = (mediaH - y2) / mediaH;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Prepress mark removal: ensure outer crop margin fully encompasses prepress slug areas
+  // Top slug (with crosshair & filename text) is ~5.4%, Right slug is ~6.8%, Left is ~3.6%, Bottom is ~3.6%
+  cropLeft = Math.max(cropLeft, 0.036);
+  cropRight = Math.max(cropRight, 0.068);
+  cropTop = Math.max(cropTop, 0.054);
+  cropBottom = Math.max(cropBottom, 0.036);
+
+  const minX = mediaBox[0] + mediaW * cropLeft;
+  const maxX = mediaBox[2] - mediaW * cropRight;
+  const minY = mediaBox[1] + mediaH * cropBottom;
+  const maxY = mediaBox[3] - mediaH * cropTop;
+
+  return [minX, minY, maxX, maxY];
+}
+
 /** Adaptive target width: mobile gets 600px, desktop gets 1000px for fast rendering */
 const getTargetWidth = () => (typeof window !== "undefined" && window.innerWidth < 768 ? 600 : 1000);
 
@@ -113,22 +177,14 @@ function renderPdfPageToCanvas(
 
   pdfDoc.getPage(pageNum).then((page) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const rawVp = page.getViewport({ scale: 1 });
-
-    const trimPct = 0.048;
-    const cropX = rawVp.width * trimPct;
-    const cropY = rawVp.height * trimPct;
-    const liveW = rawVp.width - 2 * cropX;
-    const liveH = rawVp.height - 2 * cropY;
+    const viewBox = getTrimBoxCrop(page);
+    const liveW = viewBox[2] - viewBox[0];
 
     const scale = (tw / liveW) * dpr;
-    const renderVp = page.getViewport({ scale });
+    const renderVp = page.getViewport({ scale, viewBox } as any);
 
-    const finalW = Math.round(liveW * scale);
-    const finalH = Math.round(liveH * scale);
-
-    canvas.width = finalW;
-    canvas.height = finalH;
+    canvas.width = Math.round(renderVp.width);
+    canvas.height = Math.round(renderVp.height);
     canvas.style.width = "100%";
     canvas.style.height = "100%";
 
@@ -210,19 +266,21 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     const containerH = container.clientHeight || window.innerHeight - 44;
 
     pdf.getPage(1).then((page1) => {
-      const rawVp = page1.getViewport({ scale: 1 });
-      const trimPct = 0.048;
-      const paperW = rawVp.width * (1 - 2 * trimPct);
-      const paperH = rawVp.height * (1 - 2 * trimPct);
+      const viewBox = getTrimBoxCrop(page1);
+      const paperW = viewBox[2] - viewBox[0];
+      const paperH = viewBox[3] - viewBox[1];
 
       const isMobile = containerW < 768;
-      const isSingleMode = totalPages === 1 || isMobile;
+      const isTwoPageDoc = totalPages <= 2;
+      const isSingleMode = isTwoPageDoc || isMobile;
       const pagesInSpread = isSingleMode ? 1 : 2;
 
-      // Fill 90% of viewport on desktop, 94% on mobile for optimal prominence
-      const fillRatio = isMobile ? 0.94 : 0.90;
-      const availW = Math.max(containerW * fillRatio, 280);
-      const availH = Math.max(containerH * fillRatio, 320);
+      // Reserve space for side nav buttons outside the book bounds
+      const marginX = isMobile ? 20 : 140;
+      const marginY = isMobile ? 20 : 44;
+
+      const availW = Math.max(containerW - marginX, 260);
+      const availH = Math.max(containerH - marginY, 300);
 
       const spreadPaperW = paperW * pagesInSpread;
       const scale = Math.min(availW / spreadPaperW, availH / paperH);
@@ -241,9 +299,9 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           minHeight: Math.round(pageH * 0.4),
           maxHeight: Math.round(pageH * 2.0),
           drawShadow: true,
-          maxShadowOpacity: 0.4,
-          flippingTime: 700,
-          showCover: totalPages > 1,
+          maxShadowOpacity: 0.45,
+          flippingTime: 800,
+          showCover: totalPages > 2 && !isSingleMode,
           mobileScrollSupport: false,
           usePortrait: isSingleMode,
           autoCenter: true,
@@ -267,7 +325,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
             width: pageW,
             height: pageH,
             usePortrait: isSingleMode,
-            showCover: totalPages > 1,
+            showCover: totalPages > 2 && !isSingleMode,
             autoCenter: true,
           });
         } catch {
@@ -658,7 +716,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
-        className={`flex-1 relative flex items-center justify-center overflow-hidden ${
+        className={`flex-1 relative flex items-center justify-center overflow-hidden w-full h-full ${
           zoomLevel > 1 ? "cursor-grab active:cursor-grabbing touch-none" : ""
         }`}
         style={{
@@ -675,39 +733,39 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           }}
         />
 
-        {/* Dedicated Relative Book Container (Anchors navigation arrows directly to book edges) */}
+        {/* Stage-anchored Previous Page Button */}
+        <button
+          onClick={handlePrev}
+          disabled={currentPage <= 1}
+          className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-stone-900/85 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-75 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95 cursor-pointer"
+          title="Previous Page (Left Arrow)"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+
+        {/* Stage-anchored Next Page Button */}
+        <button
+          onClick={handleNext}
+          disabled={currentPage >= totalPages}
+          className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-stone-900/85 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-75 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95 cursor-pointer"
+          title="Next Page (Right Arrow)"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
+
+        {/* Perfectly Centered Book Wrapper */}
         <div
           ref={bookElementRef}
-          className="relative transition-transform duration-300 ease-out flex items-center justify-center"
+          className="relative transition-transform duration-300 ease-out flex items-center justify-center m-auto"
           style={{ transform: getCenterTransform() }}
         >
-          {/* Book-relative Previous Button */}
-          <button
-            onClick={handlePrev}
-            disabled={currentPage <= 1}
-            className="absolute -left-3 md:-left-16 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-stone-900/80 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-60 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95"
-            title="Previous Page (Left Arrow)"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-
-          {/* Book-relative Next Button */}
-          <button
-            onClick={handleNext}
-            disabled={currentPage >= totalPages}
-            className="absolute -right-3 md:-right-16 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-stone-900/80 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-60 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95"
-            title="Next Page (Right Arrow)"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </button>
-
           {/* PageFlip Container with Commercial Drop Shadows & Edge Depth */}
           <div
             ref={pagesContainerRef}
             className="st-flip-book relative rounded-[2px] transition-shadow duration-300"
             style={{
               boxShadow:
-                "0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 12px 24px -8px rgba(0, 0, 0, 0.45)",
+                "0 30px 60px -12px rgba(0, 0, 0, 0.75), 0 15px 30px -8px rgba(0, 0, 0, 0.55)",
             }}
           >
             {Array.from({ length: totalPages }).map((_, idx) => {

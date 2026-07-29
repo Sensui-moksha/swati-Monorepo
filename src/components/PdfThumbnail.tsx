@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getPdfDocument } from "./PdfBookViewer";
+import { getPdfDocument, getTrimBoxCrop } from "./PdfBookViewer";
 
 /**
  * Renders page 1 of a PDF as a <canvas> thumbnail.
@@ -58,23 +58,15 @@ export function PdfThumbnail({
         const container = containerRef.current!;
         const canvas = canvasRef.current!;
         const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-        const rawVp = page.getViewport({ scale: 1 });
-
-        const trimPct = 0.048;
-        const cropX = rawVp.width * trimPct;
-        const cropY = rawVp.height * trimPct;
-        const liveW = rawVp.width - 2 * cropX;
-        const liveH = rawVp.height - 2 * cropY;
+        const viewBox = getTrimBoxCrop(page);
+        const liveW = viewBox[2] - viewBox[0];
 
         const targetW = Math.min(container.clientWidth || 300, 400);
         const scale = (targetW / liveW) * dpr;
-        const renderVp = page.getViewport({ scale });
+        const renderVp = page.getViewport({ scale, viewBox } as any);
 
-        const finalW = Math.round(liveW * scale);
-        const finalH = Math.round(liveH * scale);
-
-        canvas.width = finalW;
-        canvas.height = finalH;
+        canvas.width = Math.round(renderVp.width);
+        canvas.height = Math.round(renderVp.height);
         canvas.style.width = "100%";
         canvas.style.height = "100%";
 
