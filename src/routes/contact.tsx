@@ -23,7 +23,7 @@ export const Route = createFileRoute("/contact")({
             <ContactItem icon={Mail} label="Editorial" value="editor@swathi.example" />
             <ContactItem icon={Mail} label="Support" value="support@swathi.example" />
             <ContactItem icon={Phone} label="Subscriptions" value="+91 44 4000 0000" />
-            <ContactItem icon={MapPin} label="Newsroom" value="12 Cathedral Rd, Chennai 600086" />
+            <ContactItem icon={MapPin} label="Newsroom" value="Swathi Complex, Vijayawada 520002" />
             <div className="border border-rule p-6 bg-secondary/50 mt-8">
               <div className="eyebrow">Tip line</div>
               <p className="mt-2 text-sm">Have a story? Send tips securely to <span className="text-primary">tips@swathi.example</span>. We protect our sources.</p>

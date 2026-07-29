@@ -31,7 +31,7 @@ export function SiteFooter() {
         </div>
         <div className="rule-top mt-10 pt-6 flex flex-col sm:flex-row justify-between gap-2 text-xs text-muted-foreground">
           <span>© {new Date().getFullYear()} Swathi Publications. All rights reserved.</span>
-          <span>Printed and published from Chennai · RNI No. 61234/98</span>
+          <span>Printed and published from Vijayawada </span>
         </div>
       </div>
     </footer>
