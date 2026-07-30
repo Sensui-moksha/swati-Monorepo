@@ -9,6 +9,7 @@ export interface PublicationDocument {
   createdAt: string;
   description: string;
   author?: string;
+  issueCount?: number;
 }
 
 // Cover helper: for non-special types, use the PDF URL itself

@@ -1,20 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  Minimize2,
-  X,
-  BookOpen,
-  Volume2,
-  VolumeX,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  LayoutGrid,
-} from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
 import pageFlipPkg from "page-flip";
+import { ReaderToolbar } from "./reader/ReaderToolbar";
+import { ReaderSidebar } from "./reader/ReaderSidebar";
+import { useReaderSettings } from "@/lib/hooks/reader/useReaderSettings";
+import { usePdfStreaming } from "@/lib/hooks/reader/usePdfStreaming";
+import { useSmartPrefetch } from "@/lib/hooks/reader/useSmartPrefetch";
+import { useReadingProgress } from "@/lib/hooks/reader/useReadingProgress";
+import { useOfflineCache } from "@/lib/hooks/reader/useOfflineCache";
 
 const PageFlip =
   (pageFlipPkg as any)?.PageFlip ||
@@ -22,19 +16,9 @@ const PageFlip =
   (pageFlipPkg as any)?.default ||
   pageFlipPkg;
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
-
-interface PdfBookViewerProps {
-  pdfUrl?: string;
-  title: string;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-/** Synthesize realistic paper flip sound using Web Audio API */
+// ----------------------------------------------------------------------------
+// Utilities (Preserved from original)
+// ----------------------------------------------------------------------------
 function playPaperFlipSound(isMuted: boolean) {
   if (isMuted) return;
   try {
@@ -45,43 +29,61 @@ function playPaperFlipSound(isMuted: boolean) {
     const bufferSize = Math.floor(ctx.sampleRate * duration);
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
-
     for (let i = 0; i < bufferSize; i++) {
       const t = i / bufferSize;
       const envelope = Math.sin(t * Math.PI) * Math.exp(-t * 3);
       data[i] = (Math.random() * 2 - 1) * envelope;
     }
-
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-
     const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
     filter.frequency.setValueAtTime(1400, ctx.currentTime);
     filter.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + duration);
     filter.Q.value = 2.0;
-
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.35, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-
     source.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
-
     source.start();
-  } catch {
-    // Audio Context blocked or unavailable
-  }
+  } catch {}
 }
 
-/** Shared PDF document cache to prevent duplicate fetches across modal opens */
+export function getTrimBoxCrop(page: pdfjsLib.PDFPageProxy): [number, number, number, number] {
+  const mediaBox = page.view;
+  const mediaW = Math.abs(mediaBox[2] - mediaBox[0]);
+  const mediaH = Math.abs(mediaBox[3] - mediaBox[1]);
+  const trimBox = (page as any).trimBox || (page as any).cropBox;
+  if (trimBox && Array.isArray(trimBox) && trimBox.length === 4) {
+    const [tX1, tY1, tX2, tY2] = trimBox;
+    const trimW = Math.abs(tX2 - tX1);
+    const trimH = Math.abs(tY2 - tY1);
+    if (trimW > 0 && trimH > 0 && (trimW < mediaW * 0.98 || trimH < mediaH * 0.98)) {
+      return [Math.min(tX1, tX2), Math.min(tY1, tY2), Math.max(tX1, tX2), Math.max(tY1, tY2)];
+    }
+  }
+  let cropLeft = 0.035, cropRight = 0.035, cropTop = 0.026, cropBottom = 0.026;
+  const pageNumber = (page as any).pageNumber || 1;
+  const isEvenPage = pageNumber % 2 === 0;
+  cropLeft = Math.max(cropLeft, 0.035);
+  cropRight = Math.max(cropRight, isEvenPage ? 0.068 : 0.035);
+  cropTop = Math.max(cropTop, isEvenPage ? 0.053 : 0.035);
+  cropBottom = Math.max(cropBottom, 0.035);
+  return [
+    mediaBox[0] + mediaW * cropLeft,
+    mediaBox[1] + mediaH * cropBottom,
+    mediaBox[2] - mediaW * cropRight,
+    mediaBox[3] - mediaH * cropTop,
+  ];
+}
+
 const pdfDocCache = new Map<string, Promise<pdfjsLib.PDFDocumentProxy>>();
 
 export function getPdfDocument(url: string): Promise<pdfjsLib.PDFDocumentProxy> {
   const cached = pdfDocCache.get(url);
   if (cached) return cached;
-
   const loadingTask = pdfjsLib.getDocument({
     url: encodeURI(url),
     cMapUrl: "https://unpkg.com/pdfjs-dist@4.0.379/cmaps/",
@@ -91,95 +93,13 @@ export function getPdfDocument(url: string): Promise<pdfjsLib.PDFDocumentProxy> 
     disableAutoFetch: false,
     disableStream: false,
   });
-
   const promise = loadingTask.promise;
   pdfDocCache.set(url, promise);
   return promise;
 }
 
-/** Extracts exact TrimBox bounds or dynamically calculates printable content bounds for even/odd pages, removing all prepress printer marks */
-export function getTrimBoxCrop(page: pdfjsLib.PDFPageProxy): [number, number, number, number] {
-  const mediaBox = page.view; // [0, 0, width, height]
-  const mediaW = Math.abs(mediaBox[2] - mediaBox[0]);
-  const mediaH = Math.abs(mediaBox[3] - mediaBox[1]);
-
-  // 1. Check if explicit TrimBox or CropBox is defined in PDF dictionary
-  const trimBox = (page as any).trimBox || (page as any).cropBox;
-  if (trimBox && Array.isArray(trimBox) && trimBox.length === 4) {
-    const [tX1, tY1, tX2, tY2] = trimBox;
-    const trimW = Math.abs(tX2 - tX1);
-    const trimH = Math.abs(tY2 - tY1);
-
-    if (trimW > 0 && trimH > 0 && (trimW < mediaW * 0.98 || trimH < mediaH * 0.98)) {
-      const minX = Math.min(tX1, tX2);
-      const maxX = Math.max(tX1, tX2);
-      const minY = Math.min(tY1, tY2);
-      const maxY = Math.max(tY1, tY2);
-      return [minX, minY, maxX, maxY];
-    }
-  }
-
-  // 2. Dynamic Operator Stream & Clipping Box Detection
-  let cropLeft = 0.035;
-  let cropRight = 0.035;
-  let cropTop = 0.026;
-  let cropBottom = 0.026;
-
-  const opList = (page as any)._operatorList;
-  if (opList && opList.argsArray) {
-    for (let i = 0; i < opList.argsArray.length; i++) {
-      const args = opList.argsArray[i];
-      if (Array.isArray(args)) {
-        for (const item of args) {
-          if (Array.isArray(item) && item.length === 4 && typeof item[0] === "number") {
-            const [x1, y1, x2, y2] = item;
-            if (x1 >= 15 && y1 >= 15 && x2 > x1 && y2 > y1 && x2 <= mediaW - 15 && y2 <= mediaH - 15) {
-              const candidateLeft = x1 / mediaW;
-              const candidateBottom = y1 / mediaH;
-              const candidateRight = (mediaW - x2) / mediaW;
-              const candidateTop = (mediaH - y2) / mediaH;
-
-              if (candidateLeft < 0.15 && candidateRight < 0.15 && candidateTop < 0.15 && candidateBottom < 0.15) {
-                cropLeft = Math.max(cropLeft, candidateLeft);
-                cropBottom = Math.max(cropBottom, candidateBottom);
-                cropRight = Math.max(cropRight, candidateRight);
-                cropTop = Math.max(cropTop, candidateTop);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Prepress mark safety: ensure outer crop margin fully crops out printer crosshairs, L-marks, and registration targets
-  const pageNumber = (page as any).pageNumber || 1;
-  const isEvenPage = pageNumber % 2 === 0;
-
-  // Left pages (even) have larger top (5.3%) and right (6.8%) prepress slugs
-  // Right pages (odd) have 3.4% margins
-  const minTop = isEvenPage ? 0.053 : 0.035;
-  const minRight = isEvenPage ? 0.068 : 0.035;
-  const minLeft = 0.035;
-  const minBottom = 0.035;
-
-  cropLeft = Math.max(cropLeft, minLeft);
-  cropRight = Math.max(cropRight, minRight);
-  cropTop = Math.max(cropTop, minTop);
-  cropBottom = Math.max(cropBottom, minBottom);
-
-  const minX = mediaBox[0] + mediaW * cropLeft;
-  const maxX = mediaBox[2] - mediaW * cropRight;
-  const minY = mediaBox[1] + mediaH * cropBottom;
-  const maxY = mediaBox[3] - mediaH * cropTop;
-
-  return [minX, minY, maxX, maxY];
-}
-
-/** Adaptive target width: mobile gets 600px, desktop gets 1000px for fast rendering */
 const getTargetWidth = () => (typeof window !== "undefined" && window.innerWidth < 768 ? 600 : 1000);
 
-/** Renders a single PDF page into a canvas with high-DPI quality, stripping prepress margins directly */
 function renderPdfPageToCanvas(
   pdfDoc: pdfjsLib.PDFDocumentProxy,
   pageNum: number,
@@ -189,12 +109,12 @@ function renderPdfPageToCanvas(
   const tw = targetWidth ?? getTargetWidth();
   const renderKey = `${pageNum}_${tw}`;
   if (canvas.dataset.rendered === renderKey) return;
+  canvas.dataset.rendered = "rendering";
 
   pdfDoc.getPage(pageNum).then((page) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const viewBox = getTrimBoxCrop(page);
     const liveW = viewBox[2] - viewBox[0];
-
     const scale = (tw / liveW) * dpr;
     const renderVp = page.getViewport({ scale, viewBox } as any);
 
@@ -205,17 +125,23 @@ function renderPdfPageToCanvas(
 
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
-
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    page.render({
-      canvasContext: ctx,
-      viewport: renderVp,
-    }).promise.then(() => {
+    page.render({ canvasContext: ctx, viewport: renderVp }).promise.then(() => {
       canvas.dataset.rendered = renderKey;
     });
   });
+}
+
+// ----------------------------------------------------------------------------
+// Main Component
+// ----------------------------------------------------------------------------
+export interface PdfBookViewerProps {
+  pdfUrl?: string;
+  title: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
@@ -224,13 +150,17 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [pdf, setPdf] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
-  const [totalPages, setTotalPages] = useState(0);
+  const targetPdfUrl = pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
+  // Extract book ID from URL or title for settings persistence
+  const bookId = useMemo(() => btoa(targetPdfUrl).substring(0, 15), [targetPdfUrl]);
+
+  const { settings, updateSettings } = useReaderSettings(bookId);
+  const { pdf, totalPages, isLoading, error } = usePdfStreaming(targetPdfUrl);
+  const { isCachedForOffline, toggleOfflineCache } = useOfflineCache(bookId);
+  
+  const { getInitialProgress } = useReadingProgress(bookId, 1, totalPages, !isLoading && totalPages > 0);
+  
   const [currentPage, setCurrentPage] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showThumbnails, setShowThumbnails] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -240,41 +170,25 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   const pageFlipRef = useRef<any>(null);
   const pagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const targetPdfUrl = pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
+  // Use Custom Hooks for intelligent features
+  useSmartPrefetch(pdf, currentPage, totalPages);
+  useReadingProgress(bookId, currentPage, totalPages, !isLoading && totalPages > 0);
 
-  // Load PDF Document
+  // Load initial progress once PDF is loaded
   useEffect(() => {
-    if (!isOpen) return;
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const doc = await getPdfDocument(targetPdfUrl);
-        if (cancelled) return;
-        setPdf(doc);
-        setTotalPages(doc.numPages);
-        setCurrentPage(1);
-      } catch (err) {
-        console.error("PDF load error:", err);
+    if (!isLoading && totalPages > 0) {
+      const initial = getInitialProgress();
+      setCurrentPage(initial);
+      if (pageFlipRef.current && initial > 1) {
+        // Delay jump slightly so PageFlip is ready
+        setTimeout(() => pageFlipRef.current.flip(initial - 1), 100);
       }
-    };
+    }
+  }, [isLoading, totalPages]);
 
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [targetPdfUrl, isOpen]);
-
-  // Dynamic responsive page size calculator
+  // PageFlip Initialization and Responsive Updating
   const updateDimensions = useCallback(() => {
-    if (
-      !isOpen ||
-      !pdf ||
-      !pagesContainerRef.current ||
-      !containerRef.current ||
-      totalPages === 0
-    )
-      return;
+    if (!isOpen || !pdf || !pagesContainerRef.current || !containerRef.current || totalPages === 0) return;
 
     const container = containerRef.current;
     const containerW = container.clientWidth || window.innerWidth;
@@ -287,23 +201,19 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
       const isMobile = containerW < 768;
       const isTwoPageDoc = totalPages <= 2;
-      const isSingleMode = isTwoPageDoc || isMobile;
+      const isSingleMode = isTwoPageDoc || isMobile || settings.readingMode === "single";
       const pagesInSpread = isSingleMode ? 1 : 2;
 
-      // Reserve space for side nav buttons outside the book bounds
-      const marginX = isMobile ? 20 : 140;
+      const marginX = isMobile ? 20 : (settings.showSidebar ? 340 : 140);
       const marginY = isMobile ? 20 : 44;
-
       const availW = Math.max(containerW - marginX, 260);
       const availH = Math.max(containerH - marginY, 300);
 
       const spreadPaperW = paperW * pagesInSpread;
       const scale = Math.min(availW / spreadPaperW, availH / paperH);
-
       const pageW = Math.round(paperW * scale);
       const pageH = Math.round(paperH * scale);
 
-      // Create or update PageFlip instance
       if (!pageFlipRef.current) {
         const pageFlip = new PageFlip(pagesContainerRef.current!, {
           width: pageW,
@@ -315,23 +225,22 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           maxHeight: Math.round(pageH * 2.0),
           drawShadow: true,
           maxShadowOpacity: 0.45,
-          flippingTime: 800,
+          flippingTime: 600,
           showCover: totalPages > 2 && !isSingleMode,
           mobileScrollSupport: false,
           usePortrait: isSingleMode,
           autoCenter: true,
-          startPage: 0,
+          startPage: currentPage - 1,
         });
 
         const pageElements = pagesContainerRef.current!.querySelectorAll(".st-page");
         if (pageElements.length > 0) {
           pageFlip.loadFromHTML(pageElements as any);
           pageFlipRef.current = pageFlip;
-
           pageFlip.on("flip", (e: any) => {
             const newPage = (e.data as number) + 1;
             setCurrentPage(newPage);
-            playPaperFlipSound(isMuted);
+            playPaperFlipSound(settings.isMuted);
           });
         }
       } else {
@@ -341,104 +250,92 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
             height: pageH,
             usePortrait: isSingleMode,
             showCover: totalPages > 2 && !isSingleMode,
-            autoCenter: true,
           });
-        } catch {
-          // Fallback update
-        }
+        } catch {}
       }
     });
-  }, [isOpen, pdf, totalPages, isMuted]);
+  }, [isOpen, pdf, totalPages, settings.isMuted, settings.readingMode, settings.showSidebar, currentPage]);
 
-  // Initialize PageFlip engine once PDF is loaded
   useEffect(() => {
     if (!isOpen || !pdf || totalPages === 0) return;
-
     if (pageFlipRef.current) {
-      try {
-        pageFlipRef.current.destroy();
-      } catch {}
+      try { pageFlipRef.current.destroy(); } catch {}
       pageFlipRef.current = null;
     }
-
     updateDimensions();
-
     return () => {
       if (pageFlipRef.current) {
-        try {
-          pageFlipRef.current.destroy();
-        } catch {}
+        try { pageFlipRef.current.destroy(); } catch {}
         pageFlipRef.current = null;
       }
     };
   }, [isOpen, pdf, totalPages, updateDimensions]);
 
-  // ResizeObserver for continuous responsive adaptation
   useEffect(() => {
     if (!isOpen || !containerRef.current) return;
-    const observer = new ResizeObserver(() => {
-      updateDimensions();
-    });
+    const observer = new ResizeObserver(() => updateDimensions());
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, [isOpen, updateDimensions]);
 
-  // Progressive page rendering: active spread pages rendered immediately, rest deferred to idle time
+  // VIRTUALIZATION ENGINE: Only render canvases for active window, destroy rest to save Memory
   useEffect(() => {
     if (!pdf || totalPages === 0 || !pagesContainerRef.current) return;
+    
+    // Active sliding window: +/- 2 pages
+    const activeWindow = new Set([
+      currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2
+    ].filter(p => p >= 1 && p <= totalPages));
+
     const container = pagesContainerRef.current;
-    const tw = getTargetWidth();
-
-    const renderPage = (p: number) => {
-      if (p < 1 || p > totalPages) return;
-      const canvas = container.querySelector(`canvas[data-page="${p}"]`) as HTMLCanvasElement;
-      if (canvas) renderPdfPageToCanvas(pdf, p, canvas, tw);
-    };
-
-    // Priority: render current spread and immediate neighbors (currentPage ± 2) immediately
-    const priorityPages = [currentPage - 1, currentPage, currentPage + 1, currentPage + 2].filter(
-      (p) => p >= 1 && p <= totalPages,
-    );
-    priorityPages.forEach(renderPage);
-
-    // Defer remaining pages to idle time for fast initial paint
-    const remaining = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
-      (p) => !priorityPages.includes(p),
-    );
-
-    const idleIds: number[] = [];
-    const schedule = typeof requestIdleCallback !== "undefined" ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 16) as unknown as number;
-    const cancelSchedule = typeof cancelIdleCallback !== "undefined" ? cancelIdleCallback : clearTimeout;
-
-    // Render in small batches during idle time
-    let i = 0;
-    const renderBatch = () => {
-      const batch = remaining.slice(i, i + 4);
-      batch.forEach(renderPage);
-      i += 4;
-      if (i < remaining.length) {
-        idleIds.push(schedule(renderBatch));
+    
+    // Inject or render active canvases
+    activeWindow.forEach(p => {
+      const pageDiv = container.querySelector(`div[data-page="${p}"]`);
+      if (pageDiv && !pageDiv.querySelector("canvas")) {
+         const canvas = document.createElement("canvas");
+         canvas.className = "w-full h-full object-contain mx-auto block";
+         canvas.style.imageRendering = "-webkit-optimize-contrast";
+         canvas.dataset.rendered = "pending";
+         pageDiv.appendChild(canvas);
+         renderPdfPageToCanvas(pdf, p, canvas);
+      } else {
+         const canvas = pageDiv?.querySelector("canvas");
+         if (canvas && canvas.dataset.rendered !== "rendering" && !canvas.dataset.rendered?.includes(`${p}_`)) {
+           renderPdfPageToCanvas(pdf, p, canvas);
+         }
       }
-    };
-    if (remaining.length > 0) {
-      idleIds.push(schedule(renderBatch));
-    }
+    });
 
-    return () => idleIds.forEach(cancelSchedule);
+    // Extract inactive canvases to free WebGL/Canvas memory footprint
+    const allDivs = container.querySelectorAll(".st-page");
+    allDivs.forEach(div => {
+      const p = parseInt(div.getAttribute("data-page") || "0", 10);
+      if (p > 0 && !activeWindow.has(p)) {
+        const canvas = div.querySelector("canvas");
+        if (canvas) {
+          canvas.width = 0;
+          canvas.height = 0;
+          canvas.remove();
+        }
+      }
+    });
+
   }, [pdf, totalPages, currentPage]);
 
-  // Keyboard & stage navigation (side page turn physics)
   const handlePrev = useCallback(() => {
-    if (pageFlipRef.current) {
-      pageFlipRef.current.flipPrev("side");
-    }
+    if (pageFlipRef.current) pageFlipRef.current.flipPrev("side");
   }, []);
 
   const handleNext = useCallback(() => {
-    if (pageFlipRef.current) {
-      pageFlipRef.current.flipNext("side");
-    }
+    if (pageFlipRef.current) pageFlipRef.current.flipNext("side");
   }, []);
+
+  const jumpToPage = (pageNum: number) => {
+    if (pageFlipRef.current && pageNum >= 1 && pageNum <= totalPages) {
+      pageFlipRef.current.flip(pageNum - 1);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -451,402 +348,143 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, handlePrev, handleNext, onClose]);
 
-  const jumpToPage = (pageNum: number) => {
-    if (pageFlipRef.current && pageNum >= 1 && pageNum <= totalPages) {
-      pageFlipRef.current.flip(pageNum - 1);
-    }
-  };
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen().catch(() => {});
-      setIsFullscreen(false);
-    }
-  };
-
-  // Wheel zoom support
+  // Zoom Engine / Dragging (Mouse & Touch)
   const handleWheel = (e: React.WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
       const delta = e.deltaY < 0 ? 0.1 : -0.1;
-      setZoomLevel((z) => Math.min(Math.max(0.8, z + delta), 2.5));
+      updateSettings({ zoomLevel: Math.min(Math.max(0.5, settings.zoomLevel + delta), 3.0) });
     }
   };
 
-  // Double click zoom toggle
-  const handleDoubleClick = () => {
-    if (zoomLevel === 1) {
-      setZoomLevel(1.5);
-    } else {
-      setZoomLevel(1);
-      setPanOffset({ x: 0, y: 0 });
-    }
-  };
-
-  // Pan dragging when zoomed
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (zoomLevel > 1) {
+    if (settings.zoomLevel > 1) {
       setIsDragging(true);
       setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && zoomLevel > 1) {
-      setPanOffset({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      });
+    if (isDragging && settings.zoomLevel > 1) {
+      setPanOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
     }
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  // Mobile Multi-Touch Gestures: Two-finger Pinch Zoom, Pan & Swipe Page Flip
-  const touchPinchDistRef = useRef<number | null>(null);
-  const touchStartZoomRef = useRef<number>(1);
-  const touchPanStartRef = useRef<{
-    x: number;
-    y: number;
-    startX: number;
-    startY: number;
-  } | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY,
-      );
-      touchPinchDistRef.current = dist;
-      touchStartZoomRef.current = zoomLevel;
-      touchPanStartRef.current = null;
-    } else if (e.touches.length === 1) {
-      touchPanStartRef.current = {
-        x: e.touches[0].clientX - panOffset.x,
-        y: e.touches[0].clientY - panOffset.y,
-        startX: e.touches[0].clientX,
-        startY: e.touches[0].clientY,
-      };
-      touchPinchDistRef.current = null;
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && touchPinchDistRef.current !== null) {
-      if (e.cancelable) e.preventDefault();
-      const currentDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY,
-      );
-      const scaleRatio = currentDist / touchPinchDistRef.current;
-      const newZoom = Math.min(Math.max(0.8, touchStartZoomRef.current * scaleRatio), 3.0);
-      setZoomLevel(newZoom);
-      if (newZoom <= 1.05) {
-        setPanOffset({ x: 0, y: 0 });
-      }
-    } else if (e.touches.length === 1 && touchPanStartRef.current !== null) {
-      if (zoomLevel > 1) {
-        if (e.cancelable) e.preventDefault();
-        setPanOffset({
-          x: e.touches[0].clientX - touchPanStartRef.current.x,
-          y: e.touches[0].clientY - touchPanStartRef.current.y,
-        });
-      }
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchPanStartRef.current && e.changedTouches.length > 0) {
-      const deltaX = e.changedTouches[0].clientX - touchPanStartRef.current.startX;
-      const deltaY = e.changedTouches[0].clientY - touchPanStartRef.current.startY;
-
-      // Horizontal swipe gesture detection for page flip (works both zoomed in and normal)
-      if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.1) {
-        if (deltaX < 0) {
-          // Swipe Left -> Next Page
-          handleNext();
-          setPanOffset({ x: 0, y: 0 });
-        } else {
-          // Swipe Right -> Previous Page
-          handlePrev();
-          setPanOffset({ x: 0, y: 0 });
-        }
-      }
-    }
-
-    if (e.touches.length < 2) {
-      touchPinchDistRef.current = null;
-    }
-    if (e.touches.length === 0) {
-      touchPanStartRef.current = null;
-    }
-  };
+  const handleMouseUp = () => setIsDragging(false);
 
   if (!isOpen) return null;
 
-  // Compute mathematical transform for zoom & user pan
-  const getCenterTransform = () => {
-    return `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`;
-  };
-
-  const isMobileViewport = typeof window !== "undefined" && window.innerWidth < 768;
-  const isSinglePage = totalPages <= 1 || isMobileViewport;
+  const getCenterTransform = () => `scale(${settings.zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0d0b0a] text-stone-100 select-none overflow-hidden font-sans">
-      {/* ──── FlippingBook Compact Studio Header ──── */}
-      <header className="flex h-11 items-center justify-between border-b border-stone-800/80 bg-stone-900/95 px-3 z-30 shrink-0 shadow-md">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="h-7 w-7 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-400 grid place-items-center shrink-0 shadow-inner">
-            <BookOpen className="h-3.5 w-3.5" />
-          </div>
-          <div className="min-w-0">
-            <h2 className="truncate font-serif text-xs font-semibold text-stone-100 tracking-wide">
-              {title}
-            </h2>
-          </div>
-        </div>
+    <div className={`fixed inset-0 z-[100] flex flex-col text-stone-100 select-none overflow-hidden font-sans ${
+      settings.theme === "dark" ? "bg-[#0d0b0a]" : "bg-stone-200"
+    }`}>
+      {settings.showToolbar && (
+        <ReaderToolbar 
+          title={title}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          settings={settings}
+          updateSettings={updateSettings}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onJump={jumpToPage}
+          onClose={onClose}
+          onToggleSidebar={() => updateSettings({ showSidebar: !settings.showSidebar })}
+          onToggleOffline={() => toggleOfflineCache(targetPdfUrl)}
+          isCachedOffline={isCachedForOffline}
+        />
+      )}
 
-        {/* Page counter display */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={handlePrev}
-            disabled={currentPage <= 1}
-            className="p-1 rounded hover:bg-stone-800 text-stone-300 hover:text-white transition disabled:opacity-20"
-            title="Previous Page (Left Arrow)"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-stone-800/90 text-xs font-mono border border-stone-700/60 shadow-inner">
-            <span className="text-stone-400 text-[11px]">Page</span>
-            <input
-              type="number"
-              min={1}
-              max={totalPages}
-              value={currentPage}
-              onChange={(e) => jumpToPage(parseInt(e.target.value, 10) || 1)}
-              className="w-8 text-center bg-stone-950 text-amber-400 font-bold text-xs rounded border border-stone-700 outline-none focus:border-amber-500"
-            />
-            <span className="text-stone-400 text-[11px]">of {totalPages || "…"}</span>
-          </div>
-          <button
-            onClick={handleNext}
-            disabled={currentPage >= totalPages}
-            className="p-1 rounded hover:bg-stone-800 text-stone-300 hover:text-white transition disabled:opacity-20"
-            title="Next Page (Right Arrow)"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setIsMuted(!isMuted)}
-            className={`p-1.5 rounded transition ${isMuted ? "text-stone-500 hover:text-stone-300" : "text-amber-400 hover:bg-stone-800"}`}
-            title={isMuted ? "Unmute Sound" : "Mute Sound"}
-          >
-            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-          </button>
-
-          <button
-            onClick={() => setShowThumbnails(!showThumbnails)}
-            className={`p-1.5 rounded transition ${showThumbnails ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" : "text-stone-300 hover:bg-stone-800"}`}
-            title="Toggle Page Thumbnails"
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
-
-          <div className="h-3.5 w-px bg-stone-800 mx-1" />
-
-          <button
-            onClick={() => setZoomLevel((z) => Math.min(z + 0.25, 2.5))}
-            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white transition"
-            title="Zoom In"
-          >
-            <ZoomIn className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => {
-              setZoomLevel((z) => Math.max(z - 0.25, 0.8));
-              if (zoomLevel <= 1.25) setPanOffset({ x: 0, y: 0 });
-            }}
-            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white transition"
-            title="Zoom Out"
-          >
-            <ZoomOut className="h-4 w-4" />
-          </button>
-          {zoomLevel !== 1 && (
-            <button
-              onClick={() => {
-                setZoomLevel(1);
-                setPanOffset({ x: 0, y: 0 });
-              }}
-              className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white transition"
-              title="Reset Zoom (Fit to Screen)"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-            </button>
-          )}
-
-          <div className="h-3.5 w-px bg-stone-800 mx-1" />
-
-          <button
-            onClick={toggleFullscreen}
-            className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white transition"
-            title="Toggle Fullscreen"
-          >
-            {isFullscreen ? (
-              <Minimize2 className="h-4 w-4" />
-            ) : (
-              <Maximize2 className="h-4 w-4" />
-            )}
-          </button>
-          <button
-            onClick={onClose}
-            className="ml-1 h-6 w-6 grid place-items-center rounded-full bg-stone-800 hover:bg-red-600 text-stone-300 hover:text-white border border-stone-700/80 transition"
-            title="Close Viewer"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </header>
-
-      {/* ──── Book Stage — Studio Radial Atmosphere ──── */}
-      <div
-        ref={containerRef}
-        onWheel={handleWheel}
-        onDoubleClick={handleDoubleClick}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchEnd}
-        className={`flex-1 relative flex items-center justify-center overflow-hidden w-full h-full ${
-          zoomLevel > 1 ? "cursor-grab active:cursor-grabbing touch-none" : ""
-        }`}
-        style={{
-          background:
-            "radial-gradient(circle at 50% 50%, #1c1917 0%, #12100e 55%, #080706 100%)",
-        }}
-      >
-        {/* Warm Ambient Spotlight behind the Book */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at 50% 50%, rgba(217, 119, 6, 0.07) 0%, transparent 70%)",
-          }}
+      <div className="flex-1 flex overflow-hidden">
+        <ReaderSidebar 
+          isOpen={settings.showSidebar} 
+          onClose={() => updateSettings({ showSidebar: false })}
+          onJump={jumpToPage}
         />
 
-        {/* Stage-anchored Previous Page Button */}
-        <button
-          onClick={handlePrev}
-          disabled={currentPage <= 1}
-          className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-stone-900/85 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-75 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95 cursor-pointer"
-          title="Previous Page (Left Arrow)"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-
-        {/* Stage-anchored Next Page Button */}
-        <button
-          onClick={handleNext}
-          disabled={currentPage >= totalPages}
-          className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-stone-900/85 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-75 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95 cursor-pointer"
-          title="Next Page (Right Arrow)"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </button>
-
-        {/* Perfectly Centered Book Wrapper */}
         <div
-          ref={bookElementRef}
-          className="relative transition-transform duration-300 ease-out flex items-center justify-center m-auto"
-          style={{ transform: getCenterTransform() }}
+          ref={containerRef}
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          className={`flex-1 relative flex items-center justify-center overflow-hidden w-full h-full ${
+            settings.zoomLevel > 1 ? "cursor-grab active:cursor-grabbing touch-none" : ""
+          }`}
+          style={{
+            background: settings.theme === "dark" 
+              ? "radial-gradient(circle at 50% 50%, #1c1917 0%, #12100e 55%, #080706 100%)"
+              : "radial-gradient(circle at 50% 50%, #f5f5f4 0%, #e7e5e4 100%)"
+          }}
         >
-          {/* PageFlip Container with Commercial Drop Shadows & Edge Depth */}
-          <div
-            ref={pagesContainerRef}
-            className="st-flip-book relative rounded-[2px] transition-shadow duration-300"
-            style={{
-              boxShadow:
-                "0 30px 60px -12px rgba(0, 0, 0, 0.75), 0 15px 30px -8px rgba(0, 0, 0, 0.55)",
-            }}
-          >
-            {Array.from({ length: totalPages }).map((_, idx) => {
-              const pageNum = idx + 1;
+          {isLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-50">
+              <div className="w-10 h-10 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin mb-4" />
+              <p className="text-amber-500/80 text-sm font-medium tracking-wider uppercase animate-pulse">
+                Initializing Streaming Engine...
+              </p>
+            </div>
+          )}
 
-              return (
+          {error && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-50">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded max-w-sm text-center">
+                <p className="font-bold mb-2">Error Loading Document</p>
+                <p className="text-sm opacity-80">{error.message}</p>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handlePrev}
+            disabled={currentPage <= 1 || isLoading}
+            className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-stone-900/85 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-75 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95 cursor-pointer hidden md:block"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+
+          <button
+            onClick={handleNext}
+            disabled={currentPage >= totalPages || isLoading}
+            className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-stone-900/85 hover:bg-amber-600 text-stone-200 hover:text-white border border-stone-700/80 shadow-2xl backdrop-blur-md transition-all duration-200 opacity-75 hover:opacity-100 disabled:opacity-0 hover:scale-110 active:scale-95 cursor-pointer hidden md:block"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+
+          <div
+            ref={bookElementRef}
+            className={`relative transition-transform duration-300 ease-out flex items-center justify-center m-auto ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            style={{ transform: getCenterTransform() }}
+          >
+            <div
+              ref={pagesContainerRef}
+              className="st-flip-book relative rounded-[2px] transition-shadow duration-300"
+              style={{
+                boxShadow: settings.theme === "dark" 
+                  ? "0 30px 60px -12px rgba(0, 0, 0, 0.75), 0 15px 30px -8px rgba(0, 0, 0, 0.55)"
+                  : "0 30px 60px -12px rgba(0, 0, 0, 0.15), 0 15px 30px -8px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              {/* Virtualized DOM nodes (Always present, but empty unless in viewport window) */}
+              {Array.from({ length: totalPages }).map((_, idx) => (
                 <div
-                  key={pageNum}
+                  key={idx + 1}
+                  data-page={idx + 1}
                   className="st-page bg-[#fdfcfa] overflow-hidden relative select-none rounded-[1px]"
                   data-density="soft"
                 >
-                  <canvas
-                    data-page={pageNum}
-                    className="w-full h-full object-contain mx-auto block"
-                    style={{ imageRendering: "-webkit-optimize-contrast" }}
-                  />
                   <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-stone-900/60 text-stone-300 text-[9px] font-mono px-2 py-0.5 rounded-full pointer-events-none z-10 border border-stone-700/40 backdrop-blur-sm opacity-80">
-                    {pageNum}
+                    {idx + 1}
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-
-          {/* Soft Natural Spine Crease Overlay (Blends seamlessly into open gutter without dark vertical lines during flip) */}
-          {!isSinglePage && currentPage > 1 && currentPage < totalPages && (
-            <div
-              className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[18px] pointer-events-none z-10 opacity-35 mix-blend-multiply"
-              style={{
-                background:
-                  "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.15) 65%, transparent 100%)",
-              }}
-            />
-          )}
         </div>
       </div>
-
-      {/* ──── Bottom Filmstrip Thumbnail Navigation ──── */}
-      {showThumbnails && pdf && (
-        <div className="h-28 border-t border-stone-800 bg-stone-950/95 p-2 flex items-center gap-3 overflow-x-auto z-30 shrink-0 shadow-inner">
-          {Array.from({ length: totalPages }).map((_, idx) => {
-            const pageNum = idx + 1;
-            const active = currentPage === pageNum;
-
-            return (
-              <button
-                key={pageNum}
-                onClick={() => jumpToPage(pageNum)}
-                className={`relative flex-shrink-0 aspect-[3/4] h-20 rounded border overflow-hidden transition-all ${
-                  active
-                    ? "border-amber-500 ring-2 ring-amber-500/40 scale-105"
-                    : "border-stone-800 hover:border-stone-600 opacity-70 hover:opacity-100"
-                }`}
-              >
-                <div className="w-full h-full bg-stone-900 flex items-center justify-center text-[10px] font-mono text-stone-400">
-                  Pg {pageNum}
-                </div>
-                <div className="absolute bottom-1 right-1 bg-stone-900/90 text-amber-400 text-[8px] font-mono px-1 rounded">
-                  {pageNum}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 };
-
