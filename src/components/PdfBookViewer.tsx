@@ -282,9 +282,11 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   useEffect(() => {
     if (!pdf || totalPages === 0 || !pagesContainerRef.current) return;
     
-    // Active sliding window: +/- 2 pages
+    // Active sliding window: +/- 4 pages to keep upcoming pages in DOM during 3D flip animation
     const activeWindow = new Set([
-      currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2
+      currentPage - 4, currentPage - 3, currentPage - 2, currentPage - 1,
+      currentPage,
+      currentPage + 1, currentPage + 2, currentPage + 3, currentPage + 4
     ].filter(p => p >= 1 && p <= totalPages));
 
     const container = pagesContainerRef.current;
