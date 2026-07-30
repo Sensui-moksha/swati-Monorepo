@@ -27,7 +27,7 @@ FROM nginx:alpine AS runner
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy compiled static assets from builder
-COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+COPY --from=builder /usr/src/app/dist/client /usr/share/nginx/html
 
 # We don't need a custom nginx.conf here if we are using a master NGINX container in docker-compose
 # But for standalone running, we add a simple fallback conf
