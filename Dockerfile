@@ -1,38 +1,42 @@
-# ---------------------------------------
-# Stage 1: Build Frontend
-# ---------------------------------------
-FROM node:20-alpine AS builder
+# Multistage Dockerfile for swati-clientside (TanStack Start / Vite)
 
-WORKDIR /usr/src/app
+# 1. Base stage (Node 22 required by @tanstack/react-start >= 22.12.0)
+FROM node:22-alpine AS base
+WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+# 2. Dependencies stage
+FROM base AS deps
+COPY package.json package-lock.json ./
+RUN npm install
 
+# 3. Build stage
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Pass in environment variables for the build
-ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL}
+ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=4096"
-
-# Build the Vite React application
 RUN npm run build
 
-# ---------------------------------------
-# Stage 2: Serve via NGINX (Static delivery)
-# ---------------------------------------
-FROM nginx:alpine AS runner
+# 4. Production runner stage
+FROM base AS runner
+WORKDIR /app
 
-# Remove default NGINX static assets
-RUN rm -rf /usr/share/nginx/html/*
-
-# Copy compiled static assets from builder
-COPY --from=builder /usr/src/app/dist/client /usr/share/nginx/html
-
-# We don't need a custom nginx.conf here if we are using a master NGINX container in docker-compose
-# But for standalone running, we add a simple fallback conf
-COPY nginx/standalone.conf /etc/nginx/conf.d/default.conf
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV PORT=3000
+ENV HOST=0.0.0.0
 
 EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+# Copy runtime files
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/vite.config.ts ./vite.config.ts
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public ./public
+
+# Start server in production preview mode
+CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
