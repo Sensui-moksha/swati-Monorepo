@@ -38,6 +38,17 @@ const envSchema = z.object({
   SWAGGER_ENABLED: z.coerce.boolean().default(true),
   SWAGGER_PATH: z.string().default("/api-docs"),
   PAYMENT_PROVIDER: z.string().default("dummy"),
+  // Redis
+  REDIS_URL: z.string().default("redis://localhost:6379"),
+  // PDF Streaming & Optimization
+  PDF_SSD_CACHE_DIR: z.string().default("/mnt/ssd-cache/pdf"),
+  PDF_OPTIMIZED_DIR: z.string().default("./storage/optimized"),
+  PDF_CACHE_MAX_SIZE_GB: z.coerce.number().default(100),
+  PDF_CACHE_TTL_HOURS: z.coerce.number().default(72),
+  PDF_HOT_FILE_THRESHOLD: z.coerce.number().default(10),
+  PDF_OPTIMIZATION_PROVIDER: z.enum(["ghostscript", "qpdf", "mupdf", "ocrmypdf", "auto"]).default("auto"),
+  PDF_OPTIMIZATION_CONCURRENCY: z.coerce.number().default(2),
+  PDF_PREPROCESSING_CRON: z.string().default("0 2 * * *"),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

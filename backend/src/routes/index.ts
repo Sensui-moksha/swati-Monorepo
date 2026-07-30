@@ -37,6 +37,7 @@ import storageRoutes from "./storage";
 import storageSyncRoutes from "./storageSync";
 import filesystemScannerRoutes from "./filesystemScanner";
 import filesystemWatcherRoutes from "./filesystemWatcher";
+import pdfStreamingRoutes from "./pdfStreaming";
 
 const router = Router();
 
@@ -89,6 +90,7 @@ router.use("/v1/reports", reportsRoutes);
 router.use("/v1/access", accessRoutes);
 router.use("/v1/admin", adminRoutes);
 router.use("/v1/system", systemRoutes);
+router.use("/v1/pdf", pdfStreamingRoutes);
 
 // Health check / API info
 router.get("/", (_req, res) => {

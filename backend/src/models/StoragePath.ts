@@ -54,6 +54,17 @@ export interface IStoragePath extends Document {
     seoTitle?: string;
     seoDescription?: string;
     seoKeywords?: string[];
+    // PDF Streaming & Optimization (new fields — all optional)
+    isLinearized?: boolean;
+    optimizationStatus?: 'pending' | 'processing' | 'done' | 'failed' | 'skipped';
+    optimizationDate?: Date;
+    optimizedPath?: string;
+    pdfVersion?: string;
+    cacheStatus?: 'hot' | 'cold' | 'warming';
+    lastStreamedAt?: Date;
+    streamCount?: number;
+    checksumSha256?: string;
+    streamingEnabled?: boolean;
   };
   isDeleted: boolean;
   deletedAt?: Date;
@@ -215,6 +226,21 @@ const storagePathSchema = new Schema<any, IStoragePathModel>(
         maxlength: [160, "SEO description cannot exceed 160 characters"],
       },
       seoKeywords: [{ type: String, trim: true, lowercase: true }],
+      // PDF Streaming & Optimization
+      isLinearized: { type: Boolean },
+      optimizationStatus: {
+        type: String,
+        enum: ['pending', 'processing', 'done', 'failed', 'skipped'],
+        index: true,
+      },
+      optimizationDate: { type: Date },
+      optimizedPath: { type: String, trim: true },
+      pdfVersion: { type: String, trim: true },
+      cacheStatus: { type: String, enum: ['hot', 'cold', 'warming'] },
+      lastStreamedAt: { type: Date },
+      streamCount: { type: Number, default: 0, min: 0 },
+      checksumSha256: { type: String, trim: true },
+      streamingEnabled: { type: Boolean, default: true },
     },
     isDeleted: {
       type: Boolean,
