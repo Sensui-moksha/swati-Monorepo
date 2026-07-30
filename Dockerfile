@@ -32,6 +32,6 @@ COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
 # But for standalone running, we add a simple fallback conf
 COPY nginx/standalone.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 3000
 
 CMD ["nginx", "-g", "daemon off;"]
