@@ -293,32 +293,22 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     
     // Inject or render active canvases
     activeWindow.forEach(p => {
-      const pageDiv = container.querySelector(`div[data-page="${p}"]`);
-      if (pageDiv && !pageDiv.querySelector("canvas")) {
-         const canvas = document.createElement("canvas");
-         canvas.className = "w-full h-full object-contain mx-auto block";
-         canvas.style.imageRendering = "-webkit-optimize-contrast";
-         canvas.dataset.rendered = "pending";
-         pageDiv.appendChild(canvas);
-         renderPdfPageToCanvas(pdf, p, canvas);
-      } else {
-         const canvas = pageDiv?.querySelector("canvas");
-         if (canvas && canvas.dataset.rendered !== "rendering" && !canvas.dataset.rendered?.includes(`${p}_`)) {
-           renderPdfPageToCanvas(pdf, p, canvas);
-         }
+      const canvas = container.querySelector(`canvas[data-page="${p}"]`) as HTMLCanvasElement;
+      if (canvas && canvas.dataset.rendered !== "rendering" && !canvas.dataset.rendered?.includes(`${p}_`)) {
+        renderPdfPageToCanvas(pdf, p, canvas);
       }
     });
 
-    // Extract inactive canvases to free WebGL/Canvas memory footprint
-    const allDivs = container.querySelectorAll(".st-page");
-    allDivs.forEach(div => {
-      const p = parseInt(div.getAttribute("data-page") || "0", 10);
+    // Clear inactive canvases to free WebGL/Canvas memory footprint
+    const allCanvases = container.querySelectorAll("canvas[data-page]");
+    allCanvases.forEach(canvas => {
+      const p = parseInt(canvas.getAttribute("data-page") || "0", 10);
       if (p > 0 && !activeWindow.has(p)) {
-        const canvas = div.querySelector("canvas");
-        if (canvas) {
-          canvas.width = 0;
-          canvas.height = 0;
-          canvas.remove();
+        const c = canvas as HTMLCanvasElement;
+        if (c.width !== 0 || c.height !== 0) {
+          c.width = 0;
+          c.height = 0;
+          c.dataset.rendered = "";
         }
       }
     });
@@ -470,7 +460,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
                   : "0 30px 60px -12px rgba(0, 0, 0, 0.15), 0 15px 30px -8px rgba(0, 0, 0, 0.1)",
               }}
             >
-              {/* Virtualized DOM nodes (Always present, but empty unless in viewport window) */}
+              {/* Virtualized DOM nodes */}
               {Array.from({ length: totalPages }).map((_, idx) => (
                 <div
                   key={idx + 1}
@@ -478,6 +468,11 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
                   className="st-page bg-[#fdfcfa] overflow-hidden relative select-none rounded-[1px]"
                   data-density="soft"
                 >
+                  <canvas
+                    data-page={idx + 1}
+                    className="w-full h-full object-contain mx-auto block absolute inset-0 z-0"
+                    style={{ imageRendering: "-webkit-optimize-contrast" }}
+                  />
                   <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-stone-900/60 text-stone-300 text-[9px] font-mono px-2 py-0.5 rounded-full pointer-events-none z-10 border border-stone-700/40 backdrop-blur-sm opacity-80">
                     {idx + 1}
                   </div>

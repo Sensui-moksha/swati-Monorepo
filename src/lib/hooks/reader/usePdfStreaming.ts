@@ -36,7 +36,7 @@ export function usePdfStreaming(pdfUrl: string) {
             standardFontDataUrl: "https://unpkg.com/pdfjs-dist@4.0.379/standard_fonts/",
             // Enterprise streaming optimizations
             rangeChunkSize: 65536, // 64KB chunks for HTTP Range Requests
-            disableAutoFetch: true, // Only fetch pages we explicitly ask for
+            disableAutoFetch: false, // Prevents stalling if backend range requests are incomplete
             disableStream: false, // Enable streaming
           });
           loadingTaskPromise = loadingTask.promise;
