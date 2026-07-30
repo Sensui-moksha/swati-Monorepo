@@ -115,13 +115,7 @@ export function useBookBySlug(slug: string) {
   });
 }
 
-export function useBookChapters(bookId: string, params?: PaginationParams) {
-  return useQuery({
-    queryKey: queryKeys.books.chapters(bookId),
-    queryFn: () => booksApi.listChapters(bookId, params),
-    enabled: !!bookId,
-  });
-}
+
 
 export function useRecommendedBooks() {
   return useQuery({
@@ -314,10 +308,12 @@ export function useNotifications(params?: PaginationParams & { unreadOnly?: bool
   });
 }
 
+
+
 export function useReadingHistory() {
   return useQuery({
     queryKey: queryKeys.user.readingHistory(),
-    queryFn: () => booksApi.getReadingProgress('__all__'), // placeholder
+    queryFn: async () => ({ data: [] }), // placeholder
     enabled: false, // will be enabled when backend supports this
   });
 }

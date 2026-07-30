@@ -142,6 +142,7 @@ export interface PdfBookViewerProps {
   title: string;
   isOpen: boolean;
   onClose: () => void;
+  initialPage?: number;
 }
 
 export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
@@ -149,6 +150,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   title,
   isOpen,
   onClose,
+  initialPage = 1,
 }) => {
   const targetPdfUrl = pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
   // Extract book ID from URL or title for settings persistence
@@ -160,7 +162,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   
   const { getInitialProgress } = useReadingProgress(bookId, 1, totalPages, !isLoading && totalPages > 0);
   
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });

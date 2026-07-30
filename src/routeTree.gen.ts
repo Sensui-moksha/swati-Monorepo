@@ -61,6 +61,7 @@ import { Route as SubscriptionManageRouteImport } from './routes/subscription.ma
 import { Route as SubscriptionCheckoutRouteImport } from './routes/subscription.checkout'
 import { Route as SeriesSlugRouteImport } from './routes/series.$slug'
 import { Route as ReaderBookIdRouteImport } from './routes/reader.$bookId'
+import { Route as ReadBookIdRouteImport } from './routes/read.$bookId'
 import { Route as PublishersSlugRouteImport } from './routes/publishers.$slug'
 import { Route as PublicationsWeeklyRouteImport } from './routes/publications.weekly'
 import { Route as PublicationsSpecialRouteImport } from './routes/publications.special'
@@ -444,6 +445,11 @@ const SeriesSlugRoute = SeriesSlugRouteImport.update({
 const ReaderBookIdRoute = ReaderBookIdRouteImport.update({
   id: '/reader/$bookId',
   path: '/reader/$bookId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReadBookIdRoute = ReadBookIdRouteImport.update({
+  id: '/read/$bookId',
+  path: '/read/$bookId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PublishersSlugRoute = PublishersSlugRouteImport.update({
@@ -1194,6 +1200,7 @@ export interface FileRoutesByFullPath {
   '/publications/special': typeof PublicationsSpecialRoute
   '/publications/weekly': typeof PublicationsWeeklyRoute
   '/publishers/$slug': typeof PublishersSlugRoute
+  '/read/$bookId': typeof ReadBookIdRoute
   '/reader/$bookId': typeof ReaderBookIdRoute
   '/series/$slug': typeof SeriesSlugRoute
   '/subscription/checkout': typeof SubscriptionCheckoutRoute
@@ -1361,6 +1368,7 @@ export interface FileRoutesByTo {
   '/publications/special': typeof PublicationsSpecialRoute
   '/publications/weekly': typeof PublicationsWeeklyRoute
   '/publishers/$slug': typeof PublishersSlugRoute
+  '/read/$bookId': typeof ReadBookIdRoute
   '/reader/$bookId': typeof ReaderBookIdRoute
   '/series/$slug': typeof SeriesSlugRoute
   '/subscription/checkout': typeof SubscriptionCheckoutRoute
@@ -1540,6 +1548,7 @@ export interface FileRoutesById {
   '/publications/special': typeof PublicationsSpecialRoute
   '/publications/weekly': typeof PublicationsWeeklyRoute
   '/publishers/$slug': typeof PublishersSlugRoute
+  '/read/$bookId': typeof ReadBookIdRoute
   '/reader/$bookId': typeof ReaderBookIdRoute
   '/series/$slug': typeof SeriesSlugRoute
   '/subscription/checkout': typeof SubscriptionCheckoutRoute
@@ -1720,6 +1729,7 @@ export interface FileRouteTypes {
     | '/publications/special'
     | '/publications/weekly'
     | '/publishers/$slug'
+    | '/read/$bookId'
     | '/reader/$bookId'
     | '/series/$slug'
     | '/subscription/checkout'
@@ -1887,6 +1897,7 @@ export interface FileRouteTypes {
     | '/publications/special'
     | '/publications/weekly'
     | '/publishers/$slug'
+    | '/read/$bookId'
     | '/reader/$bookId'
     | '/series/$slug'
     | '/subscription/checkout'
@@ -2065,6 +2076,7 @@ export interface FileRouteTypes {
     | '/publications/special'
     | '/publications/weekly'
     | '/publishers/$slug'
+    | '/read/$bookId'
     | '/reader/$bookId'
     | '/series/$slug'
     | '/subscription/checkout'
@@ -2155,6 +2167,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TrendingRoute: typeof TrendingRoute
   WishlistRoute: typeof WishlistRoute
+  ReadBookIdRoute: typeof ReadBookIdRoute
   ReaderBookIdRoute: typeof ReaderBookIdRoute
   System401Route: typeof System401Route
   System403Route: typeof System403Route
@@ -2527,6 +2540,13 @@ declare module '@tanstack/react-router' {
       path: '/reader/$bookId'
       fullPath: '/reader/$bookId'
       preLoaderRoute: typeof ReaderBookIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/read/$bookId': {
+      id: '/read/$bookId'
+      path: '/read/$bookId'
+      fullPath: '/read/$bookId'
+      preLoaderRoute: typeof ReadBookIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/publishers/$slug': {
@@ -3899,6 +3919,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TrendingRoute: TrendingRoute,
   WishlistRoute: WishlistRoute,
+  ReadBookIdRoute: ReadBookIdRoute,
   ReaderBookIdRoute: ReaderBookIdRoute,
   System401Route: System401Route,
   System403Route: System403Route,

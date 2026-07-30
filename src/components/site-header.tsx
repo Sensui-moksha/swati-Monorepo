@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { authApi } from "@/lib/api/endpoints/auth";
+import { GlobalSearch } from "./search/GlobalSearch";
 import logoImg from "../assets/logo.png";
 
 const NAV = [
@@ -19,6 +20,7 @@ const NAV = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -133,13 +135,14 @@ export function SiteHeader() {
 
           {/* Right Actions: Search & Mobile Toggle */}
           <div className="flex items-center justify-end gap-4 w-full md:w-auto">
-            <Link
-              to="/search"
+            <button
+              onClick={() => setIsSearchOpen(true)}
               className="inline-flex items-center gap-2 text-foreground/70 hover:text-primary transition-colors"
             >
               <Search className="h-4 w-4" />
               <span className="text-xs uppercase tracking-widest font-medium">Search</span>
-            </Link>
+            </button>
+            <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
             <Link
               to="/account"
               aria-label="Account"
