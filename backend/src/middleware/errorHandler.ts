@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { env } from "../config/index";
+import { logger } from "../utils/logger";
 
 export interface AppError extends Error {
   statusCode?: number;
@@ -126,7 +127,7 @@ const sendErrorProd = (err: AppError, res: Response): void => {
       ...(err.errors && { errors: err.errors }),
     });
   } else {
-    console.error("ERROR 💥:", err);
+    logger.error("Unhandled Error 💥:", { error: err, stack: err.stack, correlationId: res.locals.correlationId });
     res.status(500).json({
       success: false,
       message: "Something went very wrong!",

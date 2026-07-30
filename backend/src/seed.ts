@@ -12,7 +12,14 @@ dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/swathi-publications";
 
-async function seed() {
+export async function seedIfEmpty() {
+  const articleCount = await Article.countDocuments();
+  if (articleCount === 0) {
+    await seed();
+  }
+}
+
+export async function seed() {
   try {
     console.log("Connecting to MongoDB for seeding...");
     await mongoose.connect(MONGODB_URI);
@@ -93,52 +100,71 @@ async function seed() {
     }
 
     // 5. Seed Articles
-    const articleCount = await Article.countDocuments();
-    if (articleCount === 0) {
-      const articlesData = [
-        {
-          title: "The Long Road to Cleaner Urban Air",
-          slug: "the-long-road-to-cleaner-urban-air",
-          content: "Urban air quality continues to challenge planners and public health officials globally. New sensor networks and satellite imaging now offer fine-grained pollution tracking across major industrial corridors.\n\nCities implementing low-emission zones are seeing measurable improvements in respiratory health metrics within 24 months of policy enactment.",
-          summary: "An in-depth look at urban air quality policies and sensor networks.",
-          category: categoryMap.get("science"),
-          author: admin._id,
-          status: "published",
-          publishedAt: new Date(),
-          viewCount: 1420,
-          likeCount: 98,
-        },
-        {
-          title: "An Editor's Note on Truth in Slow Journalism",
-          slug: "an-editors-note-on-truth-in-slow-journalism",
-          content: "In an era dominated by instant notifications and breaking news alerts, slow journalism prioritizes context over speed, depth over volume.\n\nOur commitment at Swathi Publications is to provide considered analysis that stands the test of time.",
-          summary: "Reflections on context, accuracy and depth in modern editorial work.",
-          category: categoryMap.get("opinion"),
-          author: admin._id,
-          status: "published",
-          publishedAt: new Date(),
-          viewCount: 2840,
-          likeCount: 210,
-        },
-        {
-          title: "Chipmakers Chart a Post-Subsidy Landscape",
-          slug: "chipmakers-chart-a-post-subsidy-landscape",
-          content: "Semiconductor manufacturers worldwide are restructuring capital investment strategies as government subsidy programs transition into operational oversight phases.\n\nFoundries are prioritizing energy-efficient packaging technologies and localized supply chain redundancy.",
-          summary: "Analyzing capital allocations and semiconductor supply chains.",
-          category: categoryMap.get("technology"),
-          author: admin._id,
-          status: "published",
-          publishedAt: new Date(),
-          viewCount: 3120,
-          likeCount: 175,
-        },
-      ];
+    await Article.deleteMany({});
+    const articlesData = [
+      {
+        title: "The Long Road to Cleaner Urban Air",
+        slug: "the-long-road-to-cleaner-urban-air",
+        content: "Urban air quality continues to challenge planners and public health officials globally. New sensor networks and satellite imaging now offer fine-grained pollution tracking across major industrial corridors.\n\nCities implementing low-emission zones are seeing measurable improvements in respiratory health metrics within 24 months of policy enactment.",
+        summary: "An in-depth look at urban air quality policies and sensor networks.",
+        excerpt: "An in-depth look at urban air quality policies and sensor networks across major industrial corridors.",
+        coverImage: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=800&auto=format&fit=crop",
+        category: categoryMap.get("science"),
+        author: admin._id,
+        status: "published",
+        isFeatured: true,
+        isBreaking: true,
+        publishedAt: new Date(),
+        readingTime: 5,
+        viewCount: 1420,
+        likeCount: 98,
+      },
+      {
+        title: "An Editor's Note on Truth in Slow Journalism",
+        slug: "an-editors-note-on-truth-in-slow-journalism",
+        content: "In an era dominated by instant notifications and breaking news alerts, slow journalism prioritizes context over speed, depth over volume.\n\nOur commitment at Swathi Publications is to provide considered analysis that stands the test of time.",
+        summary: "Reflections on context, accuracy and depth in modern editorial work.",
+        excerpt: "Reflections on context, accuracy and depth in modern editorial work and independent reporting.",
+        coverImage: "https://images.unsplash.com/photo-1495020689067-958852a7765e?q=80&w=800&auto=format&fit=crop",
+        category: categoryMap.get("opinion"),
+        author: admin._id,
+        status: "published",
+        isFeatured: true,
+        isBreaking: true,
+        publishedAt: new Date(),
+        readingTime: 4,
+        viewCount: 2840,
+        likeCount: 210,
+      },
+      {
+        title: "Chipmakers Chart a Post-Subsidy Landscape",
+        slug: "chipmakers-chart-a-post-subsidy-landscape",
+        content: "Semiconductor manufacturers worldwide are restructuring capital investment strategies as government subsidy programs transition into operational oversight phases.\n\nFoundries are prioritizing energy-efficient packaging technologies and localized supply chain redundancy.",
+        summary: "Analyzing capital allocations and semiconductor supply chains.",
+        excerpt: "Analyzing capital allocations and semiconductor supply chains in advanced computing.",
+        coverImage: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop",
+        category: categoryMap.get("technology"),
+        author: admin._id,
+        status: "published",
+        isFeatured: true,
+        isBreaking: true,
+        publishedAt: new Date(),
+        readingTime: 6,
+        viewCount: 3120,
+        likeCount: 175,
+      },
+    ];
 
-      for (const art of articlesData) {
+    for (const art of articlesData) {
+      try {
         await Article.create(art);
+      } catch (err: any) {
+        if (err.code !== 11000) {
+          console.error("Article seed error:", err.message);
+        }
       }
-      console.log("Seeded sample articles.");
     }
+    console.log("Seeded sample articles.");
 
     // 6. Seed Books
     const bookCount = await Book.countDocuments();

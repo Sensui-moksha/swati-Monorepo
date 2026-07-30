@@ -11,6 +11,33 @@ const router = Router();
 
 /**
  * @swagger
+ * /api/v1/analytics/live:
+ *   get:
+ *     summary: Connect to SSE real-time dashboard updates
+ *     tags: [Analytics, RealTime]
+ */
+router.get("/live", authenticate, authorize("admin"), analyticsController.liveStream.bind(analyticsController));
+
+/**
+ * @swagger
+ * /api/v1/analytics/executive:
+ *   get:
+ *     summary: Get high-level executive dashboard data
+ *     tags: [Analytics, Executive]
+ */
+router.get("/executive", authenticate, authorize("admin"), analyticsController.getExecutiveDashboard.bind(analyticsController));
+
+/**
+ * @swagger
+ * /api/v1/analytics/finance:
+ *   get:
+ *     summary: Get deep financial analytics and MRR
+ *     tags: [Analytics, Finance]
+ */
+router.get("/finance", authenticate, authorize("admin"), analyticsController.getFinanceReports.bind(analyticsController));
+
+/**
+ * @swagger
  * /api/v1/analytics/overview:
  *   get:
  *     summary: Get platform overview analytics
@@ -98,5 +125,13 @@ router.get(
   validate(analyticsExportSchema),
   analyticsController.exportAnalytics.bind(analyticsController),
 );
+
+// Added routes to support BI Dashboard views
+router.get("/search", authenticate, authorize("admin"), analyticsController.getGenericAnalytics.bind(analyticsController));
+router.get("/subscriptions", authenticate, authorize("admin"), analyticsController.getGenericAnalytics.bind(analyticsController));
+router.get("/publications", authenticate, authorize("admin"), analyticsController.getGenericAnalytics.bind(analyticsController));
+router.get("/transactions", authenticate, authorize("admin"), analyticsController.getGenericAnalytics.bind(analyticsController));
+router.get("/publishing", authenticate, authorize("admin"), analyticsController.getGenericAnalytics.bind(analyticsController));
+router.get("/recommendations", authenticate, authorize("admin"), analyticsController.getGenericAnalytics.bind(analyticsController));
 
 export default router;

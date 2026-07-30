@@ -11,6 +11,7 @@
     "seed": "npm run seed --prefix backend"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "concurrently": "^8.2.2"
   }
 }

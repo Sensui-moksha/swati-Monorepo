@@ -1,156 +1,82 @@
-import { Response, NextFunction } from "express";
-import { noteService } from "../services/NoteService";
-import { highlightService } from "../services/HighlightService";
-import { bookmarkService } from "../services/BookmarkService";
-import { AuthRequest } from "../middleware/auth";
-import { ApiError } from "../middleware/errorHandler";
+import { Request, Response } from 'express';
+import { SearchService } from '../services/SearchService';
+import { Queue } from 'bullmq';
+import IORedis from 'ioredis';
+import { logger } from '../utils/logger';
+
+const connection = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379');
+const searchQueue = new Queue('search-indexing', { connection });
 
 export class SearchController {
-  async search(
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  
+  /**
+   * Main search endpoint for full text and semantic search
+   */
+  static async search(req: Request, res: Response) {
     try {
-      const userId = req.user._id;
-      const { q, type = "all", page = 1, limit = 20 } = req.query;
-
-      if (!q || typeof q !== "string") {
-        throw new ApiError(400, "Search query is required");
+      const { q, pub, issue, cat, year, author, searchAfter, size } = req.query;
+      
+      if (!q) {
+        return res.status(400).json({ success: false, message: 'Query parameter q is required' });
       }
 
-      const pageNum = Number(page);
-      const limitNum = Number(limit);
+      const results = await SearchService.search({
+        query: q as string,
+        filters: {
+          publicationId: pub as string,
+          issueId: issue as string,
+          category: cat as string,
+          year: year ? parseInt(year as string, 10) : undefined,
+          author: author as string
+        },
+        pagination: {
+          searchAfter: searchAfter ? JSON.parse(searchAfter as string) : undefined,
+          size: size ? parseInt(size as string, 10) : 20
+        }
+      });
 
-      const result: any = {
-        notes: [],
-        highlights: [],
-        bookmarks: [],
-        favorites: [],
-      };
-
-      if (type === "all" || type === "notes") {
-        const notesResult = await noteService.searchNotes(
-          userId,
-          q,
-          pageNum,
-          limitNum,
-        );
-        result.notes = notesResult.data || [];
-      }
-
-      if (type === "all" || type === "highlights") {
-        const highlightsResult = await highlightService.searchHighlights(
-          userId,
-          q,
-          pageNum,
-          limitNum,
-        );
-        result.highlights = highlightsResult.data || [];
-      }
-
-      if (type === "all" || type === "bookmarks") {
-        const bookmarksResult = await bookmarkService.searchBookmarks(
-          userId,
-          q,
-          pageNum,
-          limitNum,
-        );
-        result.bookmarks = bookmarksResult.data || [];
-      }
-
-      if (type === "all" || type === "favorites") {
-        result.favorites = []; // Favorites don't have full-text search like notes/highlights
-      }
-
-      res.json({ success: true, data: result });
-    } catch (error) {
-      next(error);
+      return res.status(200).json({ success: true, data: results });
+    } catch (error: any) {
+      logger.error('Search query failed', error);
+      return res.status(500).json({ success: false, message: error.message });
     }
   }
 
-  async advancedSearch(
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  /**
+   * Autocomplete suggestions endpoint
+   */
+  static async suggest(req: Request, res: Response) {
     try {
-      const userId = req.user._id;
-      const { query, filters = {}, page = 1, limit = 20 } = req.body;
-
-      if (!query) {
-        throw new ApiError(400, "Search query is required");
+      const { q } = req.query;
+      if (!q || typeof q !== 'string' || q.length < 2) {
+        return res.status(200).json({ success: true, data: [] });
       }
 
-      const results: any = [];
+      const suggestions = await SearchService.suggest(q);
+      return res.status(200).json({ success: true, data: suggestions });
+    } catch (error: any) {
+      logger.error('Suggestion query failed', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
 
-      // Search in notes
-      if (!filters.type || filters.type === "notes") {
-        const notesResult = await noteService.searchNotes(
-          userId,
-          query,
-          page,
-          limit,
-        );
-        results.push(
-          ...(notesResult.data || []).map((item) => ({
-            ...item,
-            documentType: "note",
-          })),
-        );
+  /**
+   * Enqueue a reindex job for a publication
+   */
+  static async reindex(req: Request, res: Response) {
+    try {
+      const { publicationId, issueId } = req.body;
+      
+      if (!publicationId) {
+        return res.status(400).json({ success: false, message: 'publicationId is required' });
       }
 
-      // Search in highlights
-      if (!filters.type || filters.type === "highlights") {
-        const highlightsResult = await highlightService.searchHighlights(
-          userId,
-          query,
-          page,
-          limit,
-        );
-        results.push(
-          ...(highlightsResult.data || []).map((item) => ({
-            ...item,
-            documentType: "highlight",
-          })),
-        );
-      }
-
-      // Search in bookmarks
-      if (!filters.type || filters.type === "bookmarks") {
-        const bookmarksResult = await bookmarkService.searchBookmarks(
-          userId,
-          query,
-          page,
-          limit,
-        );
-        results.push(
-          ...(bookmarksResult.data || []).map((item) => ({
-            ...item,
-            documentType: "bookmark",
-          })),
-        );
-      }
-
-      // Sort by date
-      results.sort(
-        (a: any, b: any) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
-
-      res.json({
-        success: true,
-        data: {
-          results,
-          total: results.length,
-          page,
-          limit,
-        },
-      });
-    } catch (error) {
-      next(error);
+      await searchQueue.add('index', { action: 'reindex', publicationId, issueId });
+      
+      return res.status(202).json({ success: true, message: 'Reindex job queued successfully' });
+    } catch (error: any) {
+      logger.error('Failed to queue reindex job', error);
+      return res.status(500).json({ success: false, message: error.message });
     }
   }
 }
-
-export const searchController = new SearchController();

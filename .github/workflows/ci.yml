@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+        
+      - name: Lint
+        working-directory: ./backend
+        run: npm run lint --if-present
+        
+      - name: Run Unit Tests
+        working-directory: ./backend
+        run: npm test
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: swati-clientside/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: ./swati-clientside
+        run: npm ci
+        
+      - name: Lint
+        working-directory: ./swati-clientside
+        run: npm run lint --if-present
+        
+      - name: Build Test
+        working-directory: ./swati-clientside
+        run: npm run build

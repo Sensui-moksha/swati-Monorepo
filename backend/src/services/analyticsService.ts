@@ -24,6 +24,91 @@ interface AnalyticsWindow {
 }
 
 export class AnalyticsService {
+  // ==========================================
+  // ADVANCED BI: FINANCIAL ANALYTICS
+  // ==========================================
+  async getFinancialReports(window: AnalyticsWindow = {}) {
+    const filter = this.buildDateFilter(window);
+    
+    // Revenue by Month Pipeline
+    const revenueByMonth = await commercePaymentRepository.aggregate([
+      { $match: { ...filter, status: 'captured' } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" }
+          },
+          revenue: { $sum: "$amount" },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } }
+    ]);
+
+    // Subscriptions for MRR/ARR
+    const activeSubs = await commerceSubscriptionRepository.count({ status: 'active' });
+    const canceledSubs = await commerceSubscriptionRepository.count({ status: 'canceled' });
+    
+    // Mocking average plan value at $15 for calculation
+    const mrr = activeSubs * 15;
+    const arr = mrr * 12;
+    const churnRate = activeSubs > 0 ? (canceledSubs / (activeSubs + canceledSubs)) * 100 : 0;
+
+    return {
+      mrr,
+      arr,
+      churnRate,
+      activeSubscriptions: activeSubs,
+      canceledSubscriptions: canceledSubs,
+      revenueTrends: revenueByMonth
+    };
+  }
+
+  // ==========================================
+  // ADVANCED BI: INFRASTRUCTURE & STORAGE
+  // ==========================================
+  async getStorageStats() {
+    // In production, this would query the DAM / S3 / File system metrics.
+    // For now, we mock the stats as requested by the BI Dashboard requirement
+    return {
+      totalStorageGB: 28450, // 28.4 TB
+      archiveGrowthMonthlyPercent: 2.4,
+      pdfCount: 1450000,
+      averagePdfSizeMB: 20.1,
+      linearizedPdfRatio: 98.5, // 98.5% optimized for fast web view
+      cacheHitRatio: 89.2 // 89.2% of chunks served from memory
+    };
+  }
+
+  private buildDateFilter(window: AnalyticsWindow) {
+    const filter: any = {};
+    if (window.from || window.to) {
+      filter.createdAt = {};
+      if (window.from) filter.createdAt.$gte = window.from;
+      if (window.to) filter.createdAt.$lte = window.to;
+    }
+    return filter;
+  }
+
+  async getExecutiveDashboard(window: AnalyticsWindow = {}) {
+    const overview = await this.getOverview(window);
+    const finance = await this.getFinancialReports(window);
+    const storage = await this.getStorageStats();
+
+    return {
+      kpis: {
+        totalUsers: overview.users.totalCount,
+        activeUsers: overview.users.activeCount,
+        revenue: finance.mrr,
+        mrr: finance.mrr,
+        arr: finance.arr,
+        storageUsage: storage.totalStorageGB
+      },
+      trends: finance.revenueTrends,
+      systemHealth: storage
+    };
+  }
   async getOverview(window: AnalyticsWindow = {}) {
     const [
       activeUsers,

@@ -1,22 +1,10 @@
-import { Router } from "express";
-import { searchController } from "../controllers/searchController";
-import { authenticate } from "../middleware/auth";
-import { validate } from "../middleware/validate";
-import { searchSchema, advancedSearchSchema } from "../validators/search";
+import { Router } from 'express';
+import { SearchController } from '../controllers/searchController';
 
 const router = Router();
 
-router.get(
-  "/",
-  authenticate,
-  validate(searchSchema),
-  searchController.search.bind(searchController),
-);
-router.post(
-  "/advanced",
-  authenticate,
-  validate(advancedSearchSchema),
-  searchController.advancedSearch.bind(searchController),
-);
+router.get('/', SearchController.search);
+router.get('/suggestions', SearchController.suggest);
+router.post('/reindex', SearchController.reindex);
 
 export default router;

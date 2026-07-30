@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------
+  # Frontend Application (React / Vite)
+  # ---------------------------------------------
+  frontend:
+    build:
+      context: ./swati-clientside
+      dockerfile: Dockerfile.dev # Assuming a dev dockerfile or just mounting volumes
+    image: swathi-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./swati-clientside:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:3001/api/v1
+    depends_on:
+      - backend
+
+  # ---------------------------------------------
+  # Backend API Server
+  # ---------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    image: swathi-backend-dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongo:27017/swathi
+      - REDIS_URL=redis://redis:6379
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - STORAGE_ROOT=/var/data/swathi
+    depends_on:
+      - mongo
+      - redis
+      - elasticsearch
+
+  # ---------------------------------------------
+  # Database & Infrastructure
+  # ---------------------------------------------
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  elasticsearch:
+    image: elasticsearch:8.10.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+volumes:
+  mongo_data:
+  redis_data:
+  es_data:

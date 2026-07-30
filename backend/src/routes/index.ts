@@ -38,11 +38,14 @@ import storageSyncRoutes from "./storageSync";
 import filesystemScannerRoutes from "./filesystemScanner";
 import filesystemWatcherRoutes from "./filesystemWatcher";
 import pdfStreamingRoutes from "./pdfStreaming";
+import nlpRoutes from "./nlp";
+import healthRoutes from "./health";
 
 const router = Router();
 
 // API v1 routes
 router.use("/auth", authRoutes);
+router.use("/health", healthRoutes);
 
 // User Module Routes
 router.use("/bookmarks", bookmarksRoutes);
@@ -66,6 +69,10 @@ router.use("/storage", storageRoutes);
 router.use("/storage/sync", storageSyncRoutes);
 router.use("/storage/scanner", filesystemScannerRoutes);
 router.use("/storage/watcher", filesystemWatcherRoutes);
+
+// NLP Module Routes
+router.use("/nlp", nlpRoutes);
+
 router.use("/tags", tagsRoutes);
 router.use("/categories", categoriesRoutes);
 router.use("/comments", commentsRoutes);

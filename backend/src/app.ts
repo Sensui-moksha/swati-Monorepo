@@ -14,6 +14,19 @@ import swaggerUi from 'swagger-ui-express';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
 import routes from './routes';
+import './workers/SearchWorker'; // Initialize background workers
+import { reportingWorker } from './workers/ReportingWorker';
+import { startTracer } from './utils/tracer';
+import { setupGracefulShutdown } from './utils/gracefulShutdown';
+import { httpRequestDurationMicroseconds } from './utils/metrics';
+
+// Start OpenTelemetry
+startTracer();
+
+// Start scheduled BI reports
+if (env.NODE_ENV === 'production' || env.NODE_ENV === 'development') {
+  reportingWorker.startJobs();
+}
 
 const app: Application = express();
 
@@ -23,7 +36,26 @@ app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      connectSrc: ["'self'", "https:"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  frameguard: {
+    action: 'deny',
+  },
+  xssFilter: true,
 }));
 
 // CORS configuration
@@ -34,18 +66,24 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
-// Rate limiting
+// Global Rate limiting
 const limiter = rateLimit({
-  windowMs: env.RATE_LIMIT_WINDOW_MS,
-  max: env.RATE_LIMIT_MAX_REQUESTS,
-  message: {
-    success: false,
-    message: 'Too many requests from this IP, please try again later.',
-  },
+  windowMs: env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 100000 : (env.RATE_LIMIT_MAX_REQUESTS || 1000),
+  message: { success: false, message: 'Too many requests from this IP, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 app.use('/api/', limiter);
+
+// Auth Rate limiting (Brute force protection)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per windowMs for auth routes
+  message: { success: false, message: 'Too many login attempts, please try again after 15 minutes' },
+});
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/mfa/verify', authLimiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -64,6 +102,17 @@ app.use(compression());
 if (env.NODE_ENV !== 'test') {
   app.use(requestLogger);
 }
+
+// Record HTTP metrics
+app.use((req: Request, res: Response, next: Function) => {
+  const start = process.hrtime();
+  res.on('finish', () => {
+    const elapsed = process.hrtime(start);
+    const durationSeconds = elapsed[0] + elapsed[1] / 1e9;
+    httpRequestDurationMicroseconds.labels(req.method, req.route ? req.route.path : req.path, res.statusCode.toString()).observe(durationSeconds);
+  });
+  next();
+});
 
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {
@@ -93,12 +142,15 @@ app.use(notFound);
 // Global error handler
 app.use(errorHandler);
 
+import { seedIfEmpty } from './seed';
+
 // Start server
 const startServer = async (): Promise<void> => {
   try {
     await connectDB();
+    await seedIfEmpty();
     
-    app.listen(env.PORT, () => {
+    const server = app.listen(env.PORT, () => {
       console.log(`
 ╔══════════════════════════════════════════════════════════════════════════╗
 ║  Prototype v0 Server Started Successfully                                ║
@@ -111,6 +163,8 @@ const startServer = async (): Promise<void> => {
 ╚══════════════════════════════════════════════════════════════════════════╝
       `);
     });
+
+    setupGracefulShutdown(server);
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);

@@ -1,0 +1,25 @@
+{
+  "title": "Executive Overview",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Active PDF Streams",
+      "targets": [
+        {
+          "expr": "swathi_active_pdf_streams",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP Request Duration",
+      "targets": [
+        {
+          "expr": "rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

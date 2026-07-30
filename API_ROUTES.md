@@ -40,16 +40,20 @@ This document summarizes the API endpoints exposed by the backend in the reposit
 | Profile | /api/profile | 14 | Profile and account settings |
 | Progress | /api/progress | 12 | Reading progress and content state |
 | Promotions | /api/v1/promotions | 9 | Promotion management |
-| Publishing | (defined but not mounted) | 72 | Publishing catalog routes defined in the module |
+| Publishing | /api, /api/publishing | 72 | Publishing catalog (books, publications, issues, authors, etc.) |
 | Recommendations | /api/recommendations | 1 | Content recommendations |
 | Reports | /api/v1/reports | 6 | Commerce and usage reporting |
-| Search | /api/search | 2 | Search endpoints |
+| Search | /api/search | 3 | Search, suggestions, reindex |
+| NLP | /api/nlp | 3 | Summarize, keywords, OCR check |
+| PDF Streaming | /api/v1/pdf | 14 | PDF streaming, cache, optimization, performance |
 | Storage | /api/storage | 29 | Storage folder/file operations |
 | Storage Sync | /api/storage/sync | 19 | Storage synchronization jobs |
 | Subscriptions | /api/v1/subscriptions | 11 | User subscriptions |
 | System | /api/v1/system | 7 | System information and settings |
 | Tags | /api/tags | 6 | Tag management |
 | Webhooks | /api/v1/webhooks | 3 | Webhook ingestion and verification |
+| Products | /api/v1/products | 8 | Product catalog CRUD |
+| Health | /api/health | 3 | Liveness, readiness, Prometheus metrics |
 
 ## Route inventory
 
@@ -88,12 +92,21 @@ _Analytics reporting_
 
 | Method | Path | Parameters |
 | --- | --- | --- |
+| GET | /api/analytics/live | Query: page, limit, sort, filter |
+| GET | /api/analytics/executive | Query: page, limit, sort, filter |
+| GET | /api/analytics/finance | Query: page, limit, sort, filter |
 | GET | /api/analytics/overview | Query: page, limit, sort, filter |
 | GET | /api/analytics/users | Query: page, limit, sort, filter |
 | GET | /api/analytics/reading | Query: page, limit, sort, filter |
 | GET | /api/analytics/content | Query: page, limit, sort, filter |
 | GET | /api/analytics/commerce | Query: page, limit, sort, filter |
 | GET | /api/analytics/export | Query: page, limit, sort, filter |
+| GET | /api/analytics/search | Query: page, limit, sort, filter |
+| GET | /api/analytics/subscriptions | Query: page, limit, sort, filter |
+| GET | /api/analytics/publications | Query: page, limit, sort, filter |
+| GET | /api/analytics/transactions | Query: page, limit, sort, filter |
+| GET | /api/analytics/publishing | Query: page, limit, sort, filter |
+| GET | /api/analytics/recommendations | Query: page, limit, sort, filter |
 
 ### Articles
 
@@ -344,6 +357,7 @@ _Media asset management_
 | GET | /api/media/recent | Query: page, limit, sort, filter |
 | GET | /api/media/usage | Query: page, limit, sort, filter |
 | GET | /api/media/stats | Query: page, limit, sort, filter |
+| GET | /api/media/folders | Query: page, limit, sort, filter |
 | GET | /api/media/:id | Path: id; Query: page, limit |
 | GET | /api/media/:id/preview | Path: id; Query: page, limit |
 | PUT | /api/media/:id | Path: id; Query: page, limit |
@@ -504,9 +518,9 @@ _Promotion management_
 
 ### Publishing
 
-_Publishing catalog routes defined in the module_
+_Publishing catalog (books, publications, issues, authors, publishers, genres, series, collections)_
 
-> This module exists in the codebase but is not currently mounted by the main router. The paths below are the route definitions as written in the module.
+Mounted at `/api/` and `/api/publishing`.
 
 | Method | Path | Parameters |
 | --- | --- | --- |
@@ -606,12 +620,59 @@ _Commerce and usage reporting_
 
 ### Search
 
-_Search endpoints_
+_Search and suggestions_
 
 | Method | Path | Parameters |
 | --- | --- | --- |
-| GET | /api/search | Query: page, limit, sort, filter |
-| POST | /api/search/advanced | Query: q, page, limit |
+| GET | /api/search | Query: q, pub, issue, cat, year, author, searchAfter |
+| GET | /api/search/suggestions | Query: q |
+| POST | /api/search/reindex | Body: publicationId, issueId |
+
+### NLP
+
+_Natural Language Processing utilities_
+
+| Method | Path | Parameters |
+| --- | --- | --- |
+| POST | /api/nlp/summarize | Body: text |
+| POST | /api/nlp/keywords | Body: text |
+| POST | /api/nlp/ocr-check | Body: text |
+
+### PDF Streaming
+
+_PDF streaming, caching, optimization, and performance_
+
+| Method | Path | Parameters |
+| --- | --- | --- |
+| GET | /api/v1/pdf/stream/:id | Path: id |
+| GET | /api/v1/pdf/range/:id | Path: id; Headers: Range |
+| GET | /api/v1/pdf/metadata/:id | Path: id |
+| GET | /api/v1/pdf/cache | — |
+| POST | /api/v1/pdf/cache/warm/:id | Path: id |
+| POST | /api/v1/pdf/cache/evict | Body: pattern |
+| POST | /api/v1/pdf/optimize | Body: id |
+| GET | /api/v1/pdf/optimize/:id | Path: id |
+| GET | /api/v1/pdf/linearization/:id | Path: id |
+| POST | /api/v1/pdf/linearization/scan | — |
+| POST | /api/v1/pdf/preprocessing/run | — |
+| GET | /api/v1/pdf/statistics | — |
+| GET | /api/v1/pdf/performance | — |
+| GET | /api/v1/pdf/health | — |
+
+### Products
+
+_Product catalog_
+
+| Method | Path | Parameters |
+| --- | --- | --- |
+| GET | /api/v1/products | Query: page, limit, sort, filter |
+| GET | /api/v1/products/stats | — |
+| GET | /api/v1/products/categories | — |
+| GET | /api/v1/products/slug/:slug | Path: slug |
+| GET | /api/v1/products/:id | Path: id |
+| POST | /api/v1/products | Body: product data |
+| PATCH | /api/v1/products/:id | Path: id; Body: updates |
+| DELETE | /api/v1/products/:id | Path: id |
 
 ### Storage
 

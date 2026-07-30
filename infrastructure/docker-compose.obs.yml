@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: swathi_prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    networks:
+      - swathi_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: swathi_grafana
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - swathi_network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: swathi_jaeger
+    ports:
+      - "16686:16686" # UI
+      - "4318:4318"   # OTLP HTTP receiver
+    restart: unless-stopped
+    networks:
+      - swathi_network
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  swathi_network:
+    external: true

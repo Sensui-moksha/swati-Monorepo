@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { authService } from "../services/AuthService";
 import { ApiError } from "../middleware/errorHandler";
 import { AuthRequest } from "../middleware/auth";
+import { AuditService, AuditAction } from "../services/AuditService";
 
 // ===== Helper Functions =====
 
@@ -91,10 +92,29 @@ export const authController = {
     res: Response,
     next: NextFunction,
   ): Promise<void> => {
+    const ipAddress = req.ip || req.socket.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    
     try {
-      const { email, password, rememberMe } = req.body;
+      const { email, password, rememberMe, mfaToken: _mfaToken, deviceId } = req.body;
 
       const result = await authService.login(email, password);
+
+      // (Hypothetical MFA Check)
+      // if (result.user.mfaEnabled && !mfaToken) {
+      //   return res.status(403).json({ requiresMfa: true });
+      // }
+      // if (result.user.mfaEnabled && mfaToken) {
+      //   SecurityService.verifyMfaToken(mfaToken, result.user.mfaSecret);
+      // }
+
+      AuditService.log({
+        userId: result.user.id,
+        action: AuditAction.LOGIN,
+        ipAddress,
+        userAgent,
+        details: { deviceId }
+      });
 
       setAuthCookies(
         res,
@@ -111,7 +131,13 @@ export const authController = {
           tokens: result.tokens,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
+      AuditService.log({
+        action: AuditAction.FAILED_LOGIN,
+        ipAddress,
+        userAgent,
+        details: { reason: error.message || 'Unknown' }
+      });
       next(error);
     }
   },

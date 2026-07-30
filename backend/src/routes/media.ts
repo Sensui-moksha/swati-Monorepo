@@ -59,6 +59,12 @@ router.get(
   mediaController.listMedia.bind(mediaController),
 );
 router.get(
+  "/folders",
+  authenticate,
+  authorize("admin", "editor", "publisher"),
+  mediaController.getFolders.bind(mediaController),
+);
+router.get(
   "/recent",
   authenticate,
   authorize("admin", "editor", "publisher"),

@@ -53,9 +53,9 @@ export const authenticate = async (
       exp: number;
     };
 
-    // Check if user still exists
-    const user = await User.findById(decoded.id).select("+password");
-    if (!user) {
+    // Check if user still exists and is strictly active (Zero Trust)
+    const user = await User.findById(decoded.id).select("+password +isActive +roles");
+    if (!user || !user.isActive) {
       if (env.NODE_ENV === "development") {
         req.user = {
           _id: "660000000000000000000001",
@@ -82,15 +82,19 @@ export const authenticate = async (
       );
     }
 
-    // Check if password was changed after token was issued
-    if (user.changedPasswordAfter(decoded.iat)) {
+    // Check if password was changed
+    if (user.changedPasswordAfter && user.changedPasswordAfter(decoded.iat)) {
       return next(
         new ApiError(
-          "User recently changed password! Please log in again.",
+          "User recently changed password. Please log in again.",
           401,
         ),
       );
     }
+
+    // (Hypothetical Session Check against Redis)
+    // const sessionValid = await redisClient.get(`sessions:${user.id}:${decoded.deviceId}`);
+    // if (!sessionValid) throw new ApiError("Session revoked", 401);
 
     // Grant access to protected route
     req.user = user;
