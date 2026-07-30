@@ -254,7 +254,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         } catch {}
       }
     });
-  }, [isOpen, pdf, totalPages, settings.isMuted, settings.readingMode, settings.showSidebar, currentPage]);
+  }, [isOpen, pdf, totalPages, settings.isMuted, settings.readingMode, settings.showSidebar]);
 
   useEffect(() => {
     if (!isOpen || !pdf || totalPages === 0) return;
@@ -269,7 +269,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         pageFlipRef.current = null;
       }
     };
-  }, [isOpen, pdf, totalPages, updateDimensions]);
+  }, [isOpen, pdf, totalPages]);
 
   useEffect(() => {
     if (!isOpen || !containerRef.current) return;
