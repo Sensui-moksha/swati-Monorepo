@@ -13,7 +13,7 @@ function SpecialPage() {
   const items = data?.data ?? [];
 
   return (
-    <PublicPage eyebrow="Publications" title="Special Editions" description="Themed and anniversary issues, printed on heavier stock in limited runs.">
+    <PublicPage eyebrow="Publications" title="Special Editions" description="Themed and anniversary issues, printed on heavier stock in limited runs." backTo="/publications" backLabel="Back to Publications">
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {Array.from({ length: 4 }).map((_, i) => <div key={i} className="animate-pulse"><div className="aspect-[3/4] bg-secondary rounded-sm" /></div>)}

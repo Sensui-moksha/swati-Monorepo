@@ -13,7 +13,13 @@ function MonthlyPage() {
   const items = data?.data ?? [];
 
   return (
-    <PublicPage eyebrow="Publications" title="Swathi Monthly" description="A monthly magazine of essays, features, and cultural criticism.">
+    <PublicPage
+      eyebrow="Publications"
+      title="Swathi Monthly"
+      description="A monthly magazine of essays, features, and cultural criticism."
+      backTo="/publications"
+      backLabel="Back to Publications"
+    >
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="animate-pulse"><div className="aspect-[3/4] bg-secondary rounded-sm" /></div>)}

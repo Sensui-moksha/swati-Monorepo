@@ -13,6 +13,8 @@ export const Route = createFileRoute("/library/book/$slug")({
   notFoundComponent: () => <PublicPage title="Book not found"><Link to="/library" className="text-primary hover:underline">← Back to library</Link></PublicPage>,
 });
 
+import { PdfThumbnail } from "@/components/PdfThumbnail";
+
 function BookDetailPage() {
   const { slug } = Route.useParams();
   const { data: bookData, isLoading: bookLoading } = useBookBySlug(slug);
@@ -37,14 +39,14 @@ function BookDetailPage() {
     return <PublicPage title="Book not found"><Link to="/library" className="text-primary hover:underline">← Back to library</Link></PublicPage>;
   }
 
-  const pdfUrl = (book as any).pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
+  const pdfUrl = (book as any).pdfUrl || "/documents/weekly/32 Pages/10,11.pdf";
 
   return (
     <PublicPage eyebrow={book.format ?? "Book"} title={book.title} description={book.description}>
       <div className="grid md:grid-cols-[320px_1fr] gap-10 mb-16">
         <div>
           <div className="relative shadow-2xl rounded-sm overflow-hidden">
-            <img src={book.coverImage ?? ''} alt={book.title} className="w-full aspect-[3/4] object-cover" />
+            <PdfThumbnail src={book.coverImage || pdfUrl} alt={book.title} className="w-full aspect-[3/4] object-cover" />
             <div className="absolute inset-y-0 left-0 w-3 bg-black/30" />
           </div>
           <div className="mt-4 flex gap-2">

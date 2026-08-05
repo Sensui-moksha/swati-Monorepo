@@ -19,14 +19,14 @@ const pdfCover = (pdfPath: string) => pdfPath;
 export const PUBLICATION_DOCUMENTS: PublicationDocument[] = [
   {
     id: "pub-editor-honor",
-    slug: "swathi-editor-gari-sanmanapatram",
-    title: "Swathi Editor Gari Sanmanapatram",
-    subtitle: "Honorary Credentials & Profile",
+    slug: "swathi-editor-garu",
+    title: "Editor Garu: Five Decades of Swathi Journalism",
+    subtitle: "Special Tribute Issue Honoring Founder Vemuri Balaram",
     type: "special",
     pdfUrl: "/documents/EDITOR GARI SANMANAPATRAM.pdf",
-    coverImage: "/images/vemuri-balaram.jpg", // special keeps custom
+    coverImage: pdfCover("/documents/EDITOR GARU.pdf"),
     createdAt: "2025-01-01T00:00:00.000Z",
-    description: "Official profile and credentials of Swathi Publications founder Vemuri Balaram.",
+    description: "Official tribute issue and profile of Swathi Publications founder Vemuri Balaram.",
     author: "Vemuri Balaram",
   },
   {
@@ -155,8 +155,8 @@ export const PUBLICATION_DOCUMENTS: PublicationDocument[] = [
     title: "Swathi Monthly Founder's Issue",
     subtitle: "Curated by Vemuri Balaram",
     type: "monthly",
-    pdfUrl: "/documents/EDITOR GARI SANMANAPATRAM.pdf",
-    coverImage: "/images/vemuri-balaram.jpg",
+    pdfUrl: "/documents/weekly/32 Pages/60,61.pdf",
+    coverImage: pdfCover("/documents/weekly/32 Pages/60,61.pdf"),
     createdAt: "2026-06-01T00:00:00.000Z",
     description: "Special monthly compilation curated by founder Vemuri Balaram.",
     author: "Vemuri Balaram",

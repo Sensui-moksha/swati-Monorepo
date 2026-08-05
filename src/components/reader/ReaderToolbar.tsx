@@ -60,6 +60,14 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     <header className="flex h-11 items-center justify-between border-b border-stone-800/80 bg-stone-900/95 px-3 z-50 shrink-0 shadow-md">
       <div className="flex items-center gap-2.5 min-w-0">
         <button
+          onClick={onClose}
+          className="flex items-center gap-1 px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-stone-200 hover:text-white border border-stone-700/80 transition text-xs font-semibold uppercase tracking-wider cursor-pointer"
+          title="Back to Page"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span>Back</span>
+        </button>
+        <button
           onClick={onToggleSidebar}
           className="p-1.5 hover:bg-stone-800 rounded text-stone-300 hover:text-white transition"
           title="Toggle Sidebar (Table of Contents / Bookmarks)"

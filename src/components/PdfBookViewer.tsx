@@ -152,7 +152,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   onClose,
   initialPage = 1,
 }) => {
-  const targetPdfUrl = pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
+  const targetPdfUrl = pdfUrl || "/documents/weekly/32 Pages/10,11.pdf";
   // Extract book ID from URL or title for settings persistence
   const bookId = useMemo(() => btoa(targetPdfUrl).substring(0, 15), [targetPdfUrl]);
 

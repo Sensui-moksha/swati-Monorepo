@@ -3,16 +3,19 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { SiteHeader } from "./site-header";
 import { SiteFooter } from "./site-footer";
-import { PageHeader, EmptyState, Btn } from "./ui-primitives";
+import { PageHeader, EmptyState, Btn, BackButton } from "./ui-primitives";
+
+import { ArrowLeft } from "lucide-react";
 
 /** Wrap any public route in the full site chrome with an editorial page header. */
 export function PublicPage({
-  eyebrow, title, description, children,
-}: { eyebrow?: string; title: string; description?: string; children: ReactNode }) {
+  eyebrow, title, description, children, backTo, backLabel = "Back"
+}: { eyebrow?: string; title: string; description?: string; children: ReactNode; backTo?: string; backLabel?: string }) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SiteHeader />
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 md:px-8 py-10 md:py-14">
+        <BackButton to={backTo} label={backLabel} />
         <PageHeader eyebrow={eyebrow} title={title} description={description} />
         {children}
       </main>
@@ -189,6 +192,7 @@ export { ADMIN_GROUPS };
 export function SettingsShell({ children, title, description }: { children: ReactNode; title: string; description?: string }) {
   return (
     <div>
+      <BackButton />
       <PageHeader eyebrow="Settings" title={title} description={description} />
       {children}
     </div>
@@ -199,7 +203,7 @@ export function SettingsShell({ children, title, description }: { children: Reac
 export function AuthShell({ title, subtitle, children, footer }:
   { title: string; subtitle?: string; children: ReactNode; footer?: ReactNode }) {
   return (
-    <div className="min-h-screen grid md:grid-cols-2 bg-background">
+    <div className="min-h-screen grid md:grid-cols-2 bg-background relative">
       <div className="hidden md:flex flex-col justify-between p-12 bg-neutral-900 text-neutral-100 relative overflow-hidden">
         <Link to="/" className="font-serif text-2xl">Swathi Publications</Link>
         <div>
@@ -212,8 +216,9 @@ export function AuthShell({ title, subtitle, children, footer }:
         <div className="text-xs text-neutral-500">© 2026 Swathi Publications</div>
         <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-primary/20 blur-3xl" />
       </div>
-      <div className="flex flex-col justify-center p-8 md:p-12">
+      <div className="flex flex-col justify-center p-8 md:p-12 relative">
         <div className="max-w-md w-full mx-auto">
+          <BackButton to="/" label="Back to Home" />
           <div className="mb-8 md:hidden">
             <Link to="/" className="font-serif text-xl">Swathi Publications</Link>
           </div>

@@ -9,7 +9,7 @@ function IssueGrid({ type, title, description }: { type: string; title: string; 
   const items = data?.data ?? [];
 
   return (
-    <PublicPage eyebrow="Publications" title={title} description={description}>
+    <PublicPage eyebrow="Publications" title={title} description={description} backTo="/publications" backLabel="Back to Publications">
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (

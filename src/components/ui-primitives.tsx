@@ -2,6 +2,37 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { ArrowLeft } from "lucide-react";
+
+export function BackButton({ to, label = "Back", className }: { to?: string; label?: string; className?: string }) {
+  if (to) {
+    return (
+      <Link
+        to={to as any}
+        className={cn(
+          "inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors py-1 px-2.5 rounded-md hover:bg-secondary/60 -ml-2 mb-4 cursor-pointer",
+          className
+        )}
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>{label}</span>
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => window.history.back()}
+      className={cn(
+        "inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors py-1 px-2.5 rounded-md hover:bg-secondary/60 -ml-2 mb-4 cursor-pointer",
+        className
+      )}
+    >
+      <ArrowLeft className="w-3.5 h-3.5" />
+      <span>{label}</span>
+    </button>
+  );
+}
 
 export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: string; title: string; description?: string; actions?: ReactNode }) {
   return (
@@ -83,11 +114,13 @@ export function Card({ title, action, children, className }: { title?: string; a
   );
 }
 
-export function BookCard({ book, size = "md", index = 0 }: { book: { slug: string; title: string; author?: string | { name?: string } | null; cover?: string; coverImage?: string | null; category?: string; format?: string }; size?: "sm" | "md" | "lg"; index?: number }) {
+import { PdfThumbnail } from "./PdfThumbnail";
+
+export function BookCard({ book, size = "md", index = 0 }: { book: { slug: string; title: string; author?: string | { name?: string } | null; cover?: string; coverImage?: string | null; pdfUrl?: string; category?: string; format?: string }; size?: "sm" | "md" | "lg"; index?: number }) {
   const h = size === "sm" ? "h-48" : size === "lg" ? "h-80" : "h-64";
-  const coverSrc = book.coverImage ?? book.cover ?? '';
+  const coverSrc = book.coverImage || book.cover || book.pdfUrl || '';
   const rawAuthor = typeof book.author === 'string' ? book.author : book.author?.name ?? '';
-  const authorName = rawAuthor.match(/^[0-9a-fA-F]{24}$/) ? 'Swathi Publications' : rawAuthor;
+  const authorName = rawAuthor.match(/^[0-9a-fA-F]{24}$/) ? 'Editorial Board' : (rawAuthor || 'Editorial Board');
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -102,22 +135,17 @@ export function BookCard({ book, size = "md", index = 0 }: { book: { slug: strin
           transition={{ type: "spring", stiffness: 260, damping: 22 }}
           style={{ transformStyle: "preserve-3d", perspective: 800 }}
         >
-          <div className="skeleton absolute inset-0" aria-hidden />
-          <img
+          <PdfThumbnail
             src={coverSrc}
             alt={book.title}
-            loading="lazy"
-            decoding="async"
-            draggable={false}
-            onLoad={(e) => { (e.currentTarget.previousSibling as HTMLElement | null)?.remove(); }}
-            className="relative w-full h-full object-cover transition duration-500 group-hover:scale-[1.05]"
+            className="w-full h-full object-cover transition duration-500 group-hover:scale-[1.05]"
           />
           <div className="absolute inset-y-0 left-0 w-2 bg-black/30" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-500" />
         </motion.div>
         <div className="mt-3">
           {book.category && <div className="text-xs uppercase tracking-widest text-primary mb-1">{book.category}</div>}
-          <div className="font-serif text-base leading-snug group-hover:text-primary transition">{book.title}</div>
+          <div className="font-serif text-base leading-snug group-hover:text-primary transition line-clamp-2">{book.title}</div>
           <div className="text-xs text-muted-foreground mt-1">{authorName}</div>
         </div>
       </Link>

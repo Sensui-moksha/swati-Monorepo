@@ -40,7 +40,7 @@ function PublicationDetail() {
 
   if (error || !publication) {
     const demoTitle = "Swathi Weekly Magazine (Demo Issue)";
-    const demoPdf = "/documents/EDITOR GARI SANMANAPATRAM.pdf";
+    const demoPdf = "/documents/weekly/32 Pages/10,11.pdf";
 
     return (
       <PublicPage eyebrow="Swathi Interactive Demo" title={demoTitle}>
@@ -72,11 +72,11 @@ function PublicationDetail() {
     );
   }
 
-  const pdfUrl = (publication as any).pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf";
+  const pdfUrl = (publication as any).pdfUrl || "/documents/weekly/32 Pages/10,11.pdf";
   const coverSrc = publication.coverImage ?? pdfUrl;
 
   return (
-    <PublicPage eyebrow={`${publication.type} · ${publication.title}`} title={publication.title} description={formatDate(publication.createdAt)}>
+    <PublicPage eyebrow={`${publication.type} · ${publication.title}`} title={publication.title} description={formatDate(publication.createdAt)} backTo="/publications" backLabel="Back to Publications">
       <div className="grid md:grid-cols-[300px_1fr] gap-10 mb-12">
         {/* Cover — renders PDF page 1 as canvas if coverImage is a .pdf path */}
         <PdfThumbnail src={coverSrc} alt={publication.title} className="rounded-sm shadow-2xl aspect-[3/4] object-cover" />

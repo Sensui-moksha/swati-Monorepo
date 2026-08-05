@@ -15,12 +15,11 @@ function PublicationsIndex() {
   const publications = data?.data ?? [];
 
   return (
-    <PublicPage eyebrow="Editorial" title="Publications" description="Our weekly, monthly, and special editions — each a considered artefact of the season.">
-      <div className="grid md:grid-cols-4 gap-4 mb-12">
+    <PublicPage eyebrow="Editorial" title="Publications" description="Our weekly, monthly, and originals editions — curated literature and journalism.">
+      <div className="grid md:grid-cols-3 gap-4 mb-12">
         {[{ to: "/publications/weekly", label: "Swathi Weekly", n: "52 issues/year" },
           { to: "/publications/monthly", label: "Swathi Monthly", n: "12 issues/year" },
-          { to: "/publications/special", label: "Special Editions", n: "Curated series" },
-          { to: "/publications/digital", label: "Digital Editions", n: "Interactive" }].map((s) => (
+          { to: "/publications/special", label: "Swathi Originals", n: "Curated series & novels" }].map((s) => (
           <Link key={s.to} to={s.to as any} className="block border border-rule rounded p-6 bg-paper hover:border-primary">
             <div className="font-serif text-xl">{s.label}</div>
             <div className="text-xs text-muted-foreground mt-1">{s.n}</div>

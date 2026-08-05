@@ -42,8 +42,8 @@ export function prewarmAppCache(queryClient: QueryClient): void {
     // 5. Pre-warm PDF viewer & default PDF document in background
     import("@/components/PdfBookViewer")
       .then(({ getPdfDocument }) => {
-        getPdfDocument("/documents/EDITOR GARI SANMANAPATRAM.pdf").catch(() => {});
-        getPdfDocument("/documents/sample-issue.pdf").catch(() => {});
+        getPdfDocument("/documents/EDITOR GARU.pdf").catch(() => {});
+        getPdfDocument("/documents/weekly/32 Pages/10,11.pdf").catch(() => {});
       })
       .catch(() => {});
   });

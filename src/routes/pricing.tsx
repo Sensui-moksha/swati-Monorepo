@@ -11,41 +11,43 @@ export const Route = createFileRoute("/pricing")({
 
 const DEFAULT_PRICING_PLANS = [
   {
-    id: "plan-monthly-digital",
-    name: "Swathi Digital Monthly",
+    id: "plan-weekly",
+    name: "Swathi Weekly Pass",
     price: 299,
     interval: "month",
+    isPopular: false,
     features: [
       "Full digital access to Swathi Weekly",
-      "Interactive PDF & Flipbook reader",
       "Serials & novel archives access",
-      "Ad-free reading experience"
+      "Exclusive access to Swathi Originals",
+      "Cross-device reading sync"
     ]
   },
   {
-    id: "plan-annual-access",
-    name: "Annual All-Access Pass",
-    price: 2499,
+    id: "plan-monthly",
+    name: "Swathi Monthly Pass",
+    price: 1999,
     interval: "year",
     isPopular: true,
     features: [
-      "Full digital access for 12 months",
-      "Save over 30% compared to monthly",
-      "Weekly edition digital downloads",
-      "Priority customer & reader support",
-      "Complete back-catalog archive access"
+      "Full digital access to Weekly & Monthly editions",
+      "Complete back-catalog archive access",
+      "Exclusive access to Swathi Originals",
+      "Downloadable offline PDF reading",
+      "Ad-free digital reading experience"
     ]
   },
   {
-    id: "plan-lifetime-patron",
-    name: "Patron Lifetime Edition",
+    id: "plan-lifetime",
+    name: "Swathi Lifetime Pass",
     price: 9999,
     interval: "lifetime",
+    isPopular: false,
     features: [
       "Lifetime unlimited digital access",
+      "Access to all current & future publications",
       "Exclusive hardcover special publications",
-      "Patron badge & recognition",
-      "Direct line to editorial team"
+      "Patron badge & direct line to editorial team"
     ]
   }
 ];
@@ -81,15 +83,15 @@ function PricingPage() {
             ))}
           </div>
         ) : (
-          <div className="mt-14 grid md:grid-cols-3 gap-6 items-stretch">
-            {plans.map((p, i) => {
-              const isPopular = (p as any).isPopular || i === 1;
+          <div className="mt-14 grid md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
+            {plans.map((p) => {
+              const isPopular = Boolean((p as any).isPopular);
               return (
                 <div
                   key={p.id}
                   className={`relative p-8 flex flex-col rounded-2xl bg-paper transition-all duration-300 ${
                     isPopular
-                      ? "border-2 border-primary shadow-xl scale-[1.02]"
+                      ? "border-2 border-primary shadow-xl scale-[1.02] z-10"
                       : "border border-rule shadow-sm hover:shadow-md"
                   }`}
                 >
@@ -111,7 +113,7 @@ function PricingPage() {
                       : [
                           "Full Swathi Weekly digital editions",
                           "Access to serials & novel archive",
-                          "Inbuilt PDF & flipbook reader",
+                          "Exclusive access to Swathi Originals & special curations",
                           "Cross-device reading sync"
                         ]
                     ).map((f) => (
@@ -126,7 +128,7 @@ function PricingPage() {
                     to="/cart"
                     className={`mt-8 text-center py-3 text-sm font-medium rounded-lg transition-colors ${
                       isPopular
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold"
                         : "border border-input hover:border-primary hover:text-primary"
                     }`}
                   >

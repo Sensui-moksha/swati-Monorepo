@@ -5,6 +5,8 @@ import { formatDate } from "@/lib/utils";
 import { Crumbs } from "./articles";
 import { useState, lazy, Suspense } from "react";
 import { Bookmark, Share2, MessageSquare, Heart, Lock, BookOpen, FileText } from "lucide-react";
+import { PdfThumbnail } from "@/components/PdfThumbnail";
+import { BackButton } from "@/components/ui-primitives";
 
 import { articlesApi } from "@/lib/api/endpoints/articles";
 import { queryKeys } from "@/lib/api/queryKeys";
@@ -69,6 +71,7 @@ function ArticleDetail() {
   return (
     <SiteLayout>
       <article className="container-edit py-10">
+        <BackButton to="/articles" label="Back to Articles" />
         <Crumbs items={[["Home", "/"], ["Publications", "/articles"], [article.category?.name ?? "Article", "/articles"]]} />
 
         <header className="mt-6 max-w-3xl">
@@ -127,14 +130,14 @@ function ArticleDetail() {
             <PdfBookViewer
               isOpen={isViewerOpen}
               title={article.title}
-              pdfUrl={article.pdfUrl || "/documents/sample-issue.pdf"}
+              pdfUrl={article.pdfUrl || article.coverImage || "/documents/weekly/32 Pages/10,11.pdf"}
               onClose={() => setIsViewerOpen(false)}
             />
           </Suspense>
         )}
 
         <figure className="mt-8">
-          <img src={article.coverImage ?? ''} alt={article.title} className="w-full aspect-[16/9] object-cover bg-secondary" />
+          <PdfThumbnail src={article.coverImage ?? article.pdfUrl ?? ''} alt={article.title} className="w-full aspect-[16/9] object-cover bg-secondary rounded-sm" />
           <figcaption className="mt-2 text-xs text-muted-foreground">Photograph · Swathi Publications archive</figcaption>
         </figure>
 

@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { Bell, Search, LogOut, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { ADMIN_GROUPS } from "@/components/shells";
+import { BackButton } from "@/components/ui-primitives";
 import { cn } from "@/lib/utils";
 import { useAdminNotifications } from "@/lib/api/hooks";
 
@@ -90,7 +91,10 @@ function AdminLayout() {
           </Link>
           <div className="h-8 w-8 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-semibold">R</div>
         </header>
-        <main className="flex-1 p-8 overflow-x-hidden"><Outlet /></main>
+        <main className="flex-1 p-8 overflow-x-hidden">
+          {path !== "/admin" && <BackButton to="/admin" label="Back to Admin Dashboard" />}
+          <Outlet />
+        </main>
       </div>
     </div>
   );

@@ -47,7 +47,7 @@ function AuthorDetailPage() {
         role: "Editorial Contributor",
         bio: fetchedAuthor.bio || "Staff writer and contributor at Swathi Publications.",
         avatar: undefined,
-        pdfUrl: (fetchedAuthor as any).pdfUrl || "/documents/EDITOR GARI SANMANAPATRAM.pdf",
+        pdfUrl: (fetchedAuthor as any).pdfUrl || "/documents/weekly/32 Pages/10,11.pdf",
         bookCount: fetchedAuthor.bookCount || 0,
       }
       : null;

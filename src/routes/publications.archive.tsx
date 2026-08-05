@@ -12,7 +12,7 @@ function ArchivePage() {
   const items = data?.data ?? [];
 
   return (
-    <PublicPage eyebrow="Publications" title="Publication Archive" description="Every issue we've ever put to press, searchable by date and series.">
+    <PublicPage eyebrow="Publications" title="Publication Archive" description="Every issue we've ever put to press, searchable by date and series." backTo="/publications" backLabel="Back to Publications">
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-10 bg-secondary rounded animate-pulse" />)}
