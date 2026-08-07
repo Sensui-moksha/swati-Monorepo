@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicPage } from "@/components/shells";
 import { usePublications } from "@/lib/api/hooks";
 import { formatDate } from "@/lib/utils";
+import { PdfThumbnail } from "@/components/PdfThumbnail";
 
 export const Route = createFileRoute("/publications/archive")({
   component: ArchivePage,
@@ -19,9 +20,9 @@ function ArchivePage() {
         </div>
       ) : (
         <div className="overflow-x-auto"><table className="w-full text-sm">
-          <thead className="text-xs uppercase text-muted-foreground border-b border-rule"><tr><th className="text-left py-3">Publication</th><th className="text-left">Type</th><th className="text-left">Date</th><th></th></tr></thead>
+          <thead className="text-xs uppercase text-muted-foreground border-b border-rule"><tr><th className="text-left py-3 w-16">Cover</th><th className="text-left py-3">Publication</th><th className="text-left">Type</th><th className="text-left">Date</th><th></th></tr></thead>
           <tbody>{items.map((pub) => (
-            <tr key={pub.id} className="border-b border-rule/60"><td className="py-3">{pub.title}</td><td className="capitalize text-muted-foreground">{pub.type}</td><td className="text-muted-foreground">{formatDate(pub.createdAt)}</td><td className="text-right"><Link to="/publications/$slug" params={{ slug: pub.slug }} className="text-primary hover:underline text-xs">Open →</Link></td></tr>
+            <tr key={pub.id} className="border-b border-rule/60"><td className="py-3">{pub.coverImage ? <PdfThumbnail src={pub.coverImage} alt={pub.title} className="w-12 h-16 rounded shadow-sm" /> : <div className="w-12 h-16 bg-muted rounded flex items-center justify-center border"><span className="text-[10px] text-muted-foreground">No cover</span></div>}</td><td className="py-3 font-medium">{pub.title}</td><td className="capitalize text-muted-foreground">{pub.type}</td><td className="text-muted-foreground">{formatDate(pub.createdAt)}</td><td className="text-right"><Link to="/publications/$slug" params={{ slug: pub.slug }} className="text-primary hover:underline text-xs">Open →</Link></td></tr>
           ))}</tbody>
         </table></div>
       )}
