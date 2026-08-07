@@ -172,6 +172,18 @@ export const PUBLICATION_DOCUMENTS: PublicationDocument[] = [
     createdAt: "2026-07-15T00:00:00.000Z",
     description: "Interactive digital edition optimized for reading across any screen size.",
     author: "Swathi Publications",
+  },
+  {
+    id: "pub-ds-algo-python",
+    slug: "data-structures-and-algorithms-python",
+    title: "Data Structures and Algorithms in Python",
+    subtitle: "Test Doc 720 Pages",
+    type: "weekly",
+    pdfUrl: "/documents/weekly/test doc 720 pages/Data Structures and Algorithms in Python.pdf",
+    coverImage: pdfCover("/documents/weekly/test doc 720 pages/Data Structures and Algorithms in Python.pdf"),
+    createdAt: "2026-08-07T00:00:00.000Z",
+    description: "Data Structures and Algorithms in Python.",
+    author: "Swathi Publications",
   }
 ];
 
