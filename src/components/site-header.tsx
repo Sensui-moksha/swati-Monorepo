@@ -12,7 +12,6 @@ const NAV = [
   { to: "/library", label: "Library" },
   { to: "/publications", label: "Publications" },
   { to: "/articles", label: "Articles" },
-  { to: "/discover", label: "Discover" },
   { to: "/pricing", label: "Pricing" },
   { to: "/about", label: "About" },
 ];
