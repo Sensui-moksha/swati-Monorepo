@@ -64,13 +64,16 @@ export function getTrimBoxCrop(page: pdfjsLib.PDFPageProxy): [number, number, nu
       return [Math.min(tX1, tX2), Math.min(tY1, tY2), Math.max(tX1, tX2), Math.max(tY1, tY2)];
     }
   }
-  let cropLeft = 0.035, cropRight = 0.035, cropTop = 0.026, cropBottom = 0.026;
+  let cropLeft = 0.05,
+    cropRight = 0.05,
+    cropTop = 0.05,
+    cropBottom = 0.05;
   const pageNumber = (page as any).pageNumber || 1;
   const isEvenPage = pageNumber % 2 === 0;
-  cropLeft = Math.max(cropLeft, 0.035);
-  cropRight = Math.max(cropRight, isEvenPage ? 0.068 : 0.035);
-  cropTop = Math.max(cropTop, isEvenPage ? 0.053 : 0.035);
-  cropBottom = Math.max(cropBottom, 0.035);
+  cropLeft = Math.max(cropLeft, 0.05);
+  cropRight = Math.max(cropRight, isEvenPage ? 0.07 : 0.05);
+  cropTop = Math.max(cropTop, 0.05);
+  cropBottom = Math.max(cropBottom, 0.05);
   return [
     mediaBox[0] + mediaW * cropLeft,
     mediaBox[1] + mediaH * cropBottom,
@@ -98,7 +101,8 @@ export function getPdfDocument(url: string): Promise<pdfjsLib.PDFDocumentProxy> 
   return promise;
 }
 
-const getTargetWidth = () => (typeof window !== "undefined" && window.innerWidth < 768 ? 600 : 1000);
+const getTargetWidth = () =>
+  typeof window !== "undefined" && window.innerWidth < 768 ? 600 : 1000;
 
 function renderPdfPageToCanvas(
   pdfDoc: pdfjsLib.PDFDocumentProxy,
@@ -159,9 +163,14 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   const { settings, updateSettings } = useReaderSettings(bookId);
   const { pdf, totalPages, isLoading, error } = usePdfStreaming(targetPdfUrl);
   const { isCachedForOffline, toggleOfflineCache } = useOfflineCache(bookId);
-  
-  const { getInitialProgress } = useReadingProgress(bookId, 1, totalPages, !isLoading && totalPages > 0);
-  
+
+  const { getInitialProgress } = useReadingProgress(
+    bookId,
+    1,
+    totalPages,
+    !isLoading && totalPages > 0,
+  );
+
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -190,7 +199,8 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
   // PageFlip Initialization and Responsive Updating
   const updateDimensions = useCallback(() => {
-    if (!isOpen || !pdf || !pagesContainerRef.current || !containerRef.current || totalPages === 0) return;
+    if (!isOpen || !pdf || !pagesContainerRef.current || !containerRef.current || totalPages === 0)
+      return;
 
     const container = containerRef.current;
     const containerW = container.clientWidth || window.innerWidth;
@@ -206,7 +216,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
       const isSingleMode = isTwoPageDoc || isMobile || settings.readingMode === "single";
       const pagesInSpread = isSingleMode ? 1 : 2;
 
-      const marginX = isMobile ? 20 : (settings.showSidebar ? 340 : 140);
+      const marginX = isMobile ? 20 : settings.showSidebar ? 340 : 140;
       const marginY = isMobile ? 20 : 44;
       const availW = Math.max(containerW - marginX, 260);
       const availH = Math.max(containerH - marginY, 300);
@@ -262,13 +272,17 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   useEffect(() => {
     if (!isOpen || !pdf || totalPages === 0) return;
     if (pageFlipRef.current) {
-      try { pageFlipRef.current.destroy(); } catch {}
+      try {
+        pageFlipRef.current.destroy();
+      } catch {}
       pageFlipRef.current = null;
     }
     updateDimensions();
     return () => {
       if (pageFlipRef.current) {
-        try { pageFlipRef.current.destroy(); } catch {}
+        try {
+          pageFlipRef.current.destroy();
+        } catch {}
         pageFlipRef.current = null;
       }
     };
@@ -284,27 +298,39 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   // VIRTUALIZATION ENGINE: Only render canvases for active window, destroy rest to save Memory
   useEffect(() => {
     if (!pdf || totalPages === 0 || !pagesContainerRef.current) return;
-    
+
     // Active sliding window: +/- 4 pages to keep upcoming pages in DOM during 3D flip animation
-    const activeWindow = new Set([
-      currentPage - 4, currentPage - 3, currentPage - 2, currentPage - 1,
-      currentPage,
-      currentPage + 1, currentPage + 2, currentPage + 3, currentPage + 4
-    ].filter(p => p >= 1 && p <= totalPages));
+    const activeWindow = new Set(
+      [
+        currentPage - 4,
+        currentPage - 3,
+        currentPage - 2,
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+        currentPage + 2,
+        currentPage + 3,
+        currentPage + 4,
+      ].filter((p) => p >= 1 && p <= totalPages),
+    );
 
     const container = pagesContainerRef.current;
-    
+
     // Inject or render active canvases
-    activeWindow.forEach(p => {
+    activeWindow.forEach((p) => {
       const canvas = container.querySelector(`canvas[data-page="${p}"]`) as HTMLCanvasElement;
-      if (canvas && canvas.dataset.rendered !== "rendering" && !canvas.dataset.rendered?.includes(`${p}_`)) {
+      if (
+        canvas &&
+        canvas.dataset.rendered !== "rendering" &&
+        !canvas.dataset.rendered?.includes(`${p}_`)
+      ) {
         renderPdfPageToCanvas(pdf, p, canvas);
       }
     });
 
     // Clear inactive canvases to free WebGL/Canvas memory footprint
     const allCanvases = container.querySelectorAll("canvas[data-page]");
-    allCanvases.forEach(canvas => {
+    allCanvases.forEach((canvas) => {
       const p = parseInt(canvas.getAttribute("data-page") || "0", 10);
       if (p > 0 && !activeWindow.has(p)) {
         const c = canvas as HTMLCanvasElement;
@@ -315,7 +341,6 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
         }
       }
     });
-
   }, [pdf, totalPages, currentPage]);
 
   const handlePrev = useCallback(() => {
@@ -368,13 +393,19 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
   const handleTouchStart = (e: React.TouchEvent) => {
     if (settings.zoomLevel > 1 && e.touches.length === 1) {
       setIsDragging(true);
-      setDragStart({ x: e.touches[0].clientX - panOffset.x, y: e.touches[0].clientY - panOffset.y });
+      setDragStart({
+        x: e.touches[0].clientX - panOffset.x,
+        y: e.touches[0].clientY - panOffset.y,
+      });
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (isDragging && settings.zoomLevel > 1 && e.touches.length === 1) {
-      setPanOffset({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y });
+      setPanOffset({
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y,
+      });
     }
   };
 
@@ -382,14 +413,17 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
   if (!isOpen) return null;
 
-  const getCenterTransform = () => `scale(${settings.zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`;
+  const getCenterTransform = () =>
+    `scale(${settings.zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`;
 
   return (
-    <div className={`fixed inset-0 z-[100] flex flex-col text-stone-100 select-none overflow-hidden font-sans ${
-      settings.theme === "dark" ? "bg-[#0d0b0a]" : "bg-stone-200"
-    }`}>
+    <div
+      className={`fixed inset-0 z-[100] flex flex-col text-stone-100 select-none overflow-hidden font-sans ${
+        settings.theme === "dark" ? "bg-[#0d0b0a]" : "bg-stone-200"
+      }`}
+    >
       {settings.showToolbar && (
-        <ReaderToolbar 
+        <ReaderToolbar
           title={title}
           currentPage={currentPage}
           totalPages={totalPages}
@@ -406,8 +440,8 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
       )}
 
       <div className="flex-1 flex overflow-hidden">
-        <ReaderSidebar 
-          isOpen={settings.showSidebar} 
+        <ReaderSidebar
+          isOpen={settings.showSidebar}
           onClose={() => updateSettings({ showSidebar: false })}
           onJump={jumpToPage}
         />
@@ -427,9 +461,10 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
             settings.zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""
           }`}
           style={{
-            background: settings.theme === "dark" 
-              ? "radial-gradient(circle at 50% 50%, #1c1917 0%, #12100e 55%, #080706 100%)"
-              : "radial-gradient(circle at 50% 50%, #f5f5f4 0%, #e7e5e4 100%)"
+            background:
+              settings.theme === "dark"
+                ? "radial-gradient(circle at 50% 50%, #1c1917 0%, #12100e 55%, #080706 100%)"
+                : "radial-gradient(circle at 50% 50%, #f5f5f4 0%, #e7e5e4 100%)",
           }}
         >
           {isLoading && (
@@ -468,16 +503,17 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
 
           <div
             ref={bookElementRef}
-            className={`relative transition-transform duration-300 ease-out flex items-center justify-center m-auto ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            className={`relative transition-transform duration-300 ease-out flex items-center justify-center m-auto ${isLoading ? "opacity-0" : "opacity-100"}`}
             style={{ transform: getCenterTransform() }}
           >
             <div
               ref={pagesContainerRef}
               className="st-flip-book relative rounded-[2px] transition-shadow duration-300"
               style={{
-                boxShadow: settings.theme === "dark" 
-                  ? "0 30px 60px -12px rgba(0, 0, 0, 0.75), 0 15px 30px -8px rgba(0, 0, 0, 0.55)"
-                  : "0 30px 60px -12px rgba(0, 0, 0, 0.15), 0 15px 30px -8px rgba(0, 0, 0, 0.1)",
+                boxShadow:
+                  settings.theme === "dark"
+                    ? "0 30px 60px -12px rgba(0, 0, 0, 0.75), 0 15px 30px -8px rgba(0, 0, 0, 0.55)"
+                    : "0 30px 60px -12px rgba(0, 0, 0, 0.15), 0 15px 30px -8px rgba(0, 0, 0, 0.1)",
               }}
             >
               {/* Virtualized DOM nodes */}
@@ -492,6 +528,14 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
                     data-page={idx + 1}
                     className="w-full h-full object-contain mx-auto block absolute inset-0 z-0"
                     style={{ imageRendering: "-webkit-optimize-contrast" }}
+                  />
+                  {/* Book spine crease shadow with middle line */}
+                  <div 
+                    className={`absolute inset-y-0 w-6 md:w-16 z-10 pointer-events-none mix-blend-multiply ${
+                      (idx + 1) % 2 === 0
+                        ? "right-0 bg-gradient-to-l from-black/25 to-transparent border-r border-black/30"
+                        : "left-0 bg-gradient-to-r from-black/25 to-transparent border-l border-black/30"
+                    }`}
                   />
                   <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-stone-900/60 text-stone-300 text-[9px] font-mono px-2 py-0.5 rounded-full pointer-events-none z-10 border border-stone-700/40 backdrop-blur-sm opacity-80">
                     {idx + 1}

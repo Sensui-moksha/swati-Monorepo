@@ -21,10 +21,10 @@ function RegisterPage() {
   const registerMutation = useMutation({
     mutationFn: () => {
       // Backend expects { email, username, password, fullName }
-      const username = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_');
-      return authApi.register({ 
-        email, 
-        password, 
+      const username = email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_");
+      return authApi.register({
+        email,
+        password,
         username,
         fullName,
       } as any);
@@ -58,47 +58,47 @@ function RegisterPage() {
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <label className="block">
             <span className="eyebrow">Full name</span>
-            <input 
-              required 
+            <input
+              required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary" 
-              placeholder="Your name" 
+              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary"
+              placeholder="Your name"
             />
           </label>
           <label className="block">
             <span className="eyebrow">Email</span>
-            <input 
-              type="email" 
-              required 
+            <input
+              type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary" 
-              placeholder="you@example.com" 
+              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary"
+              placeholder="you@example.com"
             />
           </label>
           <label className="block">
             <span className="eyebrow">Password</span>
-            <input 
-              type="password" 
-              required 
+            <input
+              type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary" 
-              placeholder="Create a strong password" 
+              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary"
+              placeholder="Create a strong password"
             />
           </label>
           <label className="flex items-start gap-2 text-xs text-muted-foreground">
-            <input 
-              type="checkbox" 
-              required 
+            <input
+              type="checkbox"
+              required
               checked={agreeTerms}
               onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="mt-0.5" 
-            /> 
+              className="mt-0.5"
+            />
             I agree to the Terms of Service and Privacy Policy.
           </label>
-          <button 
+          <button
             type="submit"
             disabled={registerMutation.isPending}
             className="w-full bg-primary text-primary-foreground py-3 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
@@ -106,7 +106,10 @@ function RegisterPage() {
             {registerMutation.isPending ? "Creating account..." : "Create account"}
           </button>
           <div className="text-center text-xs text-muted-foreground rule-top pt-4">
-            Already have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link>
+            Already have an account?{" "}
+            <Link to="/login" className="text-primary hover:underline">
+              Sign in
+            </Link>
           </div>
         </form>
       </div>

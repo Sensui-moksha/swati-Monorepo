@@ -18,9 +18,15 @@ function AdminCommentsPage() {
       </div>
       <Card title="Recent comments">
         {isLoading ? (
-          <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 bg-secondary rounded animate-pulse" />)}</div>
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-16 bg-secondary rounded animate-pulse" />
+            ))}
+          </div>
         ) : items.length === 0 ? (
-          <div className="text-sm text-muted-foreground py-8 text-center">No comments to display</div>
+          <div className="text-sm text-muted-foreground py-8 text-center">
+            No comments to display
+          </div>
         ) : (
           <ul className="divide-y divide-rule text-sm">
             {items.map((a) => (

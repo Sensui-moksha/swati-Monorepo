@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/storage")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Storage" description="File upload providers, S3 settings, and size limits.">
-        <SettingsCategoryForm category="storage" title="Storage" description="File upload providers, S3 settings, and size limits." />
+      <SettingsShell
+        title="Storage"
+        description="File upload providers, S3 settings, and size limits."
+      >
+        <SettingsCategoryForm
+          category="storage"
+          title="Storage"
+          description="File upload providers, S3 settings, and size limits."
+        />
       </SettingsShell>
     </AdminShell>
   );

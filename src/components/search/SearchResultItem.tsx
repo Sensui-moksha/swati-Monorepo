@@ -1,7 +1,7 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { SearchResult } from '../../lib/api/endpoints/search';
-import { useNavigate } from '@tanstack/react-router';
+import React from "react";
+import { motion } from "framer-motion";
+import { SearchResult } from "../../lib/api/endpoints/search";
+import { useNavigate } from "@tanstack/react-router";
 
 interface SearchResultItemProps {
   result: SearchResult;
@@ -14,16 +14,16 @@ export const SearchResultItem: React.FC<SearchResultItemProps> = ({ result, onCl
 
   const handleClick = () => {
     const targetSlug = source.publicationId;
-    if (targetSlug.startsWith('/')) {
+    if (targetSlug.startsWith("/")) {
       navigate({ to: targetSlug as any });
     } else {
-      navigate({ to: '/publications/$slug', params: { slug: targetSlug } });
+      navigate({ to: "/publications/$slug", params: { slug: targetSlug } });
     }
     if (onClick) onClick();
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.005 }}
@@ -40,7 +40,7 @@ export const SearchResultItem: React.FC<SearchResultItemProps> = ({ result, onCl
           </span>
         </div>
       </div>
-      
+
       {highlights.length > 0 ? (
         <div className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mt-1">
           <span dangerouslySetInnerHTML={{ __html: highlights[0] }} />

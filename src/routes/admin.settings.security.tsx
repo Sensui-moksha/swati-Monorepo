@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/security")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Security" description="Password rules, 2FA, and network access controls.">
-        <SettingsCategoryForm category="security" title="Security" description="Password rules, 2FA, and network access controls." />
+      <SettingsShell
+        title="Security"
+        description="Password rules, 2FA, and network access controls."
+      >
+        <SettingsCategoryForm
+          category="security"
+          title="Security"
+          description="Password rules, 2FA, and network access controls."
+        />
       </SettingsShell>
     </AdminShell>
   );

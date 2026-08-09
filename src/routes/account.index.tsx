@@ -47,17 +47,21 @@ function AccountIndexPage() {
   const subscription = subscriptionResponse;
 
   // Format date nicely
-  const memberSince = user?.createdAt 
-    ? new Date(user.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })
     : "Unknown";
 
   return (
     <DashboardShell>
-      <PageHeader 
-        eyebrow="Account" 
-        title="Profile" 
-        description="Your account overview and quick settings." 
-        actions={<Link to="/account/profile"><Btn variant="outline">Edit profile</Btn></Link>}
+      <PageHeader
+        eyebrow="Account"
+        title="Profile"
+        description="Your account overview and quick settings."
+        actions={
+          <Link to="/account/profile">
+            <Btn variant="outline">Edit profile</Btn>
+          </Link>
+        }
       />
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <KpiCard label="Books read" value={stats?.booksRead?.toString() || "0"} />
@@ -68,11 +72,19 @@ function AccountIndexPage() {
         <div className="flex gap-6 items-start">
           <div className="w-20 h-20 bg-secondary rounded-full flex-shrink-0" />
           <div className="flex-1">
-            <div className="text-xl font-serif mb-1">{user?.fullName || user?.name || "Unknown"}</div>
+            <div className="text-xl font-serif mb-1">
+              {user?.fullName || user?.name || "Unknown"}
+            </div>
             <div className="text-sm text-muted-foreground">{user?.email || ""}</div>
             <div className="mt-6 space-y-2 text-sm border-t border-rule/50 pt-4">
-              <div className="flex justify-between"><span>Member since</span><span className="text-muted-foreground">{memberSince}</span></div>
-              <div className="flex justify-between"><span>Role</span><span className="text-muted-foreground capitalize">{user?.role || 'User'}</span></div>
+              <div className="flex justify-between">
+                <span>Member since</span>
+                <span className="text-muted-foreground">{memberSince}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Role</span>
+                <span className="text-muted-foreground capitalize">{user?.role || "User"}</span>
+              </div>
             </div>
           </div>
         </div>

@@ -49,38 +49,40 @@ function LoginPage() {
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <label className="block">
             <span className="eyebrow">Email</span>
-            <input 
-              type="email" 
-              required 
+            <input
+              type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary" 
-              placeholder="you@example.com" 
+              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary"
+              placeholder="you@example.com"
             />
           </label>
           <label className="block">
             <span className="eyebrow">Password</span>
-            <input 
-              type="password" 
-              required 
+            <input
+              type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary" 
-              placeholder="••••••••" 
+              className="mt-1 w-full border border-input px-3 py-2.5 focus:outline-none focus:border-primary"
+              placeholder="••••••••"
             />
           </label>
           <div className="flex items-center justify-between text-xs">
             <label className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-              /> 
+              />
               Remember me
             </label>
-            <a href="#" className="text-primary hover:underline">Forgot password?</a>
+            <a href="#" className="text-primary hover:underline">
+              Forgot password?
+            </a>
           </div>
-          <button 
+          <button
             type="submit"
             disabled={loginMutation.isPending}
             className="w-full bg-primary text-primary-foreground py-3 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
@@ -88,7 +90,10 @@ function LoginPage() {
             {loginMutation.isPending ? "Signing in..." : "Sign in"}
           </button>
           <div className="text-center text-xs text-muted-foreground rule-top pt-4">
-            Don't have an account? <Link to="/register" className="text-primary hover:underline">Register</Link>
+            Don't have an account?{" "}
+            <Link to="/register" className="text-primary hover:underline">
+              Register
+            </Link>
           </div>
         </form>
       </div>

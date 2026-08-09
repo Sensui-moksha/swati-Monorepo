@@ -10,7 +10,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Article } from "@/lib/api/types";
 
-const PdfBookViewer = lazy(() => import("@/components/PdfBookViewer").then(m => ({ default: m.PdfBookViewer })));
+const PdfBookViewer = lazy(() =>
+  import("@/components/PdfBookViewer").then((m) => ({ default: m.PdfBookViewer })),
+);
 
 export const Route = createFileRoute("/admin/articles")({
   component: AdminArticlesPage,
@@ -25,7 +27,9 @@ function AdminArticlesPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [articleToDelete, setArticleToDelete] = useState<Article | null>(null);
-  const [selectedBookPdf, setSelectedBookPdf] = useState<{ title: string; pdfUrl?: string } | null>(null);
+  const [selectedBookPdf, setSelectedBookPdf] = useState<{ title: string; pdfUrl?: string } | null>(
+    null,
+  );
 
   const createArticleMutation = useMutation({
     mutationFn: (article: Partial<Article>) => articlesApi.create(article),
@@ -35,17 +39,20 @@ function AdminArticlesPage() {
       setEditingArticle(null);
       queryClient.invalidateQueries({ queryKey: ["articles"] });
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message || err?.message || "Failed to create article"),
+    onError: (err: any) =>
+      toast.error(err?.response?.data?.message || err?.message || "Failed to create article"),
   });
 
   const updateArticleMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Article> }) => articlesApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<Article> }) =>
+      articlesApi.update(id, data),
     onSuccess: () => {
       toast.success("Article updated successfully");
       setEditingArticle(null);
       queryClient.invalidateQueries({ queryKey: ["articles"] });
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message || err?.message || "Failed to update article"),
+    onError: (err: any) =>
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update article"),
   });
 
   const deleteArticleMutation = useMutation({
@@ -91,7 +98,7 @@ function AdminArticlesPage() {
   };
 
   const filteredArticles = articles.filter((a) =>
-    a.title.toLowerCase().includes(searchQuery.toLowerCase())
+    a.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -99,7 +106,9 @@ function AdminArticlesPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl">Articles</h1>
-          <p className="text-sm text-muted-foreground">{data?.meta?.total ?? articles.length} articles in library</p>
+          <p className="text-sm text-muted-foreground">
+            {data?.meta?.total ?? articles.length} articles in library
+          </p>
         </div>
         <div className="flex gap-2">
           <div className="relative">
@@ -122,7 +131,11 @@ function AdminArticlesPage() {
 
       {/* Article Edit / Create Form */}
       {editingArticle && (
-        <Card title={isCreating ? "Upload New PDF Article" : `Edit Article PDF: ${editingArticle.title}`}>
+        <Card
+          title={
+            isCreating ? "Upload New PDF Article" : `Edit Article PDF: ${editingArticle.title}`
+          }
+        >
           <form onSubmit={handleSave} className="space-y-4 max-w-xl">
             <div className="space-y-2">
               <Label htmlFor="title">Article Title</Label>
@@ -164,7 +177,9 @@ function AdminArticlesPage() {
               <select
                 id="status"
                 value={editingArticle.status || "published"}
-                onChange={(e) => setEditingArticle({ ...editingArticle, status: e.target.value as any })}
+                onChange={(e) =>
+                  setEditingArticle({ ...editingArticle, status: e.target.value as any })
+                }
                 className="w-full border border-rule bg-paper rounded px-3 py-2 text-sm"
               >
                 <option value="published">Published</option>
@@ -174,8 +189,13 @@ function AdminArticlesPage() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Btn type="submit" disabled={createArticleMutation.isPending || updateArticleMutation.isPending}>
-                {createArticleMutation.isPending || updateArticleMutation.isPending ? "Saving..." : "Save PDF Article"}
+              <Btn
+                type="submit"
+                disabled={createArticleMutation.isPending || updateArticleMutation.isPending}
+              >
+                {createArticleMutation.isPending || updateArticleMutation.isPending
+                  ? "Saving..."
+                  : "Save PDF Article"}
               </Btn>
               <Btn type="button" variant="outline" onClick={() => setEditingArticle(null)}>
                 Cancel
@@ -187,7 +207,11 @@ function AdminArticlesPage() {
 
       <Card title="All articles">
         {isLoading ? (
-          <div className="space-y-3">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-10 bg-secondary rounded animate-pulse" />)}</div>
+          <div className="space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-10 bg-secondary rounded animate-pulse" />
+            ))}
+          </div>
         ) : (
           <table className="w-full text-sm border-collapse">
             <thead className="text-xs uppercase tracking-wider text-muted-foreground bg-secondary/40 border-b border-rule">
@@ -203,12 +227,21 @@ function AdminArticlesPage() {
             </thead>
             <tbody>
               {filteredArticles.map((a) => (
-                <tr key={a.id} className="border-b border-rule/60 hover:bg-secondary/30 transition-colors">
+                <tr
+                  key={a.id}
+                  className="border-b border-rule/60 hover:bg-secondary/30 transition-colors"
+                >
                   <td className="px-4 py-3 max-w-xs truncate font-medium">{a.title}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{a.category?.name ?? '—'}</td>
-                  <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
-                  <td className="px-4 py-3 text-right tabular-nums">{a.viewCount?.toLocaleString() ?? 0}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs tabular-nums">{a.publishedAt ? formatShortDate(a.publishedAt) : '—'}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{a.category?.name ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={a.status} />
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums">
+                    {a.viewCount?.toLocaleString() ?? 0}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground text-xs tabular-nums">
+                    {a.publishedAt ? formatShortDate(a.publishedAt) : "—"}
+                  </td>
                   <td className="px-4 py-3 text-xs">
                     <button
                       onClick={() =>
@@ -224,7 +257,10 @@ function AdminArticlesPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => handleOpenEdit(a)} className="text-primary text-xs font-medium hover:underline">
+                      <button
+                        onClick={() => handleOpenEdit(a)}
+                        className="text-primary text-xs font-medium hover:underline"
+                      >
                         Edit
                       </button>
                       <button
@@ -244,7 +280,9 @@ function AdminArticlesPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-paper border border-rule rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
               <div className="flex justify-between items-center border-b border-rule pb-3">
-                <h3 className="font-serif text-lg font-semibold text-destructive">Confirm Deletion</h3>
+                <h3 className="font-serif text-lg font-semibold text-destructive">
+                  Confirm Deletion
+                </h3>
                 <button
                   type="button"
                   onClick={() => setArticleToDelete(null)}
@@ -254,7 +292,9 @@ function AdminArticlesPage() {
                 </button>
               </div>
               <p className="text-sm text-foreground">
-                Are you sure you want to delete <span className="font-semibold">{articleToDelete.title}</span>? This action cannot be undone.
+                Are you sure you want to delete{" "}
+                <span className="font-semibold">{articleToDelete.title}</span>? This action cannot
+                be undone.
               </p>
               <div className="flex justify-end gap-2 pt-3 border-t border-rule">
                 <Btn variant="outline" onClick={() => setArticleToDelete(null)}>

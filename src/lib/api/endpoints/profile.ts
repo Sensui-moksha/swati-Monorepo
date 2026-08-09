@@ -1,5 +1,5 @@
-import { apiClient } from '../client';
-import type { ApiResponse } from '../types';
+import { apiClient } from "../client";
+import type { ApiResponse } from "../types";
 
 export interface ReadingStats {
   booksRead: number;
@@ -16,24 +16,18 @@ export interface SubscriptionInfo {
 }
 
 export const profileApi = {
-  getReadingStats: () =>
-    apiClient.get<ApiResponse<ReadingStats>>('/profile/reading-stats'),
+  getReadingStats: () => apiClient.get<ApiResponse<ReadingStats>>("/profile/reading-stats"),
 
-  getSubscription: () =>
-    apiClient.get<ApiResponse<SubscriptionInfo>>('/profile/subscription'),
+  getSubscription: () => apiClient.get<ApiResponse<SubscriptionInfo>>("/profile/subscription"),
 
   getSearchHistory: () =>
-    apiClient.get<ApiResponse<{query: string, timestamp: string}[]>>('/profile/search-history'),
+    apiClient.get<ApiResponse<{ query: string; timestamp: string }[]>>("/profile/search-history"),
 
-  getBookmarks: () =>
-    apiClient.get<ApiResponse<number[]>>('/profile/bookmarks'),
+  getBookmarks: () => apiClient.get<ApiResponse<number[]>>("/profile/bookmarks"),
 
-  getNotes: () =>
-    apiClient.get<ApiResponse<{p: number, t: string}[]>>('/profile/notes'),
+  getNotes: () => apiClient.get<ApiResponse<{ p: number; t: string }[]>>("/profile/notes"),
 
-  getPreferences: () =>
-    apiClient.get<ApiResponse<any>>('/profile/preferences'),
+  getPreferences: () => apiClient.get<ApiResponse<any>>("/profile/preferences"),
 
-  updatePreferences: (data: any) =>
-    apiClient.put<ApiResponse<any>>('/profile/preferences', data),
+  updatePreferences: (data: any) => apiClient.put<ApiResponse<any>>("/profile/preferences", data),
 };

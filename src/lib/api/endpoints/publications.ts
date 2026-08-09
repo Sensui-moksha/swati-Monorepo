@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+import { apiClient } from "../client";
 import type {
   Publication,
   Issue,
@@ -6,18 +6,20 @@ import type {
   PaginationParams,
   PaginatedResponse,
   ApiResponse,
-} from '../types';
+} from "../types";
 
-import { PUBLICATION_DOCUMENTS } from '../../documents';
+import { PUBLICATION_DOCUMENTS } from "../../documents";
 
 export const publicationsApi = {
   // Publications
   list: async (params?: PaginationParams & { type?: string; status?: string }) => {
     try {
-      const res = await apiClient.get<PaginatedResponse<Publication>>('/publishing/publications', { params });
+      const res = await apiClient.get<PaginatedResponse<Publication>>("/publishing/publications", {
+        params,
+      });
       if (res.data && res.data.length > 0) return res;
     } catch (_) {}
-    
+
     let docs = PUBLICATION_DOCUMENTS;
     if (params?.type) {
       docs = docs.filter((d) => d.type === params.type);
@@ -36,7 +38,14 @@ export const publicationsApi = {
     }));
     return {
       data: formatted as any,
-      meta: { page: 1, limit: 20, total: formatted.length, totalPages: 1, hasNextPage: false, hasPrevPage: false },
+      meta: {
+        page: 1,
+        limit: 20,
+        total: formatted.length,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
     };
   },
 
@@ -45,7 +54,8 @@ export const publicationsApi = {
       const res = await apiClient.get<ApiResponse<Publication>>(`/publishing/publications/${id}`);
       if (res.data) return res;
     } catch (_) {}
-    const found = PUBLICATION_DOCUMENTS.find((d) => d.id === id || d.slug === id) || PUBLICATION_DOCUMENTS[0];
+    const found =
+      PUBLICATION_DOCUMENTS.find((d) => d.id === id || d.slug === id) || PUBLICATION_DOCUMENTS[0];
     return {
       data: {
         id: found.id,
@@ -64,10 +74,14 @@ export const publicationsApi = {
 
   getBySlug: async (slug: string) => {
     try {
-      const res = await apiClient.get<ApiResponse<Publication>>(`/publishing/publications/slug/${slug}`);
+      const res = await apiClient.get<ApiResponse<Publication>>(
+        `/publishing/publications/slug/${slug}`,
+      );
       if (res.data) return res;
     } catch (_) {}
-    const found = PUBLICATION_DOCUMENTS.find((d) => d.slug === slug || d.id === slug) || PUBLICATION_DOCUMENTS[0];
+    const found =
+      PUBLICATION_DOCUMENTS.find((d) => d.slug === slug || d.id === slug) ||
+      PUBLICATION_DOCUMENTS[0];
     return {
       data: {
         id: found.id,
@@ -85,33 +99,40 @@ export const publicationsApi = {
   },
 
   create: (data: Partial<Publication>) =>
-    apiClient.post<ApiResponse<Publication>>('/publishing/publications', data),
+    apiClient.post<ApiResponse<Publication>>("/publishing/publications", data),
 
   update: (id: string, data: Partial<Publication>) =>
     apiClient.patch<ApiResponse<Publication>>(`/publishing/publications/${id}`, data),
 
-  delete: (id: string) =>
-    apiClient.delete<ApiResponse<void>>(`/publishing/publications/${id}`),
-
-
+  delete: (id: string) => apiClient.delete<ApiResponse<void>>(`/publishing/publications/${id}`),
 
   // Issues
   listIssues: (publicationId: string, params?: PaginationParams & { status?: string }) =>
-    apiClient.get<PaginatedResponse<Issue>>(`/publishing/publications/${publicationId}/issues`, { params }),
+    apiClient.get<PaginatedResponse<Issue>>(`/publishing/publications/${publicationId}/issues`, {
+      params,
+    }),
 
   getIssue: (publicationId: string, issueId: string) =>
-    apiClient.get<ApiResponse<Issue>>(`/publishing/publications/${publicationId}/issues/${issueId}`),
+    apiClient.get<ApiResponse<Issue>>(
+      `/publishing/publications/${publicationId}/issues/${issueId}`,
+    ),
 
   getIssueBySlug: (publicationId: string, slug: string) =>
-    apiClient.get<ApiResponse<Issue>>(`/publishing/publications/${publicationId}/issues/slug/${slug}`),
+    apiClient.get<ApiResponse<Issue>>(
+      `/publishing/publications/${publicationId}/issues/slug/${slug}`,
+    ),
 
   createIssue: (publicationId: string, data: Partial<Issue>) =>
     apiClient.post<ApiResponse<Issue>>(`/publishing/publications/${publicationId}/issues`, data),
 
   updateIssue: (publicationId: string, issueId: string, data: Partial<Issue>) =>
-    apiClient.patch<ApiResponse<Issue>>(`/publishing/publications/${publicationId}/issues/${issueId}`, data),
+    apiClient.patch<ApiResponse<Issue>>(
+      `/publishing/publications/${publicationId}/issues/${issueId}`,
+      data,
+    ),
 
   deleteIssue: (publicationId: string, issueId: string) =>
-    apiClient.delete<ApiResponse<void>>(`/publishing/publications/${publicationId}/issues/${issueId}`),
-
+    apiClient.delete<ApiResponse<void>>(
+      `/publishing/publications/${publicationId}/issues/${issueId}`,
+    ),
 };

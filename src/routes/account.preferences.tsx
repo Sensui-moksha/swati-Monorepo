@@ -53,14 +53,22 @@ function AccountPreferencesPage() {
   if (isLoading) {
     return (
       <DashboardShell>
-        <div className="space-y-4">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-12 bg-secondary rounded animate-pulse" />)}</div>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-12 bg-secondary rounded animate-pulse" />
+          ))}
+        </div>
       </DashboardShell>
     );
   }
 
   return (
     <DashboardShell>
-      <PageHeader eyebrow="Account" title="Preferences" description="Customize theme, reading layout, and notification settings." />
+      <PageHeader
+        eyebrow="Account"
+        title="Preferences"
+        description="Customize theme, reading layout, and notification settings."
+      />
       <Card title="Display & Reading Preferences">
         <form onSubmit={handleSave} className="space-y-6 max-w-lg">
           <div className="space-y-2">

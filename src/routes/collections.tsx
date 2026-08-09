@@ -11,7 +11,11 @@ function CollectionsPage() {
   const collections = data?.data ?? [];
 
   return (
-    <PublicPage eyebrow="Browse" title="Collections" description="Curated reading collections and themed bundles.">
+    <PublicPage
+      eyebrow="Browse"
+      title="Collections"
+      description="Curated reading collections and themed bundles."
+    >
       {isLoading ? (
         <div className="grid md:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (

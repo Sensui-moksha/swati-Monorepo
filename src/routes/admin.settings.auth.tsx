@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/auth")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Authentication" description="Sign-in methods and session security policies.">
-        <SettingsCategoryForm category="auth" title="Authentication" description="Sign-in methods and session security policies." />
+      <SettingsShell
+        title="Authentication"
+        description="Sign-in methods and session security policies."
+      >
+        <SettingsCategoryForm
+          category="auth"
+          title="Authentication"
+          description="Sign-in methods and session security policies."
+        />
       </SettingsShell>
     </AdminShell>
   );

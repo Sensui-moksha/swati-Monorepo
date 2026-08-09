@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/system-info")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="System Info" description="Runtime versions, server OS, and platform metrics.">
-        <SettingsCategoryForm category="system-info" title="System Info" description="Runtime versions, server OS, and platform metrics." />
+      <SettingsShell
+        title="System Info"
+        description="Runtime versions, server OS, and platform metrics."
+      >
+        <SettingsCategoryForm
+          category="system-info"
+          title="System Info"
+          description="Runtime versions, server OS, and platform metrics."
+        />
       </SettingsShell>
     </AdminShell>
   );

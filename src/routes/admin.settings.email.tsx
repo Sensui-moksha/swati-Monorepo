@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/email")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Email & SMTP" description="SMTP mail server configuration and sender options.">
-        <SettingsCategoryForm category="email" title="Email & SMTP" description="SMTP mail server configuration and sender options." />
+      <SettingsShell
+        title="Email & SMTP"
+        description="SMTP mail server configuration and sender options."
+      >
+        <SettingsCategoryForm
+          category="email"
+          title="Email & SMTP"
+          description="SMTP mail server configuration and sender options."
+        />
       </SettingsShell>
     </AdminShell>
   );

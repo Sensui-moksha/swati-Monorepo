@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/api")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="API & Webhooks" description="REST & GraphQL endpoint limits and webhook keys.">
-        <SettingsCategoryForm category="api" title="API & Webhooks" description="REST & GraphQL endpoint limits and webhook keys." />
+      <SettingsShell
+        title="API & Webhooks"
+        description="REST & GraphQL endpoint limits and webhook keys."
+      >
+        <SettingsCategoryForm
+          category="api"
+          title="API & Webhooks"
+          description="REST & GraphQL endpoint limits and webhook keys."
+        />
       </SettingsShell>
     </AdminShell>
   );

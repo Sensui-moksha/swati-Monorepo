@@ -34,7 +34,7 @@ function AdminNotificationsPage() {
           setShowCreate(false);
         },
         onError: () => toast.error("Failed to broadcast notification"),
-      }
+      },
     );
   };
 
@@ -101,13 +101,18 @@ function AdminNotificationsPage() {
       )}
 
       <div className="flex flex-wrap gap-2 mb-6">
-        <input placeholder="Search…" className="border border-rule bg-paper rounded px-3 py-2 text-sm flex-1 min-w-[200px]" />
+        <input
+          placeholder="Search…"
+          className="border border-rule bg-paper rounded px-3 py-2 text-sm flex-1 min-w-[200px]"
+        />
         <select className="border border-rule bg-paper rounded px-3 py-2 text-sm">
           <option>All statuses</option>
           <option>Unread</option>
           <option>Read</option>
         </select>
-        <Btn variant="outline" onClick={() => toast.success("Exported notifications CSV")}>Export CSV</Btn>
+        <Btn variant="outline" onClick={() => toast.success("Exported notifications CSV")}>
+          Export CSV
+        </Btn>
       </div>
 
       <div className="bg-paper border border-rule rounded-md overflow-hidden">
@@ -121,23 +126,45 @@ function AdminNotificationsPage() {
           <>
             <table className="w-full text-sm">
               <thead className="bg-secondary/50 text-xs uppercase tracking-widest text-muted-foreground">
-                <tr>{["Type","Title","Message","Date","Status","Actions"].map((h)=>(<th key={h} className="text-left px-4 py-3 font-medium">{h}</th>))}</tr>
+                <tr>
+                  {["Type", "Title", "Message", "Date", "Status", "Actions"].map((h) => (
+                    <th key={h} className="text-left px-4 py-3 font-medium">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
               </thead>
               <tbody>
                 {notifications.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No notifications found</td></tr>
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                      No notifications found
+                    </td>
+                  </tr>
                 ) : (
                   notifications.map((n: any) => (
                     <tr key={n.id} className="border-t border-rule/50 hover:bg-secondary/30">
-                      <td className="px-4 py-3 text-muted-foreground capitalize">{n.type || "System"}</td>
-                      <td className="px-4 py-3 font-medium">{n.title}</td>
-                      <td className="px-4 py-3 text-muted-foreground truncate max-w-xs">{n.message}</td>
-                      <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                        {n.createdAt || n.date ? new Date(n.createdAt || n.date).toLocaleDateString() : "-"}
+                      <td className="px-4 py-3 text-muted-foreground capitalize">
+                        {n.type || "System"}
                       </td>
-                      <td className="px-4 py-3"><StatusPill status={n.isRead ? "Read" : "Delivered"} /></td>
+                      <td className="px-4 py-3 font-medium">{n.title}</td>
+                      <td className="px-4 py-3 text-muted-foreground truncate max-w-xs">
+                        {n.message}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground tabular-nums">
+                        {n.createdAt || n.date
+                          ? new Date(n.createdAt || n.date).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusPill status={n.isRead ? "Read" : "Delivered"} />
+                      </td>
                       <td className="px-4 py-3 text-right">
-                        <Btn size="sm" variant="outline" onClick={() => toast.info(`Notification Details: ${n.title}`)}>
+                        <Btn
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toast.info(`Notification Details: ${n.title}`)}
+                        >
                           View
                         </Btn>
                       </td>
@@ -147,8 +174,17 @@ function AdminNotificationsPage() {
               </tbody>
             </table>
             <div className="flex items-center justify-between px-4 py-3 text-xs text-muted-foreground border-t border-rule/50">
-              <span>Showing {notifications.length} of {data?.meta?.total ?? notifications.length}</span>
-              <div className="flex gap-1"><Btn size="sm" variant="outline">Prev</Btn><Btn size="sm" variant="outline">Next</Btn></div>
+              <span>
+                Showing {notifications.length} of {data?.meta?.total ?? notifications.length}
+              </span>
+              <div className="flex gap-1">
+                <Btn size="sm" variant="outline">
+                  Prev
+                </Btn>
+                <Btn size="sm" variant="outline">
+                  Next
+                </Btn>
+              </div>
             </div>
           </>
         )}

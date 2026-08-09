@@ -24,8 +24,8 @@ export default defineConfig({
     allowedHosts: ["proto.mictech.dpdns.org", ".dpdns.org"],
     host: true,
     proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
+      "/api": {
+        target: "http://localhost:3001",
         changeOrigin: true,
       },
     },

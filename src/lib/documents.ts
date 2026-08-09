@@ -3,7 +3,7 @@ export interface PublicationDocument {
   slug: string;
   title: string;
   subtitle: string;
-  type: 'weekly' | 'monthly' | 'special' | 'digital';
+  type: "weekly" | "monthly" | "special" | "digital";
   pdfUrl: string;
   coverImage: string;
   createdAt: string;
@@ -26,7 +26,8 @@ export const PUBLICATION_DOCUMENTS: PublicationDocument[] = [
     pdfUrl: "/documents/EDITOR GARI SANMANAPATRAM.pdf",
     coverImage: pdfCover("/documents/EDITOR GARU.pdf"),
     createdAt: "2025-01-01T00:00:00.000Z",
-    description: "Official tribute issue and profile of Swathi Publications founder Vemuri Balaram.",
+    description:
+      "Official tribute issue and profile of Swathi Publications founder Vemuri Balaram.",
     author: "Vemuri Balaram",
   },
   {
@@ -180,11 +181,13 @@ export const PUBLICATION_DOCUMENTS: PublicationDocument[] = [
     subtitle: "Test Doc 720 Pages",
     type: "weekly",
     pdfUrl: "/documents/weekly/test doc 720 pages/Data Structures and Algorithms in Python.pdf",
-    coverImage: pdfCover("/documents/weekly/test doc 720 pages/Data Structures and Algorithms in Python.pdf"),
+    coverImage: pdfCover(
+      "/documents/weekly/test doc 720 pages/Data Structures and Algorithms in Python.pdf",
+    ),
     createdAt: "2026-08-07T00:00:00.000Z",
     description: "Data Structures and Algorithms in Python.",
     author: "Swathi Publications",
-  }
+  },
 ];
 
 export function getDocumentBySlug(slug: string): PublicationDocument | undefined {

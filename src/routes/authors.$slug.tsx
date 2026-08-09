@@ -4,10 +4,15 @@ import { BookCard, Btn, SectionTitle } from "@/components/ui-primitives";
 import { useAuthorBySlug, useAuthorBooks } from "@/lib/api/hooks";
 import { useState, lazy, Suspense } from "react";
 
-const LazyPdfBookViewer = lazy(() => import("@/components/PdfBookViewer").then(m => ({ default: m.PdfBookViewer })));
+const LazyPdfBookViewer = lazy(() =>
+  import("@/components/PdfBookViewer").then((m) => ({ default: m.PdfBookViewer })),
+);
 import { BookOpen, FileText } from "lucide-react";
 
-const FEATURED_PROFILES: Record<string, { name: string; role: string; bio: string; avatar: string; pdfUrl: string }> = {
+const FEATURED_PROFILES: Record<
+  string,
+  { name: string; role: string; bio: string; avatar: string; pdfUrl: string }
+> = {
   "vemuri-balaram": {
     name: "Vemuri Balaram",
     role: "Founder, Owner & Editor-in-Chief",
@@ -20,7 +25,13 @@ const FEATURED_PROFILES: Record<string, { name: string; role: string; bio: strin
 export const Route = createFileRoute("/authors/$slug")({
   head: () => ({ meta: [{ title: "Author Profile — Swathi Publications" }] }),
   component: AuthorDetailPage,
-  notFoundComponent: () => <PublicPage title="Author not found"><Link to="/authors" className="text-primary hover:underline">← All authors</Link></PublicPage>,
+  notFoundComponent: () => (
+    <PublicPage title="Author not found">
+      <Link to="/authors" className="text-primary hover:underline">
+        ← All authors
+      </Link>
+    </PublicPage>
+  ),
 });
 
 function AuthorDetailPage() {
@@ -32,27 +43,27 @@ function AuthorDetailPage() {
 
   const author = featuredProfile
     ? {
-      id: slug,
-      name: featuredProfile.name,
-      role: featuredProfile.role,
-      bio: featuredProfile.bio,
-      avatar: featuredProfile.avatar,
-      pdfUrl: featuredProfile.pdfUrl,
-      bookCount: 12,
-    }
+        id: slug,
+        name: featuredProfile.name,
+        role: featuredProfile.role,
+        bio: featuredProfile.bio,
+        avatar: featuredProfile.avatar,
+        pdfUrl: featuredProfile.pdfUrl,
+        bookCount: 12,
+      }
     : fetchedAuthor
       ? {
-        id: fetchedAuthor.id,
-        name: fetchedAuthor.name,
-        role: "Editorial Contributor",
-        bio: fetchedAuthor.bio || "Staff writer and contributor at Swathi Publications.",
-        avatar: undefined,
-        pdfUrl: (fetchedAuthor as any).pdfUrl || "/documents/weekly/32 Pages/10,11.pdf",
-        bookCount: fetchedAuthor.bookCount || 0,
-      }
+          id: fetchedAuthor.id,
+          name: fetchedAuthor.name,
+          role: "Editorial Contributor",
+          bio: fetchedAuthor.bio || "Staff writer and contributor at Swathi Publications.",
+          avatar: undefined,
+          pdfUrl: (fetchedAuthor as any).pdfUrl || "/documents/weekly/32 Pages/10,11.pdf",
+          bookCount: fetchedAuthor.bookCount || 0,
+        }
       : null;
 
-  const { data: booksData } = useAuthorBooks(fetchedAuthor?.id ?? '', { limit: 4 });
+  const { data: booksData } = useAuthorBooks(fetchedAuthor?.id ?? "", { limit: 4 });
   const books = booksData?.data ?? [];
 
   if (isLoading && !featuredProfile) {
@@ -69,13 +80,19 @@ function AuthorDetailPage() {
   if (!author) {
     return (
       <PublicPage title="Profile not found">
-        <Link to="/about" className="text-primary hover:underline">← Back to About Us</Link>
+        <Link to="/about" className="text-primary hover:underline">
+          ← Back to About Us
+        </Link>
       </PublicPage>
     );
   }
 
   return (
-    <PublicPage eyebrow={author.role || "Profile"} title={author.name} description={author.bio?.slice(0, 100)}>
+    <PublicPage
+      eyebrow={author.role || "Profile"}
+      title={author.name}
+      description={author.bio?.slice(0, 100)}
+    >
       {/* Profile Info Header */}
       <div className="grid md:grid-cols-[240px_1fr] gap-10 mb-12 items-center">
         {author.avatar ? (
@@ -92,11 +109,15 @@ function AuthorDetailPage() {
 
         <div className="space-y-4">
           <div>
-            <div className="text-sm font-semibold uppercase tracking-widest text-primary mb-1">{author.role}</div>
+            <div className="text-sm font-semibold uppercase tracking-widest text-primary mb-1">
+              {author.role}
+            </div>
             <h1 className="font-serif text-3xl md:text-4xl font-bold">{author.name}</h1>
           </div>
 
-          <p className="font-serif text-lg text-muted-foreground leading-relaxed max-w-2xl">{author.bio}</p>
+          <p className="font-serif text-lg text-muted-foreground leading-relaxed max-w-2xl">
+            {author.bio}
+          </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <Btn onClick={() => setIsBookViewerOpen(true)} className="flex items-center gap-2">
@@ -108,7 +129,10 @@ function AuthorDetailPage() {
 
       {/* Inbuilt PDF Viewer Section */}
       <div className="mb-14">
-        <SectionTitle eyebrow="Document Details" title={`Official Profile & Credentials — ${author.name}`} />
+        <SectionTitle
+          eyebrow="Document Details"
+          title={`Official Profile & Credentials — ${author.name}`}
+        />
 
         <div className="bg-paper border border-rule rounded-2xl overflow-hidden shadow-lg">
           {/* Custom Viewer Control Header */}
@@ -124,7 +148,11 @@ function AuthorDetailPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Btn size="sm" onClick={() => setIsBookViewerOpen(true)} className="flex items-center gap-1.5 text-xs bg-primary text-primary-foreground hover:bg-primary/90">
+              <Btn
+                size="sm"
+                onClick={() => setIsBookViewerOpen(true)}
+                className="flex items-center gap-1.5 text-xs bg-primary text-primary-foreground hover:bg-primary/90"
+              >
                 <BookOpen className="h-3.5 w-3.5" /> Open Fullscreen View
               </Btn>
             </div>
@@ -153,7 +181,11 @@ function AuthorDetailPage() {
       {books.length > 0 && (
         <div className="mb-12">
           <SectionTitle title="Authored Publications & Books" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">{books.map((b) => <BookCard key={b.id} book={b} />)}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {books.map((b) => (
+              <BookCard key={b.id} book={b} />
+            ))}
+          </div>
         </div>
       )}
 

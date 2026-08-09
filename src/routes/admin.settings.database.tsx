@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/database")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Database" description="Database status, connection pool, and auto-indexes.">
-        <SettingsCategoryForm category="database" title="Database" description="Database status, connection pool, and auto-indexes." />
+      <SettingsShell
+        title="Database"
+        description="Database status, connection pool, and auto-indexes."
+      >
+        <SettingsCategoryForm
+          category="database"
+          title="Database"
+          description="Database status, connection pool, and auto-indexes."
+        />
       </SettingsShell>
     </AdminShell>
   );

@@ -24,8 +24,10 @@ export function SettingsCategoryForm({ category, title, description }: SettingsC
   const updateSettings = useUpdateSettings();
 
   const rawFields: Field[] = data?.data?.fields || [];
-  const displayTitle = title || data?.data?.title || category.charAt(0).toUpperCase() + category.slice(1);
-  const displayDescription = description || data?.data?.description || `${displayTitle} platform settings.`;
+  const displayTitle =
+    title || data?.data?.title || category.charAt(0).toUpperCase() + category.slice(1);
+  const displayDescription =
+    description || data?.data?.description || `${displayTitle} platform settings.`;
 
   const [formState, setFormState] = useState<Record<string, any>>({});
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
@@ -70,11 +72,19 @@ export function SettingsCategoryForm({ category, title, description }: SettingsC
     }
 
     updateSettings.mutate(
-      { category, data: { category, title: displayTitle, description: displayDescription, fields: updatedFields } },
+      {
+        category,
+        data: {
+          category,
+          title: displayTitle,
+          description: displayDescription,
+          fields: updatedFields,
+        },
+      },
       {
         onSuccess: () => toast.success(`${displayTitle} settings saved successfully`),
         onError: () => toast.error("Failed to save settings"),
-      }
+      },
     );
   };
 
@@ -97,7 +107,9 @@ export function SettingsCategoryForm({ category, title, description }: SettingsC
             <div className="h-12 bg-secondary/50 rounded w-full" />
           </div>
         ) : rawFields.length === 0 ? (
-          <div className="py-6 text-center text-muted-foreground text-sm">No settings fields found.</div>
+          <div className="py-6 text-center text-muted-foreground text-sm">
+            No settings fields found.
+          </div>
         ) : (
           <div className="space-y-6">
             {rawFields.map((f) => {
@@ -105,7 +117,10 @@ export function SettingsCategoryForm({ category, title, description }: SettingsC
               const isReadOnly = !!f.readOnly;
 
               return (
-                <div key={f.id} className="pb-4 border-b border-rule/50 last:border-0 last:pb-0 space-y-1.5">
+                <div
+                  key={f.id}
+                  className="pb-4 border-b border-rule/50 last:border-0 last:pb-0 space-y-1.5"
+                >
                   <div className="flex items-center justify-between">
                     <label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
                       {f.label}
@@ -134,7 +149,9 @@ export function SettingsCategoryForm({ category, title, description }: SettingsC
                           }`}
                         />
                       </button>
-                      <span className="text-sm font-medium">{currentValue ? "Enabled" : "Disabled"}</span>
+                      <span className="text-sm font-medium">
+                        {currentValue ? "Enabled" : "Disabled"}
+                      </span>
                     </div>
                   ) : f.type === "select" ? (
                     <select
@@ -197,14 +214,19 @@ export function SettingsCategoryForm({ category, title, description }: SettingsC
                       disabled={isReadOnly}
                       value={currentValue ?? ""}
                       onChange={(e) =>
-                        handleChange(f.id, f.type === "number" ? Number(e.target.value) : e.target.value)
+                        handleChange(
+                          f.id,
+                          f.type === "number" ? Number(e.target.value) : e.target.value,
+                        )
                       }
                       className="w-full border border-rule bg-paper rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60"
                     />
                   )}
 
                   {f.description && (
-                    <p className="text-xs text-muted-foreground leading-relaxed pt-0.5">{f.description}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed pt-0.5">
+                      {f.description}
+                    </p>
                   )}
                 </div>
               );

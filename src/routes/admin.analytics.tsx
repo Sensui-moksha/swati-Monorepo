@@ -20,14 +20,26 @@ function AnalyticsPage() {
       </div>
       <div className="grid lg:grid-cols-2 gap-6">
         <Card title="Articles by category">
-          <ul className="space-y-2 text-sm">{categories.map((c) => (
-            <li key={c.id} className="flex justify-between"><span>{c.name}</span><span className="text-muted-foreground">{c.articleCount} articles</span></li>
-          ))}</ul>
+          <ul className="space-y-2 text-sm">
+            {categories.map((c) => (
+              <li key={c.id} className="flex justify-between">
+                <span>{c.name}</span>
+                <span className="text-muted-foreground">{c.articleCount} articles</span>
+              </li>
+            ))}
+          </ul>
         </Card>
         <Card title="Top articles">
-          <ul className="space-y-2 text-sm">{articles.map((a) => (
-            <li key={a.id} className="flex justify-between gap-4"><span className="truncate">{a.title}</span><span className="text-muted-foreground shrink-0">{a.viewCount?.toLocaleString()} views</span></li>
-          ))}</ul>
+          <ul className="space-y-2 text-sm">
+            {articles.map((a) => (
+              <li key={a.id} className="flex justify-between gap-4">
+                <span className="truncate">{a.title}</span>
+                <span className="text-muted-foreground shrink-0">
+                  {a.viewCount?.toLocaleString()} views
+                </span>
+              </li>
+            ))}
+          </ul>
         </Card>
       </div>
     </div>

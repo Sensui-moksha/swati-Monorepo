@@ -30,7 +30,7 @@ function AdminSearchPage() {
 
   const results = data?.data ?? [];
   const filtered = results.filter(
-    (item: any) => typeFilter === "all" || item.type?.toLowerCase() === typeFilter.toLowerCase()
+    (item: any) => typeFilter === "all" || item.type?.toLowerCase() === typeFilter.toLowerCase(),
   );
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -98,8 +98,13 @@ function AdminSearchPage() {
             </thead>
             <tbody className="divide-y divide-rule/50">
               {filtered.map((item: any) => (
-                <tr key={`${item.type}-${item.id}`} className="hover:bg-secondary/30 transition-colors">
-                  <td className="px-4 py-3 text-xs font-semibold uppercase text-primary">{item.type}</td>
+                <tr
+                  key={`${item.type}-${item.id}`}
+                  className="hover:bg-secondary/30 transition-colors"
+                >
+                  <td className="px-4 py-3 text-xs font-semibold uppercase text-primary">
+                    {item.type}
+                  </td>
                   <td className="px-4 py-3 font-medium">{item.name}</td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{item.slug}</td>
                   <td className="px-4 py-3">

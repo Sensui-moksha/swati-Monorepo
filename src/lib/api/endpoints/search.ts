@@ -1,5 +1,5 @@
-import { apiClient } from '../client';
-import { PUBLICATION_DOCUMENTS } from '../../documents';
+import { apiClient } from "../client";
+import { PUBLICATION_DOCUMENTS } from "../../documents";
 
 export interface SearchFilters {
   publicationId?: string;
@@ -33,7 +33,11 @@ export const searchApi = {
   /**
    * Execute a full-text hybrid search with fallback to static documents
    */
-  async search(query: string, filters?: SearchFilters, searchAfter?: any[]): Promise<SearchResponse> {
+  async search(
+    query: string,
+    filters?: SearchFilters,
+    searchAfter?: any[],
+  ): Promise<SearchResponse> {
     try {
       const params: Record<string, any> = { q: query };
       if (filters?.publicationId) params.pub = filters.publicationId;
@@ -43,18 +47,21 @@ export const searchApi = {
       if (filters?.author) params.author = filters.author;
       if (searchAfter) params.searchAfter = JSON.stringify(searchAfter);
 
-      const res = await apiClient.get<{ success: boolean; data: SearchResponse }>('/search', { params });
+      const res = await apiClient.get<{ success: boolean; data: SearchResponse }>("/search", {
+        params,
+      });
       if (res?.data?.results && res.data.results.length > 0) {
         return res.data;
       }
     } catch (_) {}
 
     const q = query.toLowerCase().trim();
-    const matchingDocs = PUBLICATION_DOCUMENTS.filter((doc) =>
-      doc.title.toLowerCase().includes(q) ||
-      doc.description.toLowerCase().includes(q) ||
-      doc.type.toLowerCase().includes(q) ||
-      (doc.author && doc.author.toLowerCase().includes(q))
+    const matchingDocs = PUBLICATION_DOCUMENTS.filter(
+      (doc) =>
+        doc.title.toLowerCase().includes(q) ||
+        doc.description.toLowerCase().includes(q) ||
+        doc.type.toLowerCase().includes(q) ||
+        (doc.author && doc.author.toLowerCase().includes(q)),
     );
 
     const results: SearchResult[] = matchingDocs.map((doc, idx) => ({
@@ -66,9 +73,9 @@ export const searchApi = {
         issueId: doc.title,
         pageNumber: 1,
         ocrText: doc.description,
-        wordCount: doc.description.split(' ').length,
+        wordCount: doc.description.split(" ").length,
       },
-      highlights: [doc.title + ' — ' + doc.description],
+      highlights: [doc.title + " — " + doc.description],
     }));
 
     return {
@@ -84,10 +91,13 @@ export const searchApi = {
   async suggest(query: string): Promise<any[]> {
     if (!query || query.length < 2) return [];
     try {
-      const { data } = await apiClient.get<{ success: boolean; data: any[] }>('/search/suggestions', { params: { q: query } });
+      const { data } = await apiClient.get<{ success: boolean; data: any[] }>(
+        "/search/suggestions",
+        { params: { q: query } },
+      );
       return data;
     } catch (_) {
       return [];
     }
-  }
+  },
 };

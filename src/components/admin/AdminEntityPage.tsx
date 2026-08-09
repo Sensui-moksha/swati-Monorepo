@@ -44,7 +44,9 @@ export function AdminEntityPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [deleteConfirmItem, setDeleteConfirmItem] = useState<{ id: string; name: string } | null>(null);
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState<{ id: string; name: string } | null>(
+    null,
+  );
 
   // Filter items based on search and status
   const filteredItems = rawItems.filter((item) => {
@@ -96,7 +98,7 @@ export function AdminEntityPage({
             setIsModalOpen(false);
           },
           onError: () => toast.error("Failed to update item"),
-        }
+        },
       );
     } else {
       createMutation.mutate(formData, {
@@ -124,7 +126,9 @@ export function AdminEntityPage({
       i.updatedAt ? new Date(i.updatedAt).toISOString() : "",
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -195,7 +199,10 @@ export function AdminEntityPage({
               <tbody>
                 {filteredItems.length === 0 ? (
                   <tr>
-                    <td colSpan={columns ? columns.length : 5} className="px-4 py-8 text-center text-muted-foreground">
+                    <td
+                      colSpan={columns ? columns.length : 5}
+                      className="px-4 py-8 text-center text-muted-foreground"
+                    >
                       No records found
                     </td>
                   </tr>
@@ -224,7 +231,11 @@ export function AdminEntityPage({
                             </td>
                             <td className="px-4 py-3 text-right">
                               <div className="flex justify-end gap-1.5">
-                                <Btn size="sm" variant="outline" onClick={() => handleOpenEdit(row)}>
+                                <Btn
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleOpenEdit(row)}
+                                >
                                   Edit
                                 </Btn>
                                 <Btn
@@ -320,56 +331,54 @@ export function AdminEntityPage({
                 </select>
               </div>
 
-              {customFields
-                ? customFields.map((cf) => (
-                    <div key={cf.id}>
-                      <label className="block text-xs uppercase tracking-widest text-muted-foreground font-medium mb-1">
-                        {cf.label}
-                      </label>
-                      {cf.type === "textarea" ? (
-                        <textarea
-                          rows={3}
-                          value={formData[cf.id] || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({ ...prev, [cf.id]: e.target.value }))
-                          }
-                          className="w-full border border-rule bg-paper rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                          placeholder={cf.placeholder || `Enter ${cf.label.toLowerCase()}`}
-                        />
-                      ) : (
-                        <input
-                          type={cf.type || "text"}
-                          value={formData[cf.id] || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({ ...prev, [cf.id]: e.target.value }))
-                          }
-                          className="w-full border border-rule bg-paper rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                          placeholder={cf.placeholder || `Enter ${cf.label.toLowerCase()}`}
-                        />
-                      )}
-                    </div>
-                  ))
-                : (
-                    <div>
-                      <label className="block text-xs uppercase tracking-widest text-muted-foreground font-medium mb-1">
-                        Description
-                      </label>
+              {customFields ? (
+                customFields.map((cf) => (
+                  <div key={cf.id}>
+                    <label className="block text-xs uppercase tracking-widest text-muted-foreground font-medium mb-1">
+                      {cf.label}
+                    </label>
+                    {cf.type === "textarea" ? (
                       <textarea
                         rows={3}
-                        value={formData.description || ""}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                        value={formData[cf.id] || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, [cf.id]: e.target.value }))
+                        }
                         className="w-full border border-rule bg-paper rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                        placeholder="Enter description..."
+                        placeholder={cf.placeholder || `Enter ${cf.label.toLowerCase()}`}
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <input
+                        type={cf.type || "text"}
+                        value={formData[cf.id] || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, [cf.id]: e.target.value }))
+                        }
+                        className="w-full border border-rule bg-paper rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        placeholder={cf.placeholder || `Enter ${cf.label.toLowerCase()}`}
+                      />
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-muted-foreground font-medium mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.description || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, description: e.target.value }))
+                    }
+                    className="w-full border border-rule bg-paper rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="Enter description..."
+                  />
+                </div>
+              )}
 
               <div className="flex justify-end gap-2 pt-3 border-t border-rule">
-                <Btn
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsModalOpen(false)}
-                >
+                <Btn type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                   Cancel
                 </Btn>
                 <Btn type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
@@ -386,7 +395,9 @@ export function AdminEntityPage({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-paper border border-rule rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-rule pb-3">
-              <h3 className="font-serif text-lg font-semibold text-destructive">Confirm Deletion</h3>
+              <h3 className="font-serif text-lg font-semibold text-destructive">
+                Confirm Deletion
+              </h3>
               <button
                 type="button"
                 onClick={() => setDeleteConfirmItem(null)}
@@ -396,7 +407,9 @@ export function AdminEntityPage({
               </button>
             </div>
             <p className="text-sm text-foreground">
-              Are you sure you want to delete <span className="font-semibold">{deleteConfirmItem.name}</span>? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{deleteConfirmItem.name}</span>? This action cannot be
+              undone.
             </p>
             <div className="flex justify-end gap-2 pt-3 border-t border-rule">
               <Btn variant="outline" onClick={() => setDeleteConfirmItem(null)}>

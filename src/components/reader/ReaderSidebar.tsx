@@ -9,11 +9,7 @@ interface ReaderSidebarProps {
   onJump: (page: number) => void;
 }
 
-export const ReaderSidebar: React.FC<ReaderSidebarProps> = ({
-  isOpen,
-  onClose,
-  onJump,
-}) => {
+export const ReaderSidebar: React.FC<ReaderSidebarProps> = ({ isOpen, onClose, onJump }) => {
   if (!isOpen) return null;
 
   return (
@@ -30,17 +26,26 @@ export const ReaderSidebar: React.FC<ReaderSidebarProps> = ({
 
       <Tabs defaultValue="toc" className="flex-1 flex flex-col overflow-hidden">
         <TabsList className="grid grid-cols-3 bg-stone-950 border-b border-stone-800 p-0 rounded-none h-10">
-          <TabsTrigger value="toc" className="text-[10px] uppercase font-bold rounded-none data-[state=active]:bg-stone-800 data-[state=active]:text-amber-400">
+          <TabsTrigger
+            value="toc"
+            className="text-[10px] uppercase font-bold rounded-none data-[state=active]:bg-stone-800 data-[state=active]:text-amber-400"
+          >
             <List className="h-3.5 w-3.5 mr-1" /> TOC
           </TabsTrigger>
-          <TabsTrigger value="bookmarks" className="text-[10px] uppercase font-bold rounded-none data-[state=active]:bg-stone-800 data-[state=active]:text-amber-400">
+          <TabsTrigger
+            value="bookmarks"
+            className="text-[10px] uppercase font-bold rounded-none data-[state=active]:bg-stone-800 data-[state=active]:text-amber-400"
+          >
             <Bookmark className="h-3.5 w-3.5 mr-1" /> Marks
           </TabsTrigger>
-          <TabsTrigger value="search" className="text-[10px] uppercase font-bold rounded-none data-[state=active]:bg-stone-800 data-[state=active]:text-amber-400">
+          <TabsTrigger
+            value="search"
+            className="text-[10px] uppercase font-bold rounded-none data-[state=active]:bg-stone-800 data-[state=active]:text-amber-400"
+          >
             <Search className="h-3.5 w-3.5 mr-1" /> Search
           </TabsTrigger>
         </TabsList>
-        
+
         <ScrollArea className="flex-1">
           <TabsContent value="toc" className="m-0 p-4">
             <div className="text-sm text-stone-500 italic text-center mt-10">
@@ -49,9 +54,7 @@ export const ReaderSidebar: React.FC<ReaderSidebarProps> = ({
             {/* Implementation for TOC mapping goes here */}
           </TabsContent>
           <TabsContent value="bookmarks" className="m-0 p-4">
-            <div className="text-sm text-stone-500 italic text-center mt-10">
-              No bookmarks yet.
-            </div>
+            <div className="text-sm text-stone-500 italic text-center mt-10">No bookmarks yet.</div>
           </TabsContent>
           <TabsContent value="search" className="m-0 p-4">
             <div className="text-sm text-stone-500 italic text-center mt-10">

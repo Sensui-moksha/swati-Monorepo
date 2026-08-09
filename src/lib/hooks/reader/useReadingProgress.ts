@@ -4,7 +4,7 @@ export function useReadingProgress(
   bookId: string,
   currentPage: number,
   totalPages: number,
-  isLoaded: boolean
+  isLoaded: boolean,
 ) {
   const syncTimeoutRef = useRef<number | null>(null);
 
@@ -15,9 +15,9 @@ export function useReadingProgress(
     const progressData = {
       currentPage,
       percentage: Math.round((currentPage / totalPages) * 100),
-      lastOpened: new Date().toISOString()
+      lastOpened: new Date().toISOString(),
     };
-    
+
     if (typeof window !== "undefined") {
       localStorage.setItem(`reading_progress_${bookId}`, JSON.stringify(progressData));
     }

@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/developer")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Developer" description="Debug modes, API mock toggles, and developer metrics.">
-        <SettingsCategoryForm category="developer" title="Developer" description="Debug modes, API mock toggles, and developer metrics." />
+      <SettingsShell
+        title="Developer"
+        description="Debug modes, API mock toggles, and developer metrics."
+      >
+        <SettingsCategoryForm
+          category="developer"
+          title="Developer"
+          description="Debug modes, API mock toggles, and developer metrics."
+        />
       </SettingsShell>
     </AdminShell>
   );

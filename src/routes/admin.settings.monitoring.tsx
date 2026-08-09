@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/monitoring")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Monitoring" description="System health metrics, error reporting, and logs.">
-        <SettingsCategoryForm category="monitoring" title="Monitoring" description="System health metrics, error reporting, and logs." />
+      <SettingsShell
+        title="Monitoring"
+        description="System health metrics, error reporting, and logs."
+      >
+        <SettingsCategoryForm
+          category="monitoring"
+          title="Monitoring"
+          description="System health metrics, error reporting, and logs."
+        />
       </SettingsShell>
     </AdminShell>
   );

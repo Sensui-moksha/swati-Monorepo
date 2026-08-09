@@ -9,8 +9,14 @@ export const Route = createFileRoute("/library/favorites")({
 function FavoritesPage() {
   const { data } = useFavorites();
   return (
-    <PublicPage eyebrow="Library" title="Favorites" description="Books and articles you've marked as favorites.">
-      <div className="text-sm text-muted-foreground py-8 text-center">Your favorites will appear here.</div>
+    <PublicPage
+      eyebrow="Library"
+      title="Favorites"
+      description="Books and articles you've marked as favorites."
+    >
+      <div className="text-sm text-muted-foreground py-8 text-center">
+        Your favorites will appear here.
+      </div>
     </PublicPage>
   );
 }

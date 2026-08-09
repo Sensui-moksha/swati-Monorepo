@@ -9,8 +9,20 @@ import { ArrowLeft } from "lucide-react";
 
 /** Wrap any public route in the full site chrome with an editorial page header. */
 export function PublicPage({
-  eyebrow, title, description, children, backTo, backLabel = "Back"
-}: { eyebrow?: string; title: string; description?: string; children: ReactNode; backTo?: string; backLabel?: string }) {
+  eyebrow,
+  title,
+  description,
+  children,
+  backTo,
+  backLabel = "Back",
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  backTo?: string;
+  backLabel?: string;
+}) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SiteHeader />
@@ -25,23 +37,45 @@ export function PublicPage({
 }
 
 /** Bare template for stub/mock pages that still look intentional. */
-export function StubPage({ title, description, sections }:
-  { title: string; description?: string; sections?: { title: string; items: string[] }[] }) {
+export function StubPage({
+  title,
+  description,
+  sections,
+}: {
+  title: string;
+  description?: string;
+  sections?: { title: string; items: string[] }[];
+}) {
   return (
-    <PublicPage title={title} description={description ?? "This page is part of the Swathi Publications prototype. Content shown here is illustrative."}>
+    <PublicPage
+      title={title}
+      description={
+        description ??
+        "This page is part of the Swathi Publications prototype. Content shown here is illustrative."
+      }
+    >
       {sections ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sections.map((s) => (
             <div key={s.title} className="border border-rule rounded-md p-6 bg-paper">
               <div className="font-serif text-xl mb-3">{s.title}</div>
               <ul className="space-y-1.5 text-sm text-muted-foreground">
-                {s.items.map((i) => <li key={i} className="flex gap-2"><span className="text-primary">›</span>{i}</li>)}
+                {s.items.map((i) => (
+                  <li key={i} className="flex gap-2">
+                    <span className="text-primary">›</span>
+                    {i}
+                  </li>
+                ))}
               </ul>
             </div>
           ))}
         </div>
       ) : (
-        <EmptyState title="Nothing here yet" body="Content for this section is being prepared." action={<Btn>Explore the archive</Btn>} />
+        <EmptyState
+          title="Nothing here yet"
+          body="Content for this section is being prepared."
+          action={<Btn>Explore the archive</Btn>}
+        />
       )}
     </PublicPage>
   );
@@ -72,10 +106,21 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <SiteHeader />
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 md:px-8 py-8 grid md:grid-cols-[220px_1fr] gap-8">
         <aside className="hidden md:block">
-          <div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">My library</div>
+          <div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
+            My library
+          </div>
           <nav className="space-y-0.5">
             {DASH_LINKS.map((l) => (
-              <Link key={l.to} to={l.to} className={cn("block px-3 py-2 rounded text-sm hover:bg-secondary", path === l.to && "bg-secondary font-medium text-primary")}>{l.label}</Link>
+              <Link
+                key={l.to}
+                to={l.to}
+                className={cn(
+                  "block px-3 py-2 rounded text-sm hover:bg-secondary",
+                  path === l.to && "bg-secondary font-medium text-primary",
+                )}
+              >
+                {l.label}
+              </Link>
             ))}
           </nav>
         </aside>
@@ -189,7 +234,15 @@ const ADMIN_GROUPS = [
 export { ADMIN_GROUPS };
 
 /** Reusable settings shell with tabs sidebar. */
-export function SettingsShell({ children, title, description }: { children: ReactNode; title: string; description?: string }) {
+export function SettingsShell({
+  children,
+  title,
+  description,
+}: {
+  children: ReactNode;
+  title: string;
+  description?: string;
+}) {
   return (
     <div>
       <BackButton />
@@ -200,16 +253,30 @@ export function SettingsShell({ children, title, description }: { children: Reac
 }
 
 /** Auth screen chrome — split-hero layout. */
-export function AuthShell({ title, subtitle, children, footer }:
-  { title: string; subtitle?: string; children: ReactNode; footer?: ReactNode }) {
+export function AuthShell({
+  title,
+  subtitle,
+  children,
+  footer,
+}: {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background relative">
       <div className="hidden md:flex flex-col justify-between p-12 bg-neutral-900 text-neutral-100 relative overflow-hidden">
-        <Link to="/" className="font-serif text-2xl">Swathi Publications</Link>
+        <Link to="/" className="font-serif text-2xl">
+          Swathi Publications
+        </Link>
         <div>
-          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">Editorial · Since 1982</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">
+            Editorial · Since 1982
+          </div>
           <blockquote className="font-serif text-3xl leading-tight max-w-md">
-            "The kind of publishing house that assumes its reader is intelligent — a rare thing today."
+            "The kind of publishing house that assumes its reader is intelligent — a rare thing
+            today."
           </blockquote>
           <div className="text-sm text-neutral-400 mt-4">— Dr. Meera Sundaram, JNU</div>
         </div>
@@ -220,7 +287,9 @@ export function AuthShell({ title, subtitle, children, footer }:
         <div className="max-w-md w-full mx-auto">
           <BackButton to="/" label="Back to Home" />
           <div className="mb-8 md:hidden">
-            <Link to="/" className="font-serif text-xl">Swathi Publications</Link>
+            <Link to="/" className="font-serif text-xl">
+              Swathi Publications
+            </Link>
           </div>
           <h1 className="font-serif text-3xl mb-2">{title}</h1>
           {subtitle && <p className="text-muted-foreground text-sm mb-8">{subtitle}</p>}

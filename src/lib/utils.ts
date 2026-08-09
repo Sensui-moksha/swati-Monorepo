@@ -7,7 +7,11 @@ export function cn(...inputs: ClassValue[]) {
 
 // Date & currency formatters (migrated from mock-data.ts)
 export function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 export function formatShortDate(iso: string) {
@@ -15,5 +19,9 @@ export function formatShortDate(iso: string) {
 }
 
 export function formatINR(n: number) {
-  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(n);
 }

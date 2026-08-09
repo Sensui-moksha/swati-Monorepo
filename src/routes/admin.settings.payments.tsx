@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/payments")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Payments" description="Gateway credentials, tax rules, and commerce options.">
-        <SettingsCategoryForm category="payments" title="Payments" description="Gateway credentials, tax rules, and commerce options." />
+      <SettingsShell
+        title="Payments"
+        description="Gateway credentials, tax rules, and commerce options."
+      >
+        <SettingsCategoryForm
+          category="payments"
+          title="Payments"
+          description="Gateway credentials, tax rules, and commerce options."
+        />
       </SettingsShell>
     </AdminShell>
   );

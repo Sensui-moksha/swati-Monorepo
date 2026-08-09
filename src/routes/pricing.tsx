@@ -5,7 +5,15 @@ import { formatINR } from "@/lib/utils";
 import { Check } from "lucide-react";
 
 export const Route = createFileRoute("/pricing")({
-  head: () => ({ meta: [{ title: "Pricing — Swathi Publications" }, { name: "description", content: "Subscribe to Swathi Publications. Digital, print, and institutional plans." }] }),
+  head: () => ({
+    meta: [
+      { title: "Pricing — Swathi Publications" },
+      {
+        name: "description",
+        content: "Subscribe to Swathi Publications. Digital, print, and institutional plans.",
+      },
+    ],
+  }),
   component: PricingPage,
 });
 
@@ -20,8 +28,8 @@ const DEFAULT_PRICING_PLANS = [
       "Full digital access to Swathi Weekly",
       "Serials & novel archives access",
       "Exclusive access to Swathi Originals",
-      "Cross-device reading sync"
-    ]
+      "Cross-device reading sync",
+    ],
   },
   {
     id: "plan-monthly",
@@ -34,8 +42,8 @@ const DEFAULT_PRICING_PLANS = [
       "Complete back-catalog archive access",
       "Exclusive access to Swathi Originals",
       "Downloadable offline PDF reading",
-      "Ad-free digital reading experience"
-    ]
+      "Ad-free digital reading experience",
+    ],
   },
   {
     id: "plan-lifetime",
@@ -47,12 +55,10 @@ const DEFAULT_PRICING_PLANS = [
       "Lifetime unlimited digital access",
       "Access to all current & future publications",
       "Exclusive hardcover special publications",
-      "Patron badge & direct line to editorial team"
-    ]
-  }
+      "Patron badge & direct line to editorial team",
+    ],
+  },
 ];
-
-
 
 function PricingPage() {
   const { data, isLoading } = useSubscriptionPlans();
@@ -65,13 +71,18 @@ function PricingPage() {
         <div className="text-center max-w-2xl mx-auto">
           <div className="eyebrow">Subscribe</div>
           <h1 className="mt-2 font-serif text-5xl">Plans for every reader</h1>
-          <p className="mt-3 text-muted-foreground">Digital editions, weekly literature, and exclusive serials. Cancel anytime.</p>
+          <p className="mt-3 text-muted-foreground">
+            Digital editions, weekly literature, and exclusive serials. Cancel anytime.
+          </p>
         </div>
 
         {isLoading && fetchedPlans.length === 0 ? (
           <div className="mt-14 grid md:grid-cols-3 gap-6">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="animate-pulse border border-rule p-8 h-96 rounded-2xl bg-paper">
+              <div
+                key={i}
+                className="animate-pulse border border-rule p-8 h-96 rounded-2xl bg-paper"
+              >
                 <div className="h-8 bg-secondary rounded w-1/2 mb-4" />
                 <div className="h-12 bg-secondary rounded w-1/3 mb-6" />
                 <div className="space-y-3">
@@ -108,13 +119,13 @@ function PricingPage() {
                   </div>
 
                   <ul className="mt-6 space-y-3 text-sm flex-1">
-                    {((p.features && p.features.length > 0)
+                    {(p.features && p.features.length > 0
                       ? p.features
                       : [
                           "Full Swathi Weekly digital editions",
                           "Access to serials & novel archive",
                           "Exclusive access to Swathi Originals & special curations",
-                          "Cross-device reading sync"
+                          "Cross-device reading sync",
                         ]
                     ).map((f) => (
                       <li key={f} className="flex items-start gap-2.5">
@@ -144,10 +155,22 @@ function PricingPage() {
           <h2 className="font-serif text-3xl font-bold">Frequently asked questions</h2>
           <div className="mt-6 grid md:grid-cols-2 gap-8">
             {[
-              ["Can I cancel anytime?", "Yes. Manage your subscription from My Account. Cancel anytime with zero fees."],
-              ["What payment methods work?", "UPI, GPay, Paytm, all major credit/debit cards, and net-banking."],
-              ["How do I access digital editions?", "Read instantly on web using our inbuilt high-resolution PDF flipbook reader."],
-              ["Can I switch plans later?", "Yes, you can upgrade or downgrade your plan anytime from your user dashboard."],
+              [
+                "Can I cancel anytime?",
+                "Yes. Manage your subscription from My Account. Cancel anytime with zero fees.",
+              ],
+              [
+                "What payment methods work?",
+                "UPI, GPay, Paytm, all major credit/debit cards, and net-banking.",
+              ],
+              [
+                "How do I access digital editions?",
+                "Read instantly on web using our inbuilt high-resolution PDF flipbook reader.",
+              ],
+              [
+                "Can I switch plans later?",
+                "Yes, you can upgrade or downgrade your plan anytime from your user dashboard.",
+              ],
             ].map(([q, a]) => (
               <div key={q} className="space-y-1">
                 <div className="font-semibold text-base">{q}</div>

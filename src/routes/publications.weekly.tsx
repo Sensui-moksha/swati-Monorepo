@@ -4,12 +4,26 @@ import { usePublications } from "@/lib/api/hooks";
 import { formatShortDate } from "@/lib/utils";
 import { PdfThumbnail } from "@/components/PdfThumbnail";
 
-function IssueGrid({ type, title, description }: { type: string; title: string; description: string }) {
+function IssueGrid({
+  type,
+  title,
+  description,
+}: {
+  type: string;
+  title: string;
+  description: string;
+}) {
   const { data, isLoading } = usePublications({ type });
   const items = data?.data ?? [];
 
   return (
-    <PublicPage eyebrow="Publications" title={title} description={description} backTo="/publications" backLabel="Back to Publications">
+    <PublicPage
+      eyebrow="Publications"
+      title={title}
+      description={description}
+      backTo="/publications"
+      backLabel="Back to Publications"
+    >
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -22,12 +36,29 @@ function IssueGrid({ type, title, description }: { type: string; title: string; 
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {items.map((pub) => (
-            <Link key={pub.id} to="/publications/$slug" params={{ slug: pub.slug }} className="group block">
-              <div className="aspect-[3/4] overflow-hidden rounded-sm shadow-md"><PdfThumbnail src={pub.coverImage ?? ''} alt={pub.title} className="w-full h-full object-cover group-hover:scale-105 transition" /></div>
+            <Link
+              key={pub.id}
+              to="/publications/$slug"
+              params={{ slug: pub.slug }}
+              className="group block"
+            >
+              <div className="aspect-[3/4] overflow-hidden rounded-sm shadow-md">
+                <PdfThumbnail
+                  src={pub.coverImage ?? ""}
+                  alt={pub.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition"
+                />
+              </div>
               <div className="mt-3">
-                <div className="text-[10px] uppercase tracking-widest text-primary">{pub.title}</div>
-                <div className="font-serif text-sm mt-1 leading-snug group-hover:text-primary">{pub.title}</div>
-                <div className="text-xs text-muted-foreground mt-1">{formatShortDate(pub.createdAt)}</div>
+                <div className="text-[10px] uppercase tracking-widest text-primary">
+                  {pub.title}
+                </div>
+                <div className="font-serif text-sm mt-1 leading-snug group-hover:text-primary">
+                  {pub.title}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {formatShortDate(pub.createdAt)}
+                </div>
               </div>
             </Link>
           ))}
@@ -38,5 +69,11 @@ function IssueGrid({ type, title, description }: { type: string; title: string; 
 }
 
 export const Route = createFileRoute("/publications/weekly")({
-  component: () => <IssueGrid type="weekly" title="Swathi Weekly" description="A weekly digest of long-form reporting, criticism, and column writing." />,
+  component: () => (
+    <IssueGrid
+      type="weekly"
+      title="Swathi Weekly"
+      description="A weekly digest of long-form reporting, criticism, and column writing."
+    />
+  ),
 });

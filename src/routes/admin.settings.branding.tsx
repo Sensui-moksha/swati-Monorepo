@@ -10,7 +10,11 @@ function SettingsPage() {
   return (
     <AdminShell>
       <SettingsShell title="Branding" description="Logo, colors and visual identity.">
-        <SettingsCategoryForm category="branding" title="Branding" description="Logo, colors and visual identity." />
+        <SettingsCategoryForm
+          category="branding"
+          title="Branding"
+          description="Logo, colors and visual identity."
+        />
       </SettingsShell>
     </AdminShell>
   );

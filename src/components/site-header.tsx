@@ -16,7 +16,6 @@ const NAV = [
   { to: "/about", label: "About" },
 ];
 
-
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -75,13 +74,19 @@ export function SiteHeader() {
                   {currentUser?.fullName || currentUser?.username || "Account"}
                 </span>
                 <span className="text-border">|</span>
-                <Link to="/account" className="hover:text-primary transition-colors hidden lg:inline">
+                <Link
+                  to="/account"
+                  className="hover:text-primary transition-colors hidden lg:inline"
+                >
                   Account
                 </Link>
                 {currentUser?.role === "admin" && (
                   <>
                     <span className="text-border hidden lg:inline">|</span>
-                    <Link to="/admin" className="hover:text-primary transition-colors hidden lg:inline">
+                    <Link
+                      to="/admin"
+                      className="hover:text-primary transition-colors hidden lg:inline"
+                    >
                       Admin
                     </Link>
                   </>
@@ -106,8 +111,12 @@ export function SiteHeader() {
               </>
             )}
             <span className="text-border">|</span>
-            <Link to="/cart" className="hover:text-primary transition-colors inline-flex items-center gap-1 font-medium text-foreground">
-              <ShoppingCart className="h-3.5 w-3.5 text-primary" /> <span className="hidden sm:inline">Cart</span>
+            <Link
+              to="/cart"
+              className="hover:text-primary transition-colors inline-flex items-center gap-1 font-medium text-foreground"
+            >
+              <ShoppingCart className="h-3.5 w-3.5 text-primary" />{" "}
+              <span className="hidden sm:inline">Cart</span>
             </Link>
           </div>
         </div>

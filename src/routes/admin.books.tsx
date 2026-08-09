@@ -7,10 +7,6 @@ export const Route = createFileRoute("/admin/books")({
 
 function Page() {
   return (
-    <AdminEntityPage
-      entity="books"
-      title="Books"
-      description="Manage the full book catalogue."
-    />
+    <AdminEntityPage entity="books" title="Books" description="Manage the full book catalogue." />
   );
 }

@@ -14,12 +14,23 @@ function SearchPage() {
   const results = data?.data ?? [];
 
   return (
-    <PublicPage eyebrow="Search" title="Search" description="Search across articles, books, and publications.">
+    <PublicPage
+      eyebrow="Search"
+      title="Search"
+      description="Search across articles, books, and publications."
+    >
       <div className="mb-8 relative max-w-2xl">
         <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search titles, authors, topics..." className="w-full border border-rule pl-10 pr-4 py-3 rounded-md bg-paper" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search titles, authors, topics..."
+          className="w-full border border-rule pl-10 pr-4 py-3 rounded-md bg-paper"
+        />
       </div>
-      {isLoading && query.length > 1 && <div className="text-sm text-muted-foreground">Searching…</div>}
+      {isLoading && query.length > 1 && (
+        <div className="text-sm text-muted-foreground">Searching…</div>
+      )}
       {results.length > 0 && (
         <ul className="divide-y divide-rule">
           {results.map((a) => (
@@ -32,7 +43,9 @@ function SearchPage() {
           ))}
         </ul>
       )}
-      {query.length > 1 && !isLoading && results.length === 0 && <div className="text-sm text-muted-foreground">No results found for "{query}"</div>}
+      {query.length > 1 && !isLoading && results.length === 0 && (
+        <div className="text-sm text-muted-foreground">No results found for "{query}"</div>
+      )}
     </PublicPage>
   );
 }

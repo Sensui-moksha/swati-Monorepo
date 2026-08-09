@@ -17,11 +17,13 @@ function AccountSecurityPage() {
 
   const changePassword = useMutation({
     mutationFn: () =>
-      authApi.changePassword({
-        currentPassword,
-        newPassword,
-        newPasswordConfirm,
-      }).then((r) => r.data),
+      authApi
+        .changePassword({
+          currentPassword,
+          newPassword,
+          newPasswordConfirm,
+        })
+        .then((r) => r.data),
     onSuccess: () => {
       toast.success("Password changed successfully");
       setCurrentPassword("");
@@ -48,7 +50,11 @@ function AccountSecurityPage() {
 
   return (
     <DashboardShell>
-      <PageHeader eyebrow="Account" title="Security" description="Manage password and account security settings." />
+      <PageHeader
+        eyebrow="Account"
+        title="Security"
+        description="Manage password and account security settings."
+      />
       <div className="space-y-6 max-w-lg">
         <Card title="Change Password">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -95,13 +101,23 @@ function AccountSecurityPage() {
                 <p className="font-medium">Current Session</p>
                 <p className="text-xs text-muted-foreground">Logged in via Web Browser</p>
               </div>
-              <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium">Active</span>
+              <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium">
+                Active
+              </span>
             </div>
             <div className="pt-2">
               <p className="text-xs text-muted-foreground mb-3">
                 If you suspect unauthorized access, you can log out from all other active sessions.
               </p>
-              <Btn variant="outline" size="sm" onClick={() => authApi.revokeAllSessions().then(() => toast.success("Revoked all other sessions"))}>
+              <Btn
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  authApi
+                    .revokeAllSessions()
+                    .then(() => toast.success("Revoked all other sessions"))
+                }
+              >
                 Log out other sessions
               </Btn>
             </div>

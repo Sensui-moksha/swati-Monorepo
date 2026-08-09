@@ -27,14 +27,20 @@ function AccountSubscriptionPage() {
 
   return (
     <DashboardShell>
-      <PageHeader eyebrow="Account" title="Subscription" description="Manage your subscription plan, billing, and tier." />
+      <PageHeader
+        eyebrow="Account"
+        title="Subscription"
+        description="Manage your subscription plan, billing, and tier."
+      />
       <Card title="Current Subscription Plan">
         <div className="space-y-4 max-w-md">
           <div className="flex items-center justify-between border-b border-rule/50 pb-3">
             <div>
               <p className="font-serif text-2xl capitalize">{sub?.tier || "Free Reader Plan"}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {sub?.tier && sub.tier !== "free" ? "Access to full digital magazine archives & premium books" : "Basic access to free articles"}
+                {sub?.tier && sub.tier !== "free"
+                  ? "Access to full digital magazine archives & premium books"
+                  : "Basic access to free articles"}
               </p>
             </div>
             <StatusPill status={sub?.status || "Active"} />
@@ -48,7 +54,9 @@ function AccountSubscriptionPage() {
             {sub?.renewsAt && (
               <div className="flex justify-between">
                 <span>Renews On</span>
-                <span className="text-muted-foreground">{new Date(sub.renewsAt).toLocaleDateString()}</span>
+                <span className="text-muted-foreground">
+                  {new Date(sub.renewsAt).toLocaleDateString()}
+                </span>
               </div>
             )}
           </div>
@@ -57,7 +65,10 @@ function AccountSubscriptionPage() {
             <Link to="/pricing">
               <Btn>Upgrade Plan</Btn>
             </Link>
-            <Btn variant="outline" onClick={() => toast.info("To cancel your plan, please contact support@swathi.com")}>
+            <Btn
+              variant="outline"
+              onClick={() => toast.info("To cancel your plan, please contact support@swathi.com")}
+            >
               Manage Billing
             </Btn>
           </div>

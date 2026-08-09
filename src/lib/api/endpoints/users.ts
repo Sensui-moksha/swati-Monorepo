@@ -1,20 +1,14 @@
-import { apiClient } from '../client';
-import type {
-  User,
-  Address,
-  PaginationParams,
-  PaginatedResponse,
-  ApiResponse,
-} from '../types';
+import { apiClient } from "../client";
+import type { User, Address, PaginationParams, PaginatedResponse, ApiResponse } from "../types";
 
 export interface UserFilters extends PaginationParams {
-  role?: 'customer' | 'admin' | 'editor' | 'author' | 'subscriber';
-  status?: 'active' | 'inactive' | 'suspended' | 'pending_verification';
+  role?: "customer" | "admin" | "editor" | "author" | "subscriber";
+  status?: "active" | "inactive" | "suspended" | "pending_verification";
   search?: string;
   dateFrom?: string;
   dateTo?: string;
-  sortBy?: 'name' | 'email' | 'createdAt' | 'lastLoginAt' | 'orderCount' | 'totalSpent';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "name" | "email" | "createdAt" | "lastLoginAt" | "orderCount" | "totalSpent";
+  sortOrder?: "asc" | "desc";
 }
 
 export interface CreateUserData {
@@ -23,8 +17,8 @@ export interface CreateUserData {
   firstName: string;
   lastName: string;
   phone?: string;
-  role?: UserFilters['role'];
-  status?: UserFilters['status'];
+  role?: UserFilters["role"];
+  status?: UserFilters["status"];
   metadata?: Record<string, unknown>;
 }
 
@@ -33,7 +27,7 @@ export interface UpdateUserData extends Partial<CreateUserData> {
 }
 
 export interface AddressData {
-  type: 'shipping' | 'billing';
+  type: "shipping" | "billing";
   firstName: string;
   lastName: string;
   company?: string;
@@ -49,67 +43,57 @@ export interface AddressData {
 
 export const usersApi = {
   // Users
-  list: (params?: UserFilters) =>
-    apiClient.get<PaginatedResponse<User>>('/users', { params }),
+  list: (params?: UserFilters) => apiClient.get<PaginatedResponse<User>>("/users", { params }),
 
-  get: (id: string) =>
-    apiClient.get<ApiResponse<User>>(`/users/${id}`),
+  get: (id: string) => apiClient.get<ApiResponse<User>>(`/users/${id}`),
 
-  getCurrent: () =>
-    apiClient.get<ApiResponse<User>>('/auth/me'),
+  getCurrent: () => apiClient.get<ApiResponse<User>>("/auth/me"),
 
-  create: (data: CreateUserData) =>
-    apiClient.post<ApiResponse<User>>('/users', data),
+  create: (data: CreateUserData) => apiClient.post<ApiResponse<User>>("/users", data),
 
-  update: (data: UpdateUserData) =>
-    apiClient.patch<ApiResponse<User>>(`/users/${data.id}`, data),
+  update: (data: UpdateUserData) => apiClient.patch<ApiResponse<User>>(`/users/${data.id}`, data),
 
-  delete: (id: string) =>
-    apiClient.delete<ApiResponse<void>>(`/users/${id}`),
+  delete: (id: string) => apiClient.delete<ApiResponse<void>>(`/users/${id}`),
 
   // Bulk operations
   bulkUpdate: (ids: string[], data: Partial<User>) =>
-    apiClient.patch<ApiResponse<User[]>>('/users/bulk', { ids, data }),
+    apiClient.patch<ApiResponse<User[]>>("/users/bulk", { ids, data }),
 
   bulkDelete: (ids: string[]) =>
-    apiClient.delete<ApiResponse<void>>('/users/bulk', { data: { ids } }),
+    apiClient.delete<ApiResponse<void>>("/users/bulk", { data: { ids } }),
 
   // Profile
   updateProfile: (data: Partial<User>) =>
-    apiClient.patch<ApiResponse<User>>('/users/me/profile', data),
+    apiClient.patch<ApiResponse<User>>("/users/me/profile", data),
 
   changePassword: (currentPassword: string, newPassword: string) =>
-    apiClient.post<ApiResponse<void>>('/users/me/password', { currentPassword, newPassword }),
+    apiClient.post<ApiResponse<void>>("/users/me/password", { currentPassword, newPassword }),
 
   // Avatar
   uploadAvatar: (file: File) => {
     const formData = new FormData();
-    formData.append('avatar', file);
-    return apiClient.post<ApiResponse<{ url: string }>>('/users/me/avatar', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    formData.append("avatar", file);
+    return apiClient.post<ApiResponse<{ url: string }>>("/users/me/avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
   },
 
-  deleteAvatar: () =>
-    apiClient.delete<ApiResponse<void>>('/users/me/avatar'),
+  deleteAvatar: () => apiClient.delete<ApiResponse<void>>("/users/me/avatar"),
 
   // Addresses
-  listAddresses: () =>
-    apiClient.get<ApiResponse<Address[]>>('/users/me/addresses'),
+  listAddresses: () => apiClient.get<ApiResponse<Address[]>>("/users/me/addresses"),
 
-  getAddress: (id: string) =>
-    apiClient.get<ApiResponse<Address>>(`/users/me/addresses/${id}`),
+  getAddress: (id: string) => apiClient.get<ApiResponse<Address>>(`/users/me/addresses/${id}`),
 
   createAddress: (data: AddressData) =>
-    apiClient.post<ApiResponse<Address>>('/users/me/addresses', data),
+    apiClient.post<ApiResponse<Address>>("/users/me/addresses", data),
 
   updateAddress: (id: string, data: Partial<AddressData>) =>
     apiClient.patch<ApiResponse<Address>>(`/users/me/addresses/${id}`, data),
 
-  deleteAddress: (id: string) =>
-    apiClient.delete<ApiResponse<void>>(`/users/me/addresses/${id}`),
+  deleteAddress: (id: string) => apiClient.delete<ApiResponse<void>>(`/users/me/addresses/${id}`),
 
-  setDefaultAddress: (id: string, type: 'shipping' | 'billing') =>
+  setDefaultAddress: (id: string, type: "shipping" | "billing") =>
     apiClient.post<ApiResponse<void>>(`/users/me/addresses/${id}/default`, { type }),
 
   // Admin: manage user addresses
@@ -127,40 +111,51 @@ export const usersApi = {
 
   // Preferences
   getPreferences: () =>
-    apiClient.get<ApiResponse<Record<string, unknown>>>('/users/me/preferences'),
+    apiClient.get<ApiResponse<Record<string, unknown>>>("/users/me/preferences"),
 
   updatePreferences: (preferences: Record<string, unknown>) =>
-    apiClient.patch<ApiResponse<Record<string, unknown>>>('/users/me/preferences', preferences),
+    apiClient.patch<ApiResponse<Record<string, unknown>>>("/users/me/preferences", preferences),
 
   // Notifications
   getNotifications: (params?: PaginationParams & { unreadOnly?: boolean }) =>
-    apiClient.get<PaginatedResponse<{ id: string; type: string; title: string; message: string; read: boolean; data?: Record<string, unknown>; createdAt: string }>>('/users/me/notifications', { params }),
+    apiClient.get<
+      PaginatedResponse<{
+        id: string;
+        type: string;
+        title: string;
+        message: string;
+        read: boolean;
+        data?: Record<string, unknown>;
+        createdAt: string;
+      }>
+    >("/users/me/notifications", { params }),
 
   markNotificationRead: (id: string) =>
     apiClient.post<ApiResponse<void>>(`/users/me/notifications/${id}/read`),
 
   markAllNotificationsRead: () =>
-    apiClient.post<ApiResponse<void>>('/users/me/notifications/read-all'),
+    apiClient.post<ApiResponse<void>>("/users/me/notifications/read-all"),
 
   // Stats
   getStats: (params?: { dateFrom?: string; dateTo?: string }) =>
-    apiClient.get<ApiResponse<{
-      totalUsers: number;
-      activeUsers: number;
-      newUsers: number;
-      usersByRole: Record<string, number>;
-      usersByStatus: Record<string, number>;
-      registrationsByPeriod: Array<{ period: string; count: number }>;
-    }>>('/admin/stats/users', { params }),
+    apiClient.get<
+      ApiResponse<{
+        totalUsers: number;
+        activeUsers: number;
+        newUsers: number;
+        usersByRole: Record<string, number>;
+        usersByStatus: Record<string, number>;
+        registrationsByPeriod: Array<{ period: string; count: number }>;
+      }>
+    >("/admin/stats/users", { params }),
 
   // Export
-  export: (params?: UserFilters & { format?: 'csv' | 'xlsx' }) =>
-    apiClient.get<Blob>('/users/export', { params, responseType: 'blob' }),
+  export: (params?: UserFilters & { format?: "csv" | "xlsx" }) =>
+    apiClient.get<Blob>("/users/export", { params, responseType: "blob" }),
 
   // Impersonation (admin only)
   impersonate: (userId: string) =>
     apiClient.post<ApiResponse<{ token: string; user: User }>>(`/users/${userId}/impersonate`),
 
-  stopImpersonation: () =>
-    apiClient.post<ApiResponse<void>>('/users/impersonation/stop'),
+  stopImpersonation: () => apiClient.post<ApiResponse<void>>("/users/impersonation/stop"),
 };

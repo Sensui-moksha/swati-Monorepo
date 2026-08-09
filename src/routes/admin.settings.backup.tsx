@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/backup")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Backup & Restore" description="Automated snapshot schedule and backup archives.">
-        <SettingsCategoryForm category="backup" title="Backup & Restore" description="Automated snapshot schedule and backup archives." />
+      <SettingsShell
+        title="Backup & Restore"
+        description="Automated snapshot schedule and backup archives."
+      >
+        <SettingsCategoryForm
+          category="backup"
+          title="Backup & Restore"
+          description="Automated snapshot schedule and backup archives."
+        />
       </SettingsShell>
     </AdminShell>
   );

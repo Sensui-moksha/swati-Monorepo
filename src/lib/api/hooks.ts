@@ -1,24 +1,31 @@
 // TanStack Query hooks wrapping the existing API endpoint modules
 // Only hooks actually used by routes are included (no speculative hooks)
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { PaginationParams } from './types';
-import { articlesApi } from './endpoints/articles';
-import { booksApi } from './endpoints/books';
-import { publicationsApi } from './endpoints/publications';
-import { ordersApi } from './endpoints/orders';
-import { subscriptionsApi } from './endpoints/subscriptions';
-import { usersApi } from './endpoints/users';
-import { authApi } from './endpoints/auth';
-import { adminApi } from './endpoints/adminApi';
-import { couponsApi } from './endpoints/couponsApi';
-import { analyticsApi } from './endpoints/analyticsApi';
-import { profileApi } from './endpoints/profile';
-import { queryKeys } from './queryKeys';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { PaginationParams } from "./types";
+import { articlesApi } from "./endpoints/articles";
+import { booksApi } from "./endpoints/books";
+import { publicationsApi } from "./endpoints/publications";
+import { ordersApi } from "./endpoints/orders";
+import { subscriptionsApi } from "./endpoints/subscriptions";
+import { usersApi } from "./endpoints/users";
+import { authApi } from "./endpoints/auth";
+import { adminApi } from "./endpoints/adminApi";
+import { couponsApi } from "./endpoints/couponsApi";
+import { analyticsApi } from "./endpoints/analyticsApi";
+import { profileApi } from "./endpoints/profile";
+import { queryKeys } from "./queryKeys";
 
 // ─── Articles ───────────────────────────────────────────────────────────────
 
-export function useArticles(params?: PaginationParams & { categoryId?: string; tagId?: string; authorId?: string; status?: string }) {
+export function useArticles(
+  params?: PaginationParams & {
+    categoryId?: string;
+    tagId?: string;
+    authorId?: string;
+    status?: string;
+  },
+) {
   return useQuery({
     queryKey: queryKeys.articles.list(params),
     queryFn: () => articlesApi.list(params),
@@ -49,7 +56,9 @@ export function useLatestArticles(params?: PaginationParams) {
   });
 }
 
-export function useTrendingArticles(params?: PaginationParams & { period?: 'day' | 'week' | 'month' | 'all' }) {
+export function useTrendingArticles(
+  params?: PaginationParams & { period?: "day" | "week" | "month" | "all" },
+) {
   return useQuery({
     queryKey: queryKeys.articles.trending(params),
     queryFn: () => articlesApi.getPopular(params),
@@ -92,7 +101,16 @@ export function useTags(params?: PaginationParams) {
 
 // ─── Books ──────────────────────────────────────────────────────────────────
 
-export function useBooks(params?: PaginationParams & { authorId?: string; genreId?: string; seriesId?: string; publisherId?: string; status?: string; format?: string }) {
+export function useBooks(
+  params?: PaginationParams & {
+    authorId?: string;
+    genreId?: string;
+    seriesId?: string;
+    publisherId?: string;
+    status?: string;
+    format?: string;
+  },
+) {
   return useQuery({
     queryKey: queryKeys.books.list(params),
     queryFn: () => booksApi.list(params),
@@ -115,8 +133,6 @@ export function useBookBySlug(slug: string) {
   });
 }
 
-
-
 export function useRecommendedBooks() {
   return useQuery({
     queryKey: queryKeys.books.recommended(),
@@ -124,7 +140,9 @@ export function useRecommendedBooks() {
   });
 }
 
-export function useTrendingBooks(params?: PaginationParams & { period?: 'day' | 'week' | 'month' | 'all' }) {
+export function useTrendingBooks(
+  params?: PaginationParams & { period?: "day" | "week" | "month" | "all" },
+) {
   return useQuery({
     queryKey: queryKeys.books.trending(params),
     queryFn: () => booksApi.getPopular(params),
@@ -164,7 +182,7 @@ export function useAuthorBySlug(slug: string) {
 
 export function useAuthorBooks(authorId: string, params?: PaginationParams) {
   return useQuery({
-    queryKey: [...queryKeys.authors.detail(authorId), 'books'] as const,
+    queryKey: [...queryKeys.authors.detail(authorId), "books"] as const,
     queryFn: () => booksApi.getAuthorBooks(authorId, params),
     enabled: !!authorId,
   });
@@ -189,7 +207,7 @@ export function usePublisherBySlug(slug: string) {
 
 export function usePublisherBooks(publisherId: string, params?: PaginationParams) {
   return useQuery({
-    queryKey: [...queryKeys.publishers.detail(publisherId), 'books'] as const,
+    queryKey: [...queryKeys.publishers.detail(publisherId), "books"] as const,
     queryFn: () => booksApi.getPublisherBooks(publisherId, params),
     enabled: !!publisherId,
   });
@@ -213,8 +231,6 @@ export function useGenreBySlug(slug: string) {
 }
 
 // ─── Series ─────────────────────────────────────────────────────────────────
-
-
 
 export function useSearchHistory() {
   return useQuery({
@@ -240,7 +256,7 @@ export function useSeriesBySlug(slug: string) {
 
 export function useSeriesBooks(seriesId: string, params?: PaginationParams) {
   return useQuery({
-    queryKey: [...queryKeys.series.detail(seriesId), 'books'] as const,
+    queryKey: [...queryKeys.series.detail(seriesId), "books"] as const,
     queryFn: () => booksApi.getSeriesBooks(seriesId, params),
     enabled: !!seriesId,
   });
@@ -307,8 +323,6 @@ export function useNotifications(params?: PaginationParams & { unreadOnly?: bool
     queryFn: () => usersApi.getNotifications(params),
   });
 }
-
-
 
 export function useReadingHistory() {
   return useQuery({
@@ -387,7 +401,9 @@ export function useOrderById(id: string) {
 
 // ─── Subscriptions ──────────────────────────────────────────────────────────
 
-export function useSubscriptionPlans(params?: PaginationParams & { active?: boolean; type?: string }) {
+export function useSubscriptionPlans(
+  params?: PaginationParams & { active?: boolean; type?: string },
+) {
   return useQuery({
     queryKey: queryKeys.subscriptions.plans(),
     queryFn: () => subscriptionsApi.listPlans(params),
@@ -451,91 +467,91 @@ export function useAdminComments(params?: PaginationParams) {
 
 export function useCampaigns(params?: PaginationParams) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'campaigns', params] as const,
+    queryKey: [...queryKeys.admin.all, "campaigns", params] as const,
     queryFn: () => adminApi.listCampaigns(params),
   });
 }
 
 export function useSupportTickets(params?: PaginationParams) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'support', params] as const,
+    queryKey: [...queryKeys.admin.all, "support", params] as const,
     queryFn: () => adminApi.listSupportTickets(params),
   });
 }
 
 export function useMedia(params?: PaginationParams) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'media', params] as const,
+    queryKey: [...queryKeys.admin.all, "media", params] as const,
     queryFn: () => adminApi.listMedia(params),
   });
 }
 
 export function useAdminNotifications(params?: PaginationParams) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'notifications', params] as const,
+    queryKey: [...queryKeys.admin.all, "notifications", params] as const,
     queryFn: () => adminApi.listNotifications(params),
   });
 }
 
 export function useTrendingMgmt(params?: PaginationParams) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'trending', params] as const,
+    queryKey: [...queryKeys.admin.all, "trending", params] as const,
     queryFn: () => adminApi.listTrending(params),
   });
 }
 
 export function useRevenueAnalytics(params?: any) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'analytics', 'revenue', params] as const,
+    queryKey: [...queryKeys.admin.all, "analytics", "revenue", params] as const,
     queryFn: () => analyticsApi.getRevenueAnalytics(params),
   });
 }
 
 export function useUserAnalytics(params?: any) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'analytics', 'users', params] as const,
+    queryKey: [...queryKeys.admin.all, "analytics", "users", params] as const,
     queryFn: () => analyticsApi.getUserAnalytics(params),
   });
 }
 
 export function useContentAnalytics(params?: any) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'analytics', 'content', params] as const,
+    queryKey: [...queryKeys.admin.all, "analytics", "content", params] as const,
     queryFn: () => analyticsApi.getContentAnalytics(params),
   });
 }
 
 export function usePaymentAnalytics(params?: any) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'analytics', 'payments', params] as const,
+    queryKey: [...queryKeys.admin.all, "analytics", "payments", params] as const,
     queryFn: () => analyticsApi.getPaymentAnalytics(params),
   });
 }
 
 export function useSearchAnalytics(params?: any) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'analytics', 'search', params] as const,
+    queryKey: [...queryKeys.admin.all, "analytics", "search", params] as const,
     queryFn: () => analyticsApi.getSearchAnalytics(params),
   });
 }
 
 export function useSubscriptionAnalytics(params?: any) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'analytics', 'subscriptions', params] as const,
+    queryKey: [...queryKeys.admin.all, "analytics", "subscriptions", params] as const,
     queryFn: () => analyticsApi.getSubscriptionAnalytics(params),
   });
 }
 
 export function usePublicationAnalytics(params?: any) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'analytics', 'publications', params] as const,
+    queryKey: [...queryKeys.admin.all, "analytics", "publications", params] as const,
     queryFn: () => analyticsApi.getPublicationAnalytics(params),
   });
 }
 
 export function useRecentTransactions(params?: any) {
   return useQuery({
-    queryKey: [...queryKeys.admin.all, 'transactions', params] as const,
+    queryKey: [...queryKeys.admin.all, "transactions", params] as const,
     queryFn: () => analyticsApi.getTransactions(params),
   });
 }
@@ -581,7 +597,8 @@ export function useCreateAdminEntity(entity: string) {
 export function useUpdateAdminEntity(entity: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => adminApi.updateGeneric(entity, id, data),
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      adminApi.updateGeneric(entity, id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.generic(entity) });
     },
@@ -598,7 +615,7 @@ export function useDeleteAdminEntity(entity: string) {
   });
 }
 
-export function useReportPreview(params: { source: string, dims: string[], metrics: string[] }) {
+export function useReportPreview(params: { source: string; dims: string[]; metrics: string[] }) {
   return useQuery({
     queryKey: queryKeys.admin.reportPreview(params),
     queryFn: () => adminApi.getReportPreview(params),
@@ -656,7 +673,7 @@ export function useExecutiveAnalytics() {
   });
 }
 
-import { settingsApi } from './endpoints/settingsApi';
+import { settingsApi } from "./endpoints/settingsApi";
 
 export function useSettings(category: string) {
   return useQuery({
@@ -668,7 +685,8 @@ export function useSettings(category: string) {
 export function useUpdateSettings() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ category, data }: { category: string, data: any }) => settingsApi.updateSettings(category, data),
+    mutationFn: ({ category, data }: { category: string; data: any }) =>
+      settingsApi.updateSettings(category, data),
     onSuccess: (_, { category }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings(category) });
     },
@@ -740,7 +758,8 @@ export function useCreateArticle() {
 export function useUpdateArticle() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof articlesApi.update>[1] }) => articlesApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof articlesApi.update>[1] }) =>
+      articlesApi.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.articles.all }),
   });
 }
@@ -764,7 +783,8 @@ export function useCreateBook() {
 export function useUpdateBook() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof booksApi.update>[1] }) => booksApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof booksApi.update>[1] }) =>
+      booksApi.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.books.all }),
   });
 }
@@ -804,8 +824,15 @@ export function useCreateSubscription() {
 export function useCancelSubscription() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, immediately, reason }: { id: string; immediately?: boolean; reason?: string }) =>
-      subscriptionsApi.cancel(id, immediately, reason),
+    mutationFn: ({
+      id,
+      immediately,
+      reason,
+    }: {
+      id: string;
+      immediately?: boolean;
+      reason?: string;
+    }) => subscriptionsApi.cancel(id, immediately, reason),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.subscriptions.all }),
   });
 }

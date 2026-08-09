@@ -12,7 +12,11 @@ function WishlistPage() {
   const savedItems = data?.data ?? [];
 
   return (
-    <PublicPage eyebrow="My Library" title="Wishlist" description="Books and articles you have saved for later.">
+    <PublicPage
+      eyebrow="My Library"
+      title="Wishlist"
+      description="Books and articles you have saved for later."
+    >
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (

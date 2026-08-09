@@ -1,5 +1,5 @@
-import { apiClient } from '../client';
-import type { ApiResponse } from '../types';
+import { apiClient } from "../client";
+import type { ApiResponse } from "../types";
 
 export const settingsApi = {
   getSettings: (category: string) =>

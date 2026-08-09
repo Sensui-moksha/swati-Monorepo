@@ -101,9 +101,16 @@ function AdminSubscriptionsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="font-serif text-3xl">Subscriptions & Plans</h1>
-          <p className="text-sm text-muted-foreground">Manage subscription plans, pricing, and subscribers</p>
+          <p className="text-sm text-muted-foreground">
+            Manage subscription plans, pricing, and subscribers
+          </p>
         </div>
-        <Btn onClick={() => { setEditingPlan({ name: "", price: 299, interval: "month", isActive: true }); setIsCreating(true); }}>
+        <Btn
+          onClick={() => {
+            setEditingPlan({ name: "", price: 299, interval: "month", isActive: true });
+            setIsCreating(true);
+          }}
+        >
           + Add New Plan
         </Btn>
       </div>
@@ -129,7 +136,9 @@ function AdminSubscriptionsPage() {
                   id="planPrice"
                   type="number"
                   value={editingPlan.price ?? 0}
-                  onChange={(e) => setEditingPlan({ ...editingPlan, price: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setEditingPlan({ ...editingPlan, price: Number(e.target.value) })
+                  }
                   required
                 />
               </div>
@@ -138,7 +147,9 @@ function AdminSubscriptionsPage() {
                 <select
                   id="planInterval"
                   value={editingPlan.interval || "month"}
-                  onChange={(e) => setEditingPlan({ ...editingPlan, interval: e.target.value as any })}
+                  onChange={(e) =>
+                    setEditingPlan({ ...editingPlan, interval: e.target.value as any })
+                  }
                   className="w-full border border-rule bg-paper rounded px-3 py-2 text-sm"
                 >
                   <option value="month">Monthly</option>
@@ -155,13 +166,27 @@ function AdminSubscriptionsPage() {
                 onChange={(e) => setEditingPlan({ ...editingPlan, isActive: e.target.checked })}
                 className="rounded border-rule text-primary"
               />
-              <Label htmlFor="planActive" className="cursor-pointer font-normal">Active for new subscribers</Label>
+              <Label htmlFor="planActive" className="cursor-pointer font-normal">
+                Active for new subscribers
+              </Label>
             </div>
             <div className="flex gap-3 pt-2">
-              <Btn type="submit" disabled={createPlanMutation.isPending || updatePlanMutation.isPending}>
-                {createPlanMutation.isPending || updatePlanMutation.isPending ? "Saving..." : "Save Plan"}
+              <Btn
+                type="submit"
+                disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
+              >
+                {createPlanMutation.isPending || updatePlanMutation.isPending
+                  ? "Saving..."
+                  : "Save Plan"}
               </Btn>
-              <Btn type="button" variant="outline" onClick={() => { setEditingPlan(null); setIsCreating(false); }}>
+              <Btn
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setEditingPlan(null);
+                  setIsCreating(false);
+                }}
+              >
                 Cancel
               </Btn>
             </div>
@@ -182,7 +207,9 @@ function AdminSubscriptionsPage() {
                 <li key={p.id} className="py-3 flex justify-between items-center gap-4">
                   <div>
                     <div className="font-medium">{p.name}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{p.interval || "month"} billing</div>
+                    <div className="text-xs text-muted-foreground capitalize">
+                      {p.interval || "month"} billing
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
@@ -210,10 +237,22 @@ function AdminSubscriptionsPage() {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <Btn size="sm" variant="outline" onClick={() => { setEditingPlan(p); setIsCreating(false); }}>
+                        <Btn
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingPlan(p);
+                            setIsCreating(false);
+                          }}
+                        >
                           Edit
                         </Btn>
-                        <Btn size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeletingPlanId(p.id)}>
+                        <Btn
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                          onClick={() => setDeletingPlanId(p.id)}
+                        >
                           Delete
                         </Btn>
                       </div>
@@ -224,8 +263,16 @@ function AdminSubscriptionsPage() {
             </ul>
           ) : (
             <div className="py-8 text-center space-y-3">
-              <div className="text-muted-foreground text-sm">No subscription plans created yet.</div>
-              <Btn size="sm" onClick={() => { setEditingPlan({ name: "", price: 299, interval: "month", isActive: true }); setIsCreating(true); }}>
+              <div className="text-muted-foreground text-sm">
+                No subscription plans created yet.
+              </div>
+              <Btn
+                size="sm"
+                onClick={() => {
+                  setEditingPlan({ name: "", price: 299, interval: "month", isActive: true });
+                  setIsCreating(true);
+                }}
+              >
                 + Create First Plan
               </Btn>
             </div>
@@ -245,7 +292,9 @@ function AdminSubscriptionsPage() {
                 </li>
               ))
             ) : (
-              <li className="py-4 text-center text-muted-foreground text-sm">No recent subscribers</li>
+              <li className="py-4 text-center text-muted-foreground text-sm">
+                No recent subscribers
+              </li>
             )}
           </ul>
         </Card>

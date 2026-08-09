@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { apiClient as api } from '@/lib/api/client';
+import React, { useState } from "react";
+import { apiClient as api } from "@/lib/api/client";
 
 export const OcrReviewDashboard: React.FC = () => {
-  const [textToScan, setTextToScan] = useState('');
+  const [textToScan, setTextToScan] = useState("");
   const [corrections, setCorrections] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleScan = async () => {
     setLoading(true);
     try {
-      const res = await api.post('/nlp/ocr-check', { text: textToScan }) as any;
+      const res = (await api.post("/nlp/ocr-check", { text: textToScan })) as any;
       setCorrections(res.data.data.corrections);
     } catch (error) {
       console.error(error);
-      alert('Failed to scan text.');
+      alert("Failed to scan text.");
     } finally {
       setLoading(false);
     }
@@ -21,11 +21,11 @@ export const OcrReviewDashboard: React.FC = () => {
 
   const applyCorrection = (index: number, suggestion: string) => {
     const correction = corrections[index];
-    const newText = textToScan.replace(new RegExp(`\\b${correction.original}\\b`, 'g'), suggestion);
+    const newText = textToScan.replace(new RegExp(`\\b${correction.original}\\b`, "g"), suggestion);
     setTextToScan(newText);
-    
+
     // Remove from the corrections list
-    setCorrections(prev => prev.filter((_, i) => i !== index));
+    setCorrections((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -40,15 +40,15 @@ export const OcrReviewDashboard: React.FC = () => {
           className="w-full h-64 p-4 border rounded focus:ring focus:ring-indigo-200"
           placeholder="Paste raw OCR text here..."
           value={textToScan}
-          onChange={e => setTextToScan(e.target.value)}
+          onChange={(e) => setTextToScan(e.target.value)}
         />
         <div className="mt-4 flex justify-end">
-          <button 
+          <button
             onClick={handleScan}
             disabled={loading || !textToScan}
             className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
           >
-            {loading ? 'Scanning...' : 'Detect Errors'}
+            {loading ? "Scanning..." : "Detect Errors"}
           </button>
         </div>
       </div>
@@ -73,7 +73,7 @@ export const OcrReviewDashboard: React.FC = () => {
                     <td className="p-3">{corr.distance}% match</td>
                     <td className="p-3 font-bold text-green-600">{corr.suggestion}</td>
                     <td className="p-3">
-                      <button 
+                      <button
                         onClick={() => applyCorrection(idx, corr.suggestion)}
                         className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-sm"
                       >

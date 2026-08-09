@@ -10,7 +10,11 @@ function SettingsPage() {
   return (
     <AdminShell>
       <SettingsShell title="General" description="Platform-wide identifiers and defaults.">
-        <SettingsCategoryForm category="general" title="General" description="Platform-wide identifiers and defaults." />
+        <SettingsCategoryForm
+          category="general"
+          title="General"
+          description="Platform-wide identifiers and defaults."
+        />
       </SettingsShell>
     </AdminShell>
   );

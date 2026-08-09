@@ -1,22 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { TrendChart } from '../../../components/charts/TrendChart';
-import { apiClient as api } from '@/lib/api/client'; 
+import React, { useEffect, useState } from "react";
+import { TrendChart } from "../../../components/charts/TrendChart";
+import { apiClient as api } from "@/lib/api/client";
 
 export const FinanceDashboard: React.FC = () => {
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    (api.get('/analytics/finance') as Promise<any>).then(res => {
-      setData(res.data.data);
-    }).catch(console.error);
+    (api.get("/analytics/finance") as Promise<any>)
+      .then((res) => {
+        setData(res.data.data);
+      })
+      .catch(console.error);
   }, []);
 
   if (!data) return <div>Loading Finance Data...</div>;
 
   const formattedTrends = data.revenueTrends.map((t: any) => ({
-    label: `${t._id.year}-${String(t._id.month).padStart(2, '0')}`,
+    label: `${t._id.year}-${String(t._id.month).padStart(2, "0")}`,
     revenue: t.revenue,
-    count: t.count
+    count: t.count,
   }));
 
   return (
@@ -26,11 +28,15 @@ export const FinanceDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded shadow">
           <span className="text-gray-500">MRR</span>
-          <span className="text-2xl block font-bold text-green-600">${data.mrr.toLocaleString()}</span>
+          <span className="text-2xl block font-bold text-green-600">
+            ${data.mrr.toLocaleString()}
+          </span>
         </div>
         <div className="bg-white p-6 rounded shadow">
           <span className="text-gray-500">ARR</span>
-          <span className="text-2xl block font-bold text-green-600">${data.arr.toLocaleString()}</span>
+          <span className="text-2xl block font-bold text-green-600">
+            ${data.arr.toLocaleString()}
+          </span>
         </div>
         <div className="bg-white p-6 rounded shadow">
           <span className="text-gray-500">Active Subscriptions</span>
@@ -38,7 +44,9 @@ export const FinanceDashboard: React.FC = () => {
         </div>
         <div className="bg-white p-6 rounded shadow">
           <span className="text-gray-500">Churn Rate</span>
-          <span className="text-2xl block font-bold text-red-600">{data.churnRate.toFixed(2)}%</span>
+          <span className="text-2xl block font-bold text-red-600">
+            {data.churnRate.toFixed(2)}%
+          </span>
         </div>
       </div>
 

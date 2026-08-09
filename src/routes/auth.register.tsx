@@ -23,12 +23,12 @@ function AuthRegisterPage() {
       const parts = fullName.split(" ");
       const firstName = parts[0];
       const lastName = parts.slice(1).join(" ") || " ";
-      return authApi.register({ 
-        email, 
-        password, 
-        firstName, 
-        lastName, 
-        acceptTerms: agreeTerms 
+      return authApi.register({
+        email,
+        password,
+        firstName,
+        lastName,
+        acceptTerms: agreeTerms,
       });
     },
     onSuccess: () => {
@@ -46,56 +46,66 @@ function AuthRegisterPage() {
   };
 
   return (
-    <AuthShell 
-      title="Create your account" 
-      subtitle="Join a community of considered readers." 
-      footer={<>Already have an account? <Link to="/auth/login" className="text-primary hover:underline">Sign in</Link></>}
+    <AuthShell
+      title="Create your account"
+      subtitle="Join a community of considered readers."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/auth/login" className="text-primary hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
     >
       <form className="space-y-4" onSubmit={handleSubmit}>
         <label className="block">
           <span className="text-xs uppercase tracking-widest text-muted-foreground">Name</span>
-          <input 
-            required 
+          <input
+            required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full mt-1 border border-rule rounded px-3 py-2 bg-paper" 
+            className="w-full mt-1 border border-rule rounded px-3 py-2 bg-paper"
           />
         </label>
         <label className="block">
           <span className="text-xs uppercase tracking-widest text-muted-foreground">Email</span>
-          <input 
-            type="email" 
+          <input
+            type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full mt-1 border border-rule rounded px-3 py-2 bg-paper" 
+            className="w-full mt-1 border border-rule rounded px-3 py-2 bg-paper"
           />
         </label>
         <label className="block">
           <span className="text-xs uppercase tracking-widest text-muted-foreground">Password</span>
-          <input 
-            type="password" 
+          <input
+            type="password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full mt-1 border border-rule rounded px-3 py-2 bg-paper" 
+            className="w-full mt-1 border border-rule rounded px-3 py-2 bg-paper"
           />
         </label>
         <label className="flex items-start gap-2 text-xs text-muted-foreground">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             required
             checked={agreeTerms}
             onChange={(e) => setAgreeTerms(e.target.checked)}
-            className="mt-1" 
+            className="mt-1"
           />
-          I agree to the <Link to="/terms" className="text-primary hover:underline">Terms</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+          I agree to the{" "}
+          <Link to="/terms" className="text-primary hover:underline">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link to="/privacy" className="text-primary hover:underline">
+            Privacy Policy
+          </Link>
         </label>
-        <Btn 
-          type="submit" 
-          disabled={registerMutation.isPending} 
-          className="w-full"
-        >
+        <Btn type="submit" disabled={registerMutation.isPending} className="w-full">
           {registerMutation.isPending ? "Creating account..." : "Create account"}
         </Btn>
       </form>

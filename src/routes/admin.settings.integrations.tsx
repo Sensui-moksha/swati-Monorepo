@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/integrations")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Integrations" description="Third-party services, analytics, and messaging bots.">
-        <SettingsCategoryForm category="integrations" title="Integrations" description="Third-party services, analytics, and messaging bots." />
+      <SettingsShell
+        title="Integrations"
+        description="Third-party services, analytics, and messaging bots."
+      >
+        <SettingsCategoryForm
+          category="integrations"
+          title="Integrations"
+          description="Third-party services, analytics, and messaging bots."
+        />
       </SettingsShell>
     </AdminShell>
   );

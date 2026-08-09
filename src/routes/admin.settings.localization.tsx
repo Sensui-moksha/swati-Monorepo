@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/localization")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Localization" description="Timezone, date formats, and regional preferences.">
-        <SettingsCategoryForm category="localization" title="Localization" description="Timezone, date formats, and regional preferences." />
+      <SettingsShell
+        title="Localization"
+        description="Timezone, date formats, and regional preferences."
+      >
+        <SettingsCategoryForm
+          category="localization"
+          title="Localization"
+          description="Timezone, date formats, and regional preferences."
+        />
       </SettingsShell>
     </AdminShell>
   );

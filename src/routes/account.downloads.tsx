@@ -5,7 +5,11 @@ export const Route = createFileRoute("/account/downloads")({
   component: () => (
     <DashboardShell>
       <PageHeader eyebrow="Account" title="Downloads" description="PDFs and offline copies." />
-      <Card><div className="text-sm text-muted-foreground">This section is part of the visual prototype. Interactions are illustrative.</div></Card>
+      <Card>
+        <div className="text-sm text-muted-foreground">
+          This section is part of the visual prototype. Interactions are illustrative.
+        </div>
+      </Card>
     </DashboardShell>
   ),
 });

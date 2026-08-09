@@ -16,28 +16,36 @@ export function prewarmAppCache(queryClient: QueryClient): void {
 
   schedule(() => {
     // 1. Prefetch main articles list
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.articles.list(),
-      queryFn: () => articlesApi.list(),
-    }).catch(() => {});
+    queryClient
+      .prefetchQuery({
+        queryKey: queryKeys.articles.list(),
+        queryFn: () => articlesApi.list(),
+      })
+      .catch(() => {});
 
     // 2. Prefetch categories list
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.categories.list(),
-      queryFn: () => articlesApi.listCategories(),
-    }).catch(() => {});
+    queryClient
+      .prefetchQuery({
+        queryKey: queryKeys.categories.list(),
+        queryFn: () => articlesApi.listCategories(),
+      })
+      .catch(() => {});
 
     // 3. Prefetch featured articles
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.articles.featured(),
-      queryFn: () => articlesApi.getFeatured(5),
-    }).catch(() => {});
+    queryClient
+      .prefetchQuery({
+        queryKey: queryKeys.articles.featured(),
+        queryFn: () => articlesApi.getFeatured(5),
+      })
+      .catch(() => {});
 
     // 4. Prefetch latest stories
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.articles.latest({ limit: 5 }),
-      queryFn: () => articlesApi.getLatest({ limit: 5 }),
-    }).catch(() => {});
+    queryClient
+      .prefetchQuery({
+        queryKey: queryKeys.articles.latest({ limit: 5 }),
+        queryFn: () => articlesApi.getLatest({ limit: 5 }),
+      })
+      .catch(() => {});
 
     // 5. Pre-warm PDF viewer & default PDF document in background
     import("@/components/PdfBookViewer")

@@ -5,7 +5,7 @@ import * as pdfjsLib from "pdfjs-dist";
 if (typeof window !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
     "pdfjs-dist/build/pdf.worker.min.mjs",
-    import.meta.url
+    import.meta.url,
   ).toString();
 }
 
@@ -27,7 +27,7 @@ export function usePdfStreaming(pdfUrl: string) {
     const loadPdf = async () => {
       try {
         let loadingTaskPromise = pdfDocCache.get(pdfUrl);
-        
+
         if (!loadingTaskPromise) {
           const loadingTask = pdfjsLib.getDocument({
             url: encodeURI(pdfUrl),
@@ -44,7 +44,7 @@ export function usePdfStreaming(pdfUrl: string) {
         }
 
         const doc = await loadingTaskPromise;
-        
+
         if (!cancelled) {
           setPdf(doc);
           setTotalPages(doc.numPages);

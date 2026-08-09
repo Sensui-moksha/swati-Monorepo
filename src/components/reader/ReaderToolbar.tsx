@@ -13,7 +13,7 @@ import {
   RotateCcw,
   LayoutGrid,
   Menu,
-  DownloadCloud
+  DownloadCloud,
 } from "lucide-react";
 import { ReaderSettings } from "@/lib/hooks/reader/useReaderSettings";
 
@@ -125,7 +125,7 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         >
           <DownloadCloud className="h-4 w-4" />
         </button>
-        
+
         <button
           onClick={() => updateSettings({ isMuted: !settings.isMuted })}
           className={`p-1.5 rounded transition hidden sm:block ${settings.isMuted ? "text-stone-500 hover:text-stone-300" : "text-amber-400 hover:bg-stone-800"}`}

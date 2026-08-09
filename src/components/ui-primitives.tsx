@@ -4,14 +4,22 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 
-export function BackButton({ to, label = "Back", className }: { to?: string; label?: string; className?: string }) {
+export function BackButton({
+  to,
+  label = "Back",
+  className,
+}: {
+  to?: string;
+  label?: string;
+  className?: string;
+}) {
   if (to) {
     return (
       <Link
         to={to as any}
         className={cn(
           "inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors py-1 px-2.5 rounded-md hover:bg-secondary/60 -ml-2 mb-4 cursor-pointer",
-          className
+          className,
         )}
       >
         <ArrowLeft className="w-3.5 h-3.5" />
@@ -25,7 +33,7 @@ export function BackButton({ to, label = "Back", className }: { to?: string; lab
       onClick={() => window.history.back()}
       className={cn(
         "inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors py-1 px-2.5 rounded-md hover:bg-secondary/60 -ml-2 mb-4 cursor-pointer",
-        className
+        className,
       )}
     >
       <ArrowLeft className="w-3.5 h-3.5" />
@@ -34,7 +42,17 @@ export function BackButton({ to, label = "Back", className }: { to?: string; lab
   );
 }
 
-export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: string; title: string; description?: string; actions?: ReactNode }) {
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+  actions,
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -43,7 +61,9 @@ export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?:
       className="border-b border-rule pb-6 mb-8 flex flex-wrap items-end justify-between gap-4"
     >
       <div className="min-w-0">
-        {eyebrow && <div className="text-xs uppercase tracking-[0.2em] text-primary mb-2">{eyebrow}</div>}
+        {eyebrow && (
+          <div className="text-xs uppercase tracking-[0.2em] text-primary mb-2">{eyebrow}</div>
+        )}
         <h1 className="font-serif text-3xl md:text-4xl leading-tight">{title}</h1>
         {description && <p className="text-muted-foreground mt-2 max-w-2xl">{description}</p>}
       </div>
@@ -52,7 +72,15 @@ export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?:
   );
 }
 
-export function EmptyState({ title, body, action }: { title: string; body: string; action?: ReactNode }) {
+export function EmptyState({
+  title,
+  body,
+  action,
+}: {
+  title: string;
+  body: string;
+  action?: ReactNode;
+}) {
   return (
     <div className="border border-dashed border-rule rounded-md py-16 text-center">
       <div className="font-serif text-2xl mb-2">{title}</div>
@@ -82,10 +110,29 @@ export function StatusPill({ status }: { status: string }) {
     Institutional: "bg-purple-100 text-purple-800",
     "On leave": "bg-amber-100 text-amber-800",
   };
-  return <span className={cn("inline-block text-xs px-2 py-0.5 rounded-full font-medium", map[status] ?? "bg-neutral-200 text-neutral-700")}>{status}</span>;
+  return (
+    <span
+      className={cn(
+        "inline-block text-xs px-2 py-0.5 rounded-full font-medium",
+        map[status] ?? "bg-neutral-200 text-neutral-700",
+      )}
+    >
+      {status}
+    </span>
+  );
 }
 
-export function KpiCard({ label, value, delta, hint }: { label: string; value: string; delta?: number; hint?: string }) {
+export function KpiCard({
+  label,
+  value,
+  delta,
+  hint,
+}: {
+  label: string;
+  value: string;
+  delta?: number;
+  hint?: string;
+}) {
   return (
     <div className="bg-paper border border-rule rounded-md p-5">
       <div className="text-xs uppercase tracking-widest text-muted-foreground">{label}</div>
@@ -100,7 +147,17 @@ export function KpiCard({ label, value, delta, hint }: { label: string; value: s
   );
 }
 
-export function Card({ title, action, children, className }: { title?: string; action?: ReactNode; children: ReactNode; className?: string }) {
+export function Card({
+  title,
+  action,
+  children,
+  className,
+}: {
+  title?: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <div className={cn("bg-paper border border-rule rounded-md p-6", className)}>
       {(title || action) && (
@@ -116,11 +173,30 @@ export function Card({ title, action, children, className }: { title?: string; a
 
 import { PdfThumbnail } from "./PdfThumbnail";
 
-export function BookCard({ book, size = "md", index = 0 }: { book: { slug: string; title: string; author?: string | { name?: string } | null; cover?: string; coverImage?: string | null; pdfUrl?: string; category?: string; format?: string }; size?: "sm" | "md" | "lg"; index?: number }) {
+export function BookCard({
+  book,
+  size = "md",
+  index = 0,
+}: {
+  book: {
+    slug: string;
+    title: string;
+    author?: string | { name?: string } | null;
+    cover?: string;
+    coverImage?: string | null;
+    pdfUrl?: string;
+    category?: string;
+    format?: string;
+  };
+  size?: "sm" | "md" | "lg";
+  index?: number;
+}) {
   const h = size === "sm" ? "h-48" : size === "lg" ? "h-80" : "h-64";
-  const coverSrc = book.coverImage || book.cover || book.pdfUrl || '';
-  const rawAuthor = typeof book.author === 'string' ? book.author : book.author?.name ?? '';
-  const authorName = rawAuthor.match(/^[0-9a-fA-F]{24}$/) ? 'Editorial Board' : (rawAuthor || 'Editorial Board');
+  const coverSrc = book.coverImage || book.cover || book.pdfUrl || "";
+  const rawAuthor = typeof book.author === "string" ? book.author : (book.author?.name ?? "");
+  const authorName = rawAuthor.match(/^[0-9a-fA-F]{24}$/)
+    ? "Editorial Board"
+    : rawAuthor || "Editorial Board";
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -131,7 +207,12 @@ export function BookCard({ book, size = "md", index = 0 }: { book: { slug: strin
       <Link to="/library/book/$slug" params={{ slug: book.slug }} className="group block">
         <motion.div
           className={cn("relative overflow-hidden bg-secondary rounded-sm shadow-md", h)}
-          whileHover={{ y: -6, rotateX: 4, rotateY: -4, boxShadow: "0 30px 60px -20px rgba(0,0,0,0.4)" }}
+          whileHover={{
+            y: -6,
+            rotateX: 4,
+            rotateY: -4,
+            boxShadow: "0 30px 60px -20px rgba(0,0,0,0.4)",
+          }}
           transition={{ type: "spring", stiffness: 260, damping: 22 }}
           style={{ transformStyle: "preserve-3d", perspective: 800 }}
         >
@@ -144,8 +225,14 @@ export function BookCard({ book, size = "md", index = 0 }: { book: { slug: strin
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-500" />
         </motion.div>
         <div className="mt-3">
-          {book.category && <div className="text-xs uppercase tracking-widest text-primary mb-1">{book.category}</div>}
-          <div className="font-serif text-base leading-snug group-hover:text-primary transition line-clamp-2">{book.title}</div>
+          {book.category && (
+            <div className="text-xs uppercase tracking-widest text-primary mb-1">
+              {book.category}
+            </div>
+          )}
+          <div className="font-serif text-base leading-snug group-hover:text-primary transition line-clamp-2">
+            {book.title}
+          </div>
           <div className="text-xs text-muted-foreground mt-1">{authorName}</div>
         </div>
       </Link>
@@ -153,7 +240,17 @@ export function BookCard({ book, size = "md", index = 0 }: { book: { slug: strin
   );
 }
 
-export function SectionTitle({ eyebrow, title, href, hrefLabel }: { eyebrow?: string; title: string; href?: string; hrefLabel?: string }) {
+export function SectionTitle({
+  eyebrow,
+  title,
+  href,
+  hrefLabel,
+}: {
+  eyebrow?: string;
+  title: string;
+  href?: string;
+  hrefLabel?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -163,10 +260,19 @@ export function SectionTitle({ eyebrow, title, href, hrefLabel }: { eyebrow?: st
       className="flex items-end justify-between border-b border-rule pb-3 mb-6"
     >
       <div>
-        {eyebrow && <div className="text-[10px] uppercase tracking-[0.2em] text-primary mb-1">{eyebrow}</div>}
+        {eyebrow && (
+          <div className="text-[10px] uppercase tracking-[0.2em] text-primary mb-1">{eyebrow}</div>
+        )}
         <h2 className="font-serif text-2xl">{title}</h2>
       </div>
-      {href && <a href={href} className="text-xs uppercase tracking-widest text-primary hover:underline story-link">{hrefLabel ?? "See all"} →</a>}
+      {href && (
+        <a
+          href={href}
+          className="text-xs uppercase tracking-widest text-primary hover:underline story-link"
+        >
+          {hrefLabel ?? "See all"} →
+        </a>
+      )}
     </motion.div>
   );
 }
@@ -184,14 +290,36 @@ export function PageTransition({ children }: { children: ReactNode }) {
   );
 }
 
-export function Btn({ children, variant = "primary", size = "md", className, ...rest }: { children: ReactNode; variant?: "primary" | "outline" | "ghost"; size?: "sm" | "md" } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+export function Btn({
+  children,
+  variant = "primary",
+  size = "md",
+  className,
+  ...rest
+}: {
+  children: ReactNode;
+  variant?: "primary" | "outline" | "ghost";
+  size?: "sm" | "md";
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const styles = {
     primary: "bg-primary text-primary-foreground hover:bg-primary/90",
     outline: "border border-rule hover:bg-secondary",
     ghost: "hover:bg-secondary",
   }[variant];
   const sizing = size === "sm" ? "px-2.5 py-1 text-xs" : "px-4 py-2 text-sm";
-  return <button {...rest} className={cn("inline-flex items-center justify-center font-medium rounded-md transition", sizing, styles, className)}>{children}</button>;
+  return (
+    <button
+      {...rest}
+      className={cn(
+        "inline-flex items-center justify-center font-medium rounded-md transition",
+        sizing,
+        styles,
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
 }
 
 export function Input({ className, ...rest }: React.InputHTMLAttributes<HTMLInputElement>) {
@@ -199,19 +327,23 @@ export function Input({ className, ...rest }: React.InputHTMLAttributes<HTMLInpu
     <input
       className={cn(
         "flex h-9 w-full rounded-md border border-rule bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50",
-        className
+        className,
       )}
       {...rest}
     />
   );
 }
 
-export function Label({ className, children, ...rest }: React.LabelHTMLAttributes<HTMLLabelElement>) {
+export function Label({
+  className,
+  children,
+  ...rest
+}: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
     <label
       className={cn(
         "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-        className
+        className,
       )}
       {...rest}
     >

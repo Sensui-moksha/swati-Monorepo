@@ -1,52 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { searchApi, SearchResult, SearchResponse } from '../../lib/api/endpoints/search';
-import { SearchResultItem } from './SearchResultItem';
-import { useDebounce } from '../../lib/hooks/useDebounce';
-import { Search, X, Sparkles, BookOpen } from 'lucide-react';
-import { DateFilterControl, DateFilterValue } from '../DateFilterControl';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { searchApi, SearchResult, SearchResponse } from "../../lib/api/endpoints/search";
+import { SearchResultItem } from "./SearchResultItem";
+import { useDebounce } from "../../lib/hooks/useDebounce";
+import { Search, X, Sparkles, BookOpen } from "lucide-react";
+import { DateFilterControl, DateFilterValue } from "../DateFilterControl";
 
 interface GlobalSearchProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const QUICK_TAGS = ['Weekly', 'Monthly', 'Originals', 'Vemuri Balaram', 'Short Stories'];
+const QUICK_TAGS = ["Weekly", "Monthly", "Originals", "Vemuri Balaram", "Short Stories"];
 
 export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
-  const [query, setQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState<DateFilterValue>({ preset: 'all' });
+  const [query, setQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateFilterValue>({ preset: "all" });
   const debouncedQuery = useDebounce(query, 300);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
+      window.addEventListener("keydown", handleKeyDown);
     }
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isPending,
-    isSuccess
-  } = useInfiniteQuery({
-    queryKey: ['globalSearch', debouncedQuery, dateFilter],
-    queryFn: async ({ pageParam }) => {
-      if (!debouncedQuery) return { total: 0, results: [], nextCursor: null } as SearchResponse;
-      const filters = dateFilter.preset !== 'all' ? { year: parseInt(dateFilter.preset, 10) } : {};
-      return searchApi.search(debouncedQuery, filters, pageParam as any[] | undefined);
-    },
-    initialPageParam: undefined as any[] | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: debouncedQuery.trim().length > 1
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending, isSuccess } =
+    useInfiniteQuery({
+      queryKey: ["globalSearch", debouncedQuery, dateFilter],
+      queryFn: async ({ pageParam }) => {
+        if (!debouncedQuery) return { total: 0, results: [], nextCursor: null } as SearchResponse;
+        const filters =
+          dateFilter.preset !== "all" ? { year: parseInt(dateFilter.preset, 10) } : {};
+        return searchApi.search(debouncedQuery, filters, pageParam as any[] | undefined);
+      },
+      initialPageParam: undefined as any[] | undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      enabled: debouncedQuery.trim().length > 1,
+    });
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
@@ -86,7 +81,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
             />
             {query && (
               <button
-                onClick={() => setQuery('')}
+                onClick={() => setQuery("")}
                 className="p-1 hover:bg-secondary rounded-full text-muted-foreground transition"
               >
                 <X className="w-4 h-4" />
@@ -129,14 +124,19 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3" onScroll={handleScroll}>
             {isPending && debouncedQuery.trim().length > 1 && (
               <div className="flex items-center justify-center p-8 text-muted-foreground text-sm gap-2">
-                <BookOpen className="w-4 h-4 animate-bounce text-primary" /> Searching publications...
+                <BookOpen className="w-4 h-4 animate-bounce text-primary" /> Searching
+                publications...
               </div>
             )}
-            
+
             {isSuccess && data?.pages[0]?.total === 0 && debouncedQuery.trim().length > 1 && (
               <div className="text-center py-10 px-4">
-                <p className="text-muted-foreground text-sm font-medium">No results found for "{debouncedQuery}"</p>
-                <p className="text-xs text-muted-foreground mt-1">Try searching for "Weekly", "Monthly", or "Balaram".</p>
+                <p className="text-muted-foreground text-sm font-medium">
+                  No results found for "{debouncedQuery}"
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Try searching for "Weekly", "Monthly", or "Balaram".
+                </p>
               </div>
             )}
 
@@ -149,7 +149,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
             ))}
 
             {isFetchingNextPage && (
-              <div className="flex justify-center p-4 text-xs text-muted-foreground">Loading more results...</div>
+              <div className="flex justify-center p-4 text-xs text-muted-foreground">
+                Loading more results...
+              </div>
             )}
           </div>
         </motion.div>

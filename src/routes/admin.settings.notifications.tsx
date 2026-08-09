@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/notifications")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Notifications" description="System email alerts, push notifications, and digests.">
-        <SettingsCategoryForm category="notifications" title="Notifications" description="System email alerts, push notifications, and digests." />
+      <SettingsShell
+        title="Notifications"
+        description="System email alerts, push notifications, and digests."
+      >
+        <SettingsCategoryForm
+          category="notifications"
+          title="Notifications"
+          description="System email alerts, push notifications, and digests."
+        />
       </SettingsShell>
     </AdminShell>
   );

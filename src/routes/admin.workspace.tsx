@@ -73,14 +73,19 @@ function AdminWorkspacePage() {
       )}
 
       <div className="flex flex-wrap gap-2 mb-6">
-        <input placeholder="Search…" className="border border-rule bg-paper rounded px-3 py-2 text-sm flex-1 min-w-[200px]" />
+        <input
+          placeholder="Search…"
+          className="border border-rule bg-paper rounded px-3 py-2 text-sm flex-1 min-w-[200px]"
+        />
         <select className="border border-rule bg-paper rounded px-3 py-2 text-sm">
           <option>All statuses</option>
           <option>Active</option>
           <option>Draft</option>
           <option>Archived</option>
         </select>
-        <Btn variant="outline" onClick={() => toast.success("Exported workspace CSV")}>Export CSV</Btn>
+        <Btn variant="outline" onClick={() => toast.success("Exported workspace CSV")}>
+          Export CSV
+        </Btn>
       </div>
 
       <div className="bg-paper border border-rule rounded-md overflow-hidden">
@@ -94,22 +99,40 @@ function AdminWorkspacePage() {
           <>
             <table className="w-full text-sm">
               <thead className="bg-secondary/50 text-xs uppercase tracking-widest text-muted-foreground">
-                <tr>{["Name","Status","Owner","Updated","Actions"].map((h)=>(<th key={h} className="text-left px-4 py-3 font-medium">{h}</th>))}</tr>
+                <tr>
+                  {["Name", "Status", "Owner", "Updated", "Actions"].map((h) => (
+                    <th key={h} className="text-left px-4 py-3 font-medium">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
               </thead>
               <tbody>
                 {workspaces.length === 0 ? (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No workspace records found</td></tr>
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                      No workspace records found
+                    </td>
+                  </tr>
                 ) : (
                   workspaces.map((w: any) => (
                     <tr key={w.id} className="border-t border-rule/50 hover:bg-secondary/30">
                       <td className="px-4 py-3 font-medium">{w.name}</td>
-                      <td className="px-4 py-3"><StatusPill status={w.status || "Active"} /></td>
-                      <td className="px-4 py-3 text-muted-foreground">{w.owner || "Editorial Team"}</td>
+                      <td className="px-4 py-3">
+                        <StatusPill status={w.status || "Active"} />
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {w.owner || "Editorial Team"}
+                      </td>
                       <td className="px-4 py-3 text-muted-foreground tabular-nums">
                         {w.updatedAt ? new Date(w.updatedAt).toLocaleDateString() : "-"}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Btn size="sm" variant="outline" onClick={() => toast.info(`Viewing workspace item: ${w.name}`)}>
+                        <Btn
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toast.info(`Viewing workspace item: ${w.name}`)}
+                        >
                           View
                         </Btn>
                       </td>
@@ -119,8 +142,17 @@ function AdminWorkspacePage() {
               </tbody>
             </table>
             <div className="flex items-center justify-between px-4 py-3 text-xs text-muted-foreground border-t border-rule/50">
-              <span>Showing {workspaces.length} of {data?.meta?.total ?? workspaces.length}</span>
-              <div className="flex gap-1"><Btn size="sm" variant="outline">Prev</Btn><Btn size="sm" variant="outline">Next</Btn></div>
+              <span>
+                Showing {workspaces.length} of {data?.meta?.total ?? workspaces.length}
+              </span>
+              <div className="flex gap-1">
+                <Btn size="sm" variant="outline">
+                  Prev
+                </Btn>
+                <Btn size="sm" variant="outline">
+                  Next
+                </Btn>
+              </div>
             </div>
           </>
         )}

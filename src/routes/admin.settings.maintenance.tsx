@@ -9,8 +9,15 @@ export const Route = createFileRoute("/admin/settings/maintenance")({
 function SettingsPage() {
   return (
     <AdminShell>
-      <SettingsShell title="Maintenance" description="System maintenance state, notices, and access bypass.">
-        <SettingsCategoryForm category="maintenance" title="Maintenance" description="System maintenance state, notices, and access bypass." />
+      <SettingsShell
+        title="Maintenance"
+        description="System maintenance state, notices, and access bypass."
+      >
+        <SettingsCategoryForm
+          category="maintenance"
+          title="Maintenance"
+          description="System maintenance state, notices, and access bypass."
+        />
       </SettingsShell>
     </AdminShell>
   );

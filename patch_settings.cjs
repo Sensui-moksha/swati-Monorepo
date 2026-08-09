@@ -1,28 +1,30 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const dir = './src/routes';
-const files = fs.readdirSync(dir).filter(f => f.startsWith('admin.settings.') && f !== 'admin.settings.tsx');
+const dir = "./src/routes";
+const files = fs
+  .readdirSync(dir)
+  .filter((f) => f.startsWith("admin.settings.") && f !== "admin.settings.tsx");
 
-files.forEach(file => {
+files.forEach((file) => {
   const filePath = path.join(dir, file);
-  let content = fs.readFileSync(filePath, 'utf-8');
+  let content = fs.readFileSync(filePath, "utf-8");
 
   // Skip if already processed
-  if (content.includes('useSettings')) return;
+  if (content.includes("useSettings")) return;
 
   // Extract Route path
   const routeMatch = content.match(/createFileRoute\("([^"]+)"\)/);
-  const routePath = routeMatch ? routeMatch[1] : '';
-  
+  const routePath = routeMatch ? routeMatch[1] : "";
+
   // Extract title and description from SettingsShell
   const shellMatch = content.match(/<SettingsShell title="([^"]+)" description="([^"]+)">/);
-  const shellTitle = shellMatch ? shellMatch[1] : 'Settings';
-  const shellDesc = shellMatch ? shellMatch[2] : '';
-  
+  const shellTitle = shellMatch ? shellMatch[1] : "Settings";
+  const shellDesc = shellMatch ? shellMatch[2] : "";
+
   // Extract Card title
   const cardMatch = content.match(/<Card title="([^"]+)">/);
-  const cardTitle = cardMatch ? cardMatch[1] : 'Settings';
+  const cardTitle = cardMatch ? cardMatch[1] : "Settings";
 
   const newContent = `import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell, SettingsShell } from "@/components/shells";
@@ -34,7 +36,7 @@ export const Route = createFileRoute("${routePath}")({
 });
 
 function SettingsPage() {
-  const category = "${routePath.split('/').pop()}";
+  const category = "${routePath.split("/").pop()}";
   const { data, isLoading } = useSettings(category);
   const fields = data?.data?.fields || ["Field label","Second field","Third field"];
 
@@ -65,6 +67,6 @@ function SettingsPage() {
 }
 `;
 
-  fs.writeFileSync(filePath, newContent, 'utf-8');
+  fs.writeFileSync(filePath, newContent, "utf-8");
 });
-console.log('Patched all settings files.');
+console.log("Patched all settings files.");

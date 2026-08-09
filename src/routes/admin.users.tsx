@@ -34,17 +34,20 @@ function AdminUsersPage() {
       setModalMode(null);
       queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message || err?.message || "Failed to create user"),
+    onError: (err: any) =>
+      toast.error(err?.response?.data?.message || err?.message || "Failed to create user"),
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ id, updateData }: { id: string; updateData: any }) => adminApi.updateUser(id, updateData),
+    mutationFn: ({ id, updateData }: { id: string; updateData: any }) =>
+      adminApi.updateUser(id, updateData),
     onSuccess: () => {
       toast.success("User updated successfully");
       setModalMode(null);
       queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message || err?.message || "Failed to update user"),
+    onError: (err: any) =>
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update user"),
   });
 
   const deleteUserMutation = useMutation({
@@ -122,14 +125,22 @@ function AdminUsersPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="font-serif text-3xl">Users Management</h1>
-          <p className="text-sm text-muted-foreground">{data?.meta?.total ?? users.length} registered users in database</p>
+          <p className="text-sm text-muted-foreground">
+            {data?.meta?.total ?? users.length} registered users in database
+          </p>
         </div>
         <Btn onClick={handleOpenCreate}>+ Create New User</Btn>
       </div>
 
       {/* User Create/Edit Form Card */}
       {modalMode && (
-        <Card title={modalMode === "create" ? "Create New User" : `Edit User: ${formData.fullName || formData.username}`}>
+        <Card
+          title={
+            modalMode === "create"
+              ? "Create New User"
+              : `Edit User: ${formData.fullName || formData.username}`
+          }
+        >
           <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -192,8 +203,15 @@ function AdminUsersPage() {
             )}
 
             <div className="flex gap-3 pt-2">
-              <Btn type="submit" disabled={createUserMutation.isPending || updateUserMutation.isPending}>
-                {createUserMutation.isPending || updateUserMutation.isPending ? "Saving..." : modalMode === "create" ? "Create User" : "Update User"}
+              <Btn
+                type="submit"
+                disabled={createUserMutation.isPending || updateUserMutation.isPending}
+              >
+                {createUserMutation.isPending || updateUserMutation.isPending
+                  ? "Saving..."
+                  : modalMode === "create"
+                    ? "Create User"
+                    : "Update User"}
               </Btn>
               <Btn type="button" variant="outline" onClick={() => setModalMode(null)}>
                 Cancel
@@ -205,7 +223,11 @@ function AdminUsersPage() {
 
       <Card title="All Registered Users">
         {isLoading ? (
-          <div className="space-y-3">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-10 bg-secondary rounded animate-pulse" />)}</div>
+          <div className="space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-10 bg-secondary rounded animate-pulse" />
+            ))}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -226,7 +248,9 @@ function AdminUsersPage() {
                   return (
                     <tr key={id || u.email} className="hover:bg-secondary/30 transition-colors">
                       <td className="py-3 px-4">
-                        <div className="font-medium">{u.fullName || u.name || u.username || "User"}</div>
+                        <div className="font-medium">
+                          {u.fullName || u.name || u.username || "User"}
+                        </div>
                         <div className="text-xs text-muted-foreground">@{u.username || "user"}</div>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{u.email}</td>
@@ -245,7 +269,11 @@ function AdminUsersPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => toggleStatusMutation.mutate({ id, isActive })}
-                            className={isActive ? "text-amber-600 hover:text-amber-700" : "text-emerald-600 hover:text-emerald-700"}
+                            className={
+                              isActive
+                                ? "text-amber-600 hover:text-amber-700"
+                                : "text-emerald-600 hover:text-emerald-700"
+                            }
                           >
                             {isActive ? "Suspend" : "Activate"}
                           </Btn>
@@ -270,7 +298,9 @@ function AdminUsersPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-paper border border-rule rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
               <div className="flex justify-between items-center border-b border-rule pb-3">
-                <h3 className="font-serif text-lg font-semibold text-destructive">Confirm Deletion</h3>
+                <h3 className="font-serif text-lg font-semibold text-destructive">
+                  Confirm Deletion
+                </h3>
                 <button
                   type="button"
                   onClick={() => setUserToDelete(null)}
@@ -280,7 +310,9 @@ function AdminUsersPage() {
                 </button>
               </div>
               <p className="text-sm text-foreground">
-                Are you sure you want to delete user <span className="font-semibold">{userToDelete.email || userToDelete.username}</span>? This action cannot be undone.
+                Are you sure you want to delete user{" "}
+                <span className="font-semibold">{userToDelete.email || userToDelete.username}</span>
+                ? This action cannot be undone.
               </p>
               <div className="flex justify-end gap-2 pt-3 border-t border-rule">
                 <Btn variant="outline" onClick={() => setUserToDelete(null)}>
