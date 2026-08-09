@@ -55,30 +55,15 @@ export function getTrimBoxCrop(page: pdfjsLib.PDFPageProxy): [number, number, nu
   const mediaBox = page.view;
   const mediaW = Math.abs(mediaBox[2] - mediaBox[0]);
   const mediaH = Math.abs(mediaBox[3] - mediaBox[1]);
-  const trimBox = (page as any).trimBox || (page as any).cropBox;
-  if (trimBox && Array.isArray(trimBox) && trimBox.length === 4) {
-    const [tX1, tY1, tX2, tY2] = trimBox;
-    const trimW = Math.abs(tX2 - tX1);
-    const trimH = Math.abs(tY2 - tY1);
-    if (trimW > 0 && trimH > 0 && (trimW < mediaW * 0.98 || trimH < mediaH * 0.98)) {
-      return [Math.min(tX1, tX2), Math.min(tY1, tY2), Math.max(tX1, tX2), Math.max(tY1, tY2)];
-    }
-  }
-  let cropLeft = 0.05,
-    cropRight = 0.05,
-    cropTop = 0.05,
-    cropBottom = 0.05;
-  const pageNumber = (page as any).pageNumber || 1;
-  const isEvenPage = pageNumber % 2 === 0;
-  cropLeft = Math.max(cropLeft, 0.05);
-  cropRight = Math.max(cropRight, isEvenPage ? 0.07 : 0.05);
-  cropTop = Math.max(cropTop, 0.05);
-  cropBottom = Math.max(cropBottom, 0.05);
+
+  // Uniform 5% crop on all sides to ensure perfect aspect ratio and wipe out printer crop marks
+  const crop = 0.05;
+  
   return [
-    mediaBox[0] + mediaW * cropLeft,
-    mediaBox[1] + mediaH * cropBottom,
-    mediaBox[2] - mediaW * cropRight,
-    mediaBox[3] - mediaH * cropTop,
+    mediaBox[0] + mediaW * crop,
+    mediaBox[1] + mediaH * crop,
+    mediaBox[2] - mediaW * crop,
+    mediaBox[3] - mediaH * crop,
   ];
 }
 
@@ -118,22 +103,44 @@ function renderPdfPageToCanvas(
   pdfDoc.getPage(pageNum).then((page) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const viewBox = getTrimBoxCrop(page);
+    const mediaBox = page.view;
     const liveW = viewBox[2] - viewBox[0];
+    const liveH = viewBox[3] - viewBox[1];
     const scale = (tw / liveW) * dpr;
-    const renderVp = page.getViewport({ scale, viewBox } as any);
+    
+    // Get the standard un-shifted viewport
+    const renderVp = page.getViewport({ scale });
 
-    canvas.width = Math.round(renderVp.width);
-    canvas.height = Math.round(renderVp.height);
+    // Size canvas strictly to the cropped dimensions
+    canvas.width = Math.round(liveW * scale);
+    canvas.height = Math.round(liveH * scale);
     canvas.style.width = "100%";
     canvas.style.height = "100%";
+    canvas.style.objectFit = "fill";
 
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
+    
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
+    
+    // Fill background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Physically translate the context to push the crop marks off-screen
+    const shiftX = (viewBox[0] - mediaBox[0]) * scale;
+    const shiftY = (mediaBox[3] - viewBox[3]) * scale;
+    
+    ctx.save();
+    ctx.translate(-shiftX, -shiftY);
 
     page.render({ canvasContext: ctx, viewport: renderVp }).promise.then(() => {
+      ctx.restore();
       canvas.dataset.rendered = renderKey;
+    }).catch(() => {
+      ctx.restore();
+      canvas.dataset.rendered = "";
     });
   });
 }
@@ -529,12 +536,12 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
                     className="w-full h-full object-contain mx-auto block absolute inset-0 z-0"
                     style={{ imageRendering: "-webkit-optimize-contrast" }}
                   />
-                  {/* Book spine crease shadow with middle line */}
+                  {/* Realistic book spine crease */}
                   <div 
-                    className={`absolute inset-y-0 w-6 md:w-16 z-10 pointer-events-none mix-blend-multiply ${
+                    className={`absolute inset-y-0 w-6 md:w-10 z-10 pointer-events-none mix-blend-multiply ${
                       (idx + 1) % 2 === 0
-                        ? "right-0 bg-gradient-to-l from-black/25 to-transparent border-r border-black/30"
-                        : "left-0 bg-gradient-to-r from-black/25 to-transparent border-l border-black/30"
+                        ? "right-0 bg-gradient-to-l from-black/10 via-black/5 to-transparent border-r border-black/10"
+                        : "left-0 bg-gradient-to-r from-black/10 via-black/5 to-transparent border-l border-black/10"
                     }`}
                   />
                   <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-stone-900/60 text-stone-300 text-[9px] font-mono px-2 py-0.5 rounded-full pointer-events-none z-10 border border-stone-700/40 backdrop-blur-sm opacity-80">
