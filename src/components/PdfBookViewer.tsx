@@ -233,6 +233,7 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           usePortrait: isSingleMode,
           autoCenter: true,
           startPage: currentPage - 1,
+          swipeDistance: 50, // Increase swipe distance to reduce mistouches
         });
 
         const pageElements = pagesContainerRef.current!.querySelectorAll(".st-page");
@@ -364,6 +365,19 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (settings.zoomLevel > 1 && e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX - panOffset.x, y: e.touches[0].clientY - panOffset.y });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isDragging && settings.zoomLevel > 1 && e.touches.length === 1) {
+      setPanOffset({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y });
+    }
+  };
+
   const handleMouseUp = () => setIsDragging(false);
 
   if (!isOpen) return null;
@@ -405,8 +419,12 @@ export const PdfBookViewer: React.FC<PdfBookViewerProps> = ({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          className={`flex-1 relative flex items-center justify-center overflow-hidden w-full h-full ${
-            settings.zoomLevel > 1 ? "cursor-grab active:cursor-grabbing touch-none" : ""
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleMouseUp}
+          onTouchCancel={handleMouseUp}
+          className={`flex-1 relative flex items-center justify-center overflow-hidden w-full h-full touch-none ${
+            settings.zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""
           }`}
           style={{
             background: settings.theme === "dark" 
