@@ -17,7 +17,7 @@ export default defineConfig({
   ],
   preview: {
     port: 3000,
-    allowedHosts: ["proto.mictech.dpdns.org", ".dpdns.org"],
+    allowedHosts: true,
   },
   server: {
     port: 3000,

@@ -1,0 +1,12 @@
+node_modules
+*/node_modules
+.git
+.agents
+.vscode
+dist
+*/dist
+coverage
+*/coverage
+graphify-out
+.DS_Store
+*.log
