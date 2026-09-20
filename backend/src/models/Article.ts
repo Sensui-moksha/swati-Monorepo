@@ -1,7 +1,17 @@
 import mongoose, { Document, Schema, Model, Types } from "mongoose";
 
 export type ArticleStatus =
-  "draft" | "pending_review" | "published" | "archived" | "rejected";
+  | "draft"
+  | "assigned"
+  | "editor_review"
+  | "senior_editor_review"
+  | "chief_editor_review"
+  | "legal_review"
+  | "scheduled"
+  | "published"
+  | "archived"
+  | "rejected"
+  | "pending_review";
 
 export interface IUser extends Document {
   _id: Types.ObjectId;
@@ -47,6 +57,7 @@ export interface IArticle extends Document {
   magazineIssue?: Types.ObjectId;
   tags: (Types.ObjectId | ITag)[];
   status: ArticleStatus;
+  assignedEditor?: Types.ObjectId;
   isFeatured: boolean;
   isBreaking: boolean;
   isPinned: boolean;
@@ -153,9 +164,22 @@ const articleSchema = new Schema<IArticle, IArticleModel>(
     tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
     status: {
       type: String,
-      enum: ["draft", "pending_review", "published", "archived", "rejected"],
+      enum: [
+        "draft",
+        "assigned",
+        "editor_review",
+        "senior_editor_review",
+        "chief_editor_review",
+        "legal_review",
+        "scheduled",
+        "published",
+        "archived",
+        "rejected",
+        "pending_review",
+      ],
       default: "draft",
     },
+    assignedEditor: { type: Schema.Types.ObjectId, ref: "User" },
     isFeatured: { type: Boolean, default: false },
     isBreaking: { type: Boolean, default: false },
     isPinned: { type: Boolean, default: false },

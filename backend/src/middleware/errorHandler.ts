@@ -127,7 +127,7 @@ const sendErrorProd = (err: AppError, res: Response): void => {
       ...(err.errors && { errors: err.errors }),
     });
   } else {
-    logger.error("Unhandled Error 💥:", { error: err, stack: err.stack, correlationId: res.locals.correlationId });
+    logger.error("Unhandled Error 💥:", { error: err, stack: err.stack, correlationId: res.locals?.correlationId });
     res.status(500).json({
       success: false,
       message: "Something went very wrong!",

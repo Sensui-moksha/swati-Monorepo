@@ -13,17 +13,23 @@ dotenv.config();
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/swathi-publications";
 
 export async function seedIfEmpty() {
-  const articleCount = await Article.countDocuments();
-  if (articleCount === 0) {
-    await seed();
+  try {
+    const articleCount = await Article.countDocuments();
+    if (articleCount === 0) {
+      await seed();
+    }
+  } catch (err) {
+    console.warn("seedIfEmpty skipped:", (err as Error)?.message || err);
   }
 }
 
 export async function seed() {
   try {
-    console.log("Connecting to MongoDB for seeding...");
-    await mongoose.connect(MONGODB_URI);
-    console.log("Connected to MongoDB.");
+    if (mongoose.connection.readyState === 0) {
+      console.log("Connecting to MongoDB for seeding...");
+      await mongoose.connect(MONGODB_URI);
+      console.log("Connected to MongoDB.");
+    }
 
     // 1. Seed Admin User
     let admin = await User.findOne({ email: "admin@swathi.com" });
@@ -269,11 +275,15 @@ export async function seed() {
     }
 
     console.log("Database seeding completed successfully!");
-    process.exit(0);
   } catch (error) {
     console.error("Seeding error:", error);
-    process.exit(1);
+    throw error;
   }
 }
 
-seed();
+// Only execute and terminate process if run as a direct script
+if (typeof require !== "undefined" && require.main === module) {
+  seed()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}

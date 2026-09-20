@@ -40,8 +40,10 @@ import filesystemWatcherRoutes from "./filesystemWatcher";
 import pdfStreamingRoutes from "./pdfStreaming";
 import nlpRoutes from "./nlp";
 import healthRoutes from "./health";
+import versionControlRoutes from "./versionControl";
 
 const router = Router();
+
 
 // API v1 routes
 router.use("/auth", authRoutes);
@@ -81,23 +83,37 @@ router.use("/publishing", publishingRoutes);
 
 import productsRoutes from "./products";
 
-// Commerce Infrastructure Routes
+// Commerce Infrastructure Routes (Dual-mounted for /api/* and /api/v1/* compatibility)
 router.use("/plans", plansRoutes);
-router.use("/subscriptions", subscriptionsRoutes);
 router.use("/v1/plans", plansRoutes);
+router.use("/subscriptions", subscriptionsRoutes);
 router.use("/v1/subscriptions", subscriptionsRoutes);
+router.use("/products", productsRoutes);
 router.use("/v1/products", productsRoutes);
+router.use("/orders", ordersRoutes);
 router.use("/v1/orders", ordersRoutes);
+router.use("/payments", paymentsRoutes);
 router.use("/v1/payments", paymentsRoutes);
+router.use("/invoices", invoicesRoutes);
 router.use("/v1/invoices", invoicesRoutes);
+router.use("/coupons", couponsRoutes);
 router.use("/v1/coupons", couponsRoutes);
+router.use("/promotions", promotionsRoutes);
 router.use("/v1/promotions", promotionsRoutes);
+router.use("/webhooks", webhooksRoutes);
 router.use("/v1/webhooks", webhooksRoutes);
+router.use("/reports", reportsRoutes);
 router.use("/v1/reports", reportsRoutes);
+router.use("/access", accessRoutes);
 router.use("/v1/access", accessRoutes);
+router.use("/admin", adminRoutes);
 router.use("/v1/admin", adminRoutes);
+router.use("/system", systemRoutes);
 router.use("/v1/system", systemRoutes);
+router.use("/pdf", pdfStreamingRoutes);
 router.use("/v1/pdf", pdfStreamingRoutes);
+router.use("/versions", versionControlRoutes);
+router.use("/v1/versions", versionControlRoutes);
 
 // Health check / API info
 router.get("/", (_req, res) => {

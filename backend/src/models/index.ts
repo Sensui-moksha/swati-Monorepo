@@ -89,3 +89,21 @@ export { ProductVariant } from "./ProductVariant";
 export type { IProductVariant, IProductVariantModel } from "./ProductVariant";
 export { ProductCategory } from "./ProductCategory";
 export type { IProductCategory, IProductCategoryModel } from "./ProductCategory";
+
+// Versioning Models
+export { EntityVersion } from "./EntityVersion";
+export type {
+  IEntityVersion,
+  VersionableEntityType,
+  IEntityVersionDiff,
+} from "./EntityVersion";
+
+// OCR Review Models
+export { OCRReviewTask } from "./OCRReviewTask";
+export type {
+  IOCRReviewTask,
+  IOCRToken,
+  OCRTaskStatus,
+} from "./OCRReviewTask";
+
+

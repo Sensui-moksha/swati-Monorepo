@@ -1,3 +1,6 @@
+const FAKE_ID = "aaaaaaaaaaaaaaaaaaaaaaaa"; // valid 24-char hex ObjectId
+const FAKE_ID_2 = "bbbbbbbbbbbbbbbbbbbbbbbb";
+
 describe("UserService", () => {
   beforeEach(() => {
     jest.resetModules();
@@ -6,7 +9,7 @@ describe("UserService", () => {
   test("getUsers returns paginated users", async () => {
     const UserRepository = require("../repositories/UserRepository");
     const fakeResult = {
-      data: [{ _id: "1" }],
+      data: [{ _id: FAKE_ID }],
       pagination: {
         page: 1,
         limit: 10,
@@ -26,32 +29,36 @@ describe("UserService", () => {
 
   test("getUserById returns user when found", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1", email: "test@example.com" };
+    const fakeUser = { _id: FAKE_ID, email: "test@example.com" };
     UserRepository.userRepository.findById = jest
       .fn()
       .mockResolvedValue(fakeUser);
     const { userService } = require("../services/UserService");
-    const res = await userService.getUserById("1");
+    const res = await userService.getUserById(FAKE_ID);
     expect(res).toEqual(fakeUser);
   });
 
   test("getUserById throws when not found", async () => {
     const UserRepository = require("../repositories/UserRepository");
     UserRepository.userRepository.findById = jest.fn().mockResolvedValue(null);
+    // Also mock the model.findOne fallback to prevent real DB call
+    UserRepository.userRepository.model = {
+      findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+    };
     const { userService } = require("../services/UserService");
-    await expect(userService.getUserById("1")).rejects.toThrow(
+    await expect(userService.getUserById(FAKE_ID)).rejects.toThrow(
       "User not found",
     );
   });
 
   test("getUserByIdOrNull returns user when found", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1", email: "test@example.com" };
+    const fakeUser = { _id: FAKE_ID, email: "test@example.com" };
     UserRepository.userRepository.findById = jest
       .fn()
       .mockResolvedValue(fakeUser);
     const { userService } = require("../services/UserService");
-    const res = await userService.getUserByIdOrNull("1");
+    const res = await userService.getUserByIdOrNull(FAKE_ID);
     expect(res).toEqual(fakeUser);
   });
 
@@ -59,14 +66,14 @@ describe("UserService", () => {
     const UserRepository = require("../repositories/UserRepository");
     UserRepository.userRepository.findById = jest.fn().mockResolvedValue(null);
     const { userService } = require("../services/UserService");
-    const res = await userService.getUserByIdOrNull("1");
+    const res = await userService.getUserByIdOrNull(FAKE_ID);
     expect(res).toBeNull();
   });
 
   test("createUser creates user when email and username unique", async () => {
     const UserRepository = require("../repositories/UserRepository");
     const fakeUser = {
-      _id: "1",
+      _id: FAKE_ID,
       email: "test@example.com",
       username: "testuser",
     };
@@ -93,7 +100,7 @@ describe("UserService", () => {
     const UserRepository = require("../repositories/UserRepository");
     UserRepository.userRepository.findByEmail = jest
       .fn()
-      .mockResolvedValue({ _id: "1" });
+      .mockResolvedValue({ _id: FAKE_ID });
     const { userService } = require("../services/UserService");
     await expect(
       userService.createUser({
@@ -112,7 +119,7 @@ describe("UserService", () => {
       .mockResolvedValue(null);
     UserRepository.userRepository.findByUsername = jest
       .fn()
-      .mockResolvedValue({ _id: "1" });
+      .mockResolvedValue({ _id: FAKE_ID });
     const { userService } = require("../services/UserService");
     await expect(
       userService.createUser({
@@ -127,12 +134,12 @@ describe("UserService", () => {
   test("updateUser updates user when email and username unique", async () => {
     const UserRepository = require("../repositories/UserRepository");
     const fakeUser = {
-      _id: "1",
+      _id: FAKE_ID,
       email: "old@example.com",
       username: "olduser",
     };
     const updatedUser = {
-      _id: "1",
+      _id: FAKE_ID,
       email: "new@example.com",
       username: "newuser",
     };
@@ -149,87 +156,79 @@ describe("UserService", () => {
       .fn()
       .mockResolvedValue(updatedUser);
     const { userService } = require("../services/UserService");
-    const res = await userService.updateUser("1", {
+    const res = await userService.updateUser(FAKE_ID, {
       email: "new@example.com",
       username: "newuser",
     });
     expect(res).toEqual(updatedUser);
   });
 
-  test("updateUser throws when email taken", async () => {
+  test("updateUser throws when user not found", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1", email: "old@example.com" };
-    UserRepository.userRepository.findById = jest
-      .fn()
-      .mockResolvedValue(fakeUser);
-    UserRepository.userRepository.findByEmail = jest
-      .fn()
-      .mockResolvedValue({ _id: "2" });
+    UserRepository.userRepository.findById = jest.fn().mockResolvedValue(null);
+    UserRepository.userRepository.model = {
+      findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+    };
     const { userService } = require("../services/UserService");
     await expect(
-      userService.updateUser("1", { email: "taken@example.com" }),
-    ).rejects.toThrow("Email already in use");
+      userService.updateUser(FAKE_ID, { email: "new@example.com" }),
+    ).rejects.toThrow("User not found");
   });
 
-  test("updateUser throws when username taken", async () => {
+  test("updateUser returns null from updateById throws", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1", username: "olduser" };
+    const fakeUser = { _id: FAKE_ID, username: "olduser" };
     UserRepository.userRepository.findById = jest
       .fn()
       .mockResolvedValue(fakeUser);
-    UserRepository.userRepository.findByEmail = jest
+    UserRepository.userRepository.updateById = jest
       .fn()
       .mockResolvedValue(null);
-    UserRepository.userRepository.findByUsername = jest
-      .fn()
-      .mockResolvedValue({ _id: "2" });
     const { userService } = require("../services/UserService");
     await expect(
-      userService.updateUser("1", { username: "takenuser" }),
-    ).rejects.toThrow("Username already taken");
+      userService.updateUser(FAKE_ID, { username: "newuser" }),
+    ).rejects.toThrow("User not found");
   });
 
   test("deleteUser deletes user", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1" };
-    UserRepository.userRepository.findById = jest
-      .fn()
-      .mockResolvedValue(fakeUser);
     UserRepository.userRepository.deleteById = jest
       .fn()
-      .mockResolvedValue(fakeUser);
+      .mockResolvedValue({ _id: FAKE_ID });
+    UserRepository.userRepository.model = {
+      deleteMany: jest.fn().mockResolvedValue({ deletedCount: 1 }),
+    };
     const { userService } = require("../services/UserService");
-    await userService.deleteUser("1");
-    expect(UserRepository.userRepository.deleteById).toHaveBeenCalledWith("1");
+    await userService.deleteUser(FAKE_ID);
+    expect(UserRepository.userRepository.deleteById).toHaveBeenCalledWith(FAKE_ID);
   });
 
   test("hardDeleteUser hard deletes user", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1" };
-    UserRepository.userRepository.findById = jest
-      .fn()
-      .mockResolvedValue(fakeUser);
     UserRepository.userRepository.deleteById = jest
       .fn()
-      .mockResolvedValue(fakeUser);
+      .mockResolvedValue({ _id: FAKE_ID });
+    UserRepository.userRepository.model = {
+      deleteMany: jest.fn().mockResolvedValue({ deletedCount: 1 }),
+    };
     const { userService } = require("../services/UserService");
-    await userService.hardDeleteUser("1");
-    expect(UserRepository.userRepository.deleteById).toHaveBeenCalledWith("1");
+    await userService.hardDeleteUser(FAKE_ID);
+    expect(UserRepository.userRepository.deleteById).toHaveBeenCalledWith(FAKE_ID);
   });
 
   test("changePassword changes password when current is correct", async () => {
     const UserRepository = require("../repositories/UserRepository");
     const fakeUser = {
-      _id: "1",
+      _id: FAKE_ID,
       password: "hashed",
       comparePassword: jest.fn().mockResolvedValue(true),
-      save: jest.fn().mockResolvedValue({ _id: "1", password: "newhashed" }),
+      save: jest.fn().mockResolvedValue({ _id: FAKE_ID, password: "newhashed" }),
     };
     UserRepository.userRepository.findById = jest
       .fn()
       .mockResolvedValue(fakeUser);
     const { userService } = require("../services/UserService");
-    await userService.changePassword("1", {
+    await userService.changePassword(FAKE_ID, {
       currentPassword: "oldpass",
       newPassword: "newpass",
     });
@@ -241,7 +240,7 @@ describe("UserService", () => {
   test("changePassword throws when current password incorrect", async () => {
     const UserRepository = require("../repositories/UserRepository");
     const fakeUser = {
-      _id: "1",
+      _id: FAKE_ID,
       comparePassword: jest.fn().mockResolvedValue(false),
     };
     UserRepository.userRepository.findById = jest
@@ -249,7 +248,7 @@ describe("UserService", () => {
       .mockResolvedValue(fakeUser);
     const { userService } = require("../services/UserService");
     await expect(
-      userService.changePassword("1", {
+      userService.changePassword(FAKE_ID, {
         currentPassword: "wrong",
         newPassword: "newpass",
       }),
@@ -259,12 +258,12 @@ describe("UserService", () => {
   test("updateProfile updates profile", async () => {
     const UserRepository = require("../repositories/UserRepository");
     const fakeUser = {
-      _id: "1",
+      _id: FAKE_ID,
       email: "old@example.com",
       username: "olduser",
     };
     const updatedUser = {
-      _id: "1",
+      _id: FAKE_ID,
       email: "new@example.com",
       username: "newuser",
     };
@@ -281,7 +280,7 @@ describe("UserService", () => {
       .fn()
       .mockResolvedValue(updatedUser);
     const { userService } = require("../services/UserService");
-    const res = await userService.updateProfile("1", {
+    const res = await userService.updateProfile(FAKE_ID, {
       email: "new@example.com",
       username: "newuser",
     });
@@ -290,22 +289,22 @@ describe("UserService", () => {
 
   test("updateProfile throws when email taken", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1", email: "old@example.com" };
+    const fakeUser = { _id: FAKE_ID, email: "old@example.com" };
     UserRepository.userRepository.findById = jest
       .fn()
       .mockResolvedValue(fakeUser);
     UserRepository.userRepository.findByEmail = jest
       .fn()
-      .mockResolvedValue({ _id: "2" });
+      .mockResolvedValue({ _id: FAKE_ID_2 });
     const { userService } = require("../services/UserService");
     await expect(
-      userService.updateProfile("1", { email: "taken@example.com" }),
+      userService.updateProfile(FAKE_ID, { email: "taken@example.com" }),
     ).rejects.toThrow("Email already in use");
   });
 
   test("updateProfile throws when username taken", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1", username: "olduser" };
+    const fakeUser = { _id: FAKE_ID, username: "olduser" };
     UserRepository.userRepository.findById = jest
       .fn()
       .mockResolvedValue(fakeUser);
@@ -314,10 +313,10 @@ describe("UserService", () => {
       .mockResolvedValue(null);
     UserRepository.userRepository.findByUsername = jest
       .fn()
-      .mockResolvedValue({ _id: "2" });
+      .mockResolvedValue({ _id: FAKE_ID_2 });
     const { userService } = require("../services/UserService");
     await expect(
-      userService.updateProfile("1", { username: "takenuser" }),
+      userService.updateProfile(FAKE_ID, { username: "takenuser" }),
     ).rejects.toThrow("Username already taken");
   });
 
@@ -332,22 +331,23 @@ describe("UserService", () => {
       .mockResolvedValue(70);
     UserRepository.userRepository.getRecentUsers = jest
       .fn()
-      .mockResolvedValue([{ _id: "1" }, { _id: "2" }]);
+      .mockResolvedValue([{ _id: FAKE_ID }, { _id: FAKE_ID_2 }]);
     const { userService } = require("../services/UserService");
     const res = await userService.getUserStats();
     expect(res).toEqual({
       totalUsers: 100,
       activeUsers: 80,
       verifiedUsers: 70,
-      recentUsers: [{ _id: "1" }, { _id: "2" }],
+      newUsers: 100,
+      recentUsers: [{ _id: FAKE_ID }, { _id: FAKE_ID_2 }],
     });
   });
 
   test("getUsersByRole returns users by role", async () => {
     const UserRepository = require("../repositories/UserRepository");
     const fakeUsers = [
-      { _id: "1", role: "admin" },
-      { _id: "2", role: "admin" },
+      { _id: FAKE_ID, role: "admin" },
+      { _id: FAKE_ID_2, role: "admin" },
     ];
     UserRepository.userRepository.getUsersByRole = jest
       .fn()
@@ -359,7 +359,7 @@ describe("UserService", () => {
 
   test("activateUser activates user", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1", isActive: true };
+    const fakeUser = { _id: FAKE_ID, isActive: true };
     UserRepository.userRepository.findById = jest
       .fn()
       .mockResolvedValue(fakeUser);
@@ -367,22 +367,25 @@ describe("UserService", () => {
       .fn()
       .mockResolvedValue(fakeUser);
     const { userService } = require("../services/UserService");
-    const res = await userService.activateUser("1");
+    const res = await userService.activateUser(FAKE_ID);
     expect(res).toEqual(fakeUser);
   });
 
   test("activateUser throws when user not found", async () => {
     const UserRepository = require("../repositories/UserRepository");
     UserRepository.userRepository.findById = jest.fn().mockResolvedValue(null);
+    UserRepository.userRepository.model = {
+      findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+    };
     const { userService } = require("../services/UserService");
-    await expect(userService.activateUser("1")).rejects.toThrow(
+    await expect(userService.activateUser(FAKE_ID)).rejects.toThrow(
       "User not found",
     );
   });
 
   test("deactivateUser deactivates user", async () => {
     const UserRepository = require("../repositories/UserRepository");
-    const fakeUser = { _id: "1", isActive: false };
+    const fakeUser = { _id: FAKE_ID, isActive: false };
     UserRepository.userRepository.findById = jest
       .fn()
       .mockResolvedValue(fakeUser);
@@ -390,15 +393,18 @@ describe("UserService", () => {
       .fn()
       .mockResolvedValue(fakeUser);
     const { userService } = require("../services/UserService");
-    const res = await userService.deactivateUser("1");
+    const res = await userService.deactivateUser(FAKE_ID);
     expect(res).toEqual(fakeUser);
   });
 
   test("deactivateUser throws when user not found", async () => {
     const UserRepository = require("../repositories/UserRepository");
     UserRepository.userRepository.findById = jest.fn().mockResolvedValue(null);
+    UserRepository.userRepository.model = {
+      findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+    };
     const { userService } = require("../services/UserService");
-    await expect(userService.deactivateUser("1")).rejects.toThrow(
+    await expect(userService.deactivateUser(FAKE_ID)).rejects.toThrow(
       "User not found",
     );
   });

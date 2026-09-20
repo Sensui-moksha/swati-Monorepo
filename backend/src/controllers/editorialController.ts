@@ -1,6 +1,7 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../middleware/auth";
 import { articleService } from "../services/articleService";
+import { workflowEngineService } from "../services/WorkflowEngineService";
 
 function requireParam(value: string | undefined, name: string): string {
   if (!value) {
@@ -548,6 +549,76 @@ export class EditorialController {
           Number(req.query.limit) || 20,
         ),
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Advance article through editorial workflow pipeline.
+   */
+  async transitionWorkflow(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const articleId = requireParam(req.params.id, "id");
+      const userId = requireUserId(req);
+      const { action, targetStage, assigneeId, comments, scheduledAt } = req.body;
+
+      if (!action || !targetStage) {
+        throw new Error("action and targetStage are required");
+      }
+
+      const updated = await workflowEngineService.transition(
+        articleId,
+        action,
+        targetStage,
+        { id: userId, role: (req.user as any)?.role, name: (req.user as any)?.fullName },
+        {
+          assigneeId,
+          comments,
+          scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+        }
+      );
+
+      res.json({ success: true, data: updated });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Rollback article to a previous workflow stage.
+   */
+  async rollbackWorkflow(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const articleId = requireParam(req.params.id, "id");
+      const userId = requireUserId(req);
+      const { targetStage, comments } = req.body;
+
+      if (!targetStage || !comments) {
+        throw new Error("targetStage and comments (reason) are required for rollback");
+      }
+
+      const updated = await workflowEngineService.rollback(
+        articleId,
+        targetStage,
+        { id: userId, role: (req.user as any)?.role, name: (req.user as any)?.fullName },
+        comments
+      );
+
+      res.json({ success: true, data: updated });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get complete approval and transition history for an article.
+   */
+  async getWorkflowHistory(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const articleId = requireParam(req.params.id, "id");
+      const history = await workflowEngineService.getTransitionHistory(articleId);
+      res.json({ success: true, data: history });
     } catch (error) {
       next(error);
     }

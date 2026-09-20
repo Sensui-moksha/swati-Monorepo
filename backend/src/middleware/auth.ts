@@ -27,7 +27,7 @@ export const authenticate = async (
     }
 
     if (!token) {
-      if (env.NODE_ENV === "development") {
+      if (env.NODE_ENV === "development" && process.env.ALLOW_DEV_AUTH_BYPASS === "true") {
         req.user = {
           _id: "660000000000000000000001",
           role: "admin",
@@ -56,7 +56,7 @@ export const authenticate = async (
     // Check if user still exists and is strictly active (Zero Trust)
     const user = await User.findById(decoded.id).select("+password +isActive +roles");
     if (!user || !user.isActive) {
-      if (env.NODE_ENV === "development") {
+      if (env.NODE_ENV === "development" && process.env.ALLOW_DEV_AUTH_BYPASS === "true") {
         req.user = {
           _id: "660000000000000000000001",
           role: "admin",

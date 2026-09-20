@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { mediaRepository } from "../repositories/MediaRepository";
 import { ApiError } from "../middleware/errorHandler";
 import { IMedia } from "../models/Media";
+import { getPartitionedStoragePath } from "../utils/storagePaths";
 
 export class MediaService {
   async listMedia(filter: Record<string, unknown> = {}, page = 1, limit = 20) {
@@ -63,7 +64,12 @@ export class MediaService {
       ? "video"
       : "document";
 
-    const url = metadata.url || `/documents/${filename}`;
+    const url =
+      metadata.url ||
+      getPartitionedStoragePath(
+        mediaType === "document" ? "documents" : "media",
+        filename
+      );
 
     return mediaRepository.create({
       filename,

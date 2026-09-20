@@ -2,8 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import { textRankService } from '../services/nlp/TextRankService';
 import { spellCheckService } from '../services/nlp/SpellCheckService';
 import { nlpService } from '../services/nlp/NlpService';
+import { ocrReviewService } from '../services/nlp/OCRReviewService';
 
 export class NlpController {
+
   
   /**
    * Generates an extractive summary using TextRank
@@ -58,6 +60,111 @@ export class NlpController {
       next(error);
     }
   }
+
+  /**
+   * Creates or ingests an OCR review task
+   */
+  async createOcrTask(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { documentId, documentType, pageNumber, extractedText, tokens } = req.body;
+      if (!documentId || !documentType || !pageNumber || !extractedText) {
+        res.status(400).json({
+          success: false,
+          message: "documentId, documentType, pageNumber, and extractedText are required",
+        });
+        return;
+      }
+
+      const task = await ocrReviewService.createTask({
+        documentId,
+        documentType,
+        pageNumber: Number(pageNumber),
+        extractedText,
+        tokens,
+      });
+
+      res.status(201).json({ success: true, data: task });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Lists OCR tasks needing review
+   */
+  async getOcrReviewQueue(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { status, documentId, maxConfidence, limit, offset } = req.query;
+      const queue = await ocrReviewService.getReviewQueue(
+        {
+          status: status as any,
+          documentId: documentId as string,
+          maxConfidence: maxConfidence ? Number(maxConfidence) : undefined,
+        },
+        limit ? Number(limit) : 20,
+        offset ? Number(offset) : 0
+      );
+
+      res.json({ success: true, data: queue });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Applies human corrections to an OCR task
+   */
+  async applyOcrCorrection(req: any, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { taskId } = req.params;
+      const { corrections, status, notes } = req.body;
+      const reviewerId = req.user?._id || "660000000000000000000001";
+
+      if (!taskId || !corrections) {
+        res.status(400).json({
+          success: false,
+          message: "taskId and corrections array are required",
+        });
+        return;
+      }
+
+      const updated = await ocrReviewService.applyCorrection({
+        taskId,
+        reviewerId: reviewerId.toString(),
+        corrections,
+        status,
+        notes,
+      });
+
+      res.json({ success: true, data: updated });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Bulk approves OCR tasks
+   */
+  async bulkApproveOcr(req: any, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { taskIds } = req.body;
+      const reviewerId = req.user?._id || "660000000000000000000001";
+
+      if (!Array.isArray(taskIds) || taskIds.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: "taskIds must be a non-empty array",
+        });
+        return;
+      }
+
+      const result = await ocrReviewService.bulkApprove(taskIds, reviewerId.toString());
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const nlpController = new NlpController();
+

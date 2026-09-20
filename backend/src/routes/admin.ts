@@ -3,8 +3,10 @@ import { authenticate, authorize, AuthRequest } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 import { adminController } from "../controllers/adminController";
 import { adminSchemas } from "../validators/adminValidators";
+import { AuditService } from "../services/AuditService";
 
 const router = Router();
+
 
 /**
  * @swagger
@@ -34,6 +36,38 @@ router.get(
   authorize("admin"),
   adminController.getUserStats.bind(adminController),
 );
+
+/**
+ * @swagger
+ * /api/v1/admin/audit-logs:
+ *   get:
+ *     summary: Query security and administrative audit timeline
+ *     tags: [Admin]
+ */
+router.get(
+  "/audit-logs",
+  authenticate,
+  authorize("admin"),
+  async (req, res, next) => {
+    try {
+      const { userId, action, startDate, endDate, limit, offset } = req.query;
+      const logs = await AuditService.queryLogs(
+        {
+          userId: userId as string,
+          action: action as string,
+          startDate: startDate ? new Date(startDate as string) : undefined,
+          endDate: endDate ? new Date(endDate as string) : undefined,
+        },
+        limit ? Number(limit) : 50,
+        offset ? Number(offset) : 0
+      );
+      res.json({ success: true, data: logs });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 
 /**
  * @swagger

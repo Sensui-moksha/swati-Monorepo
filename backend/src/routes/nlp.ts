@@ -31,4 +31,11 @@ router.post('/keywords', authenticate, authorize('admin', 'editor'), nlpControll
  */
 router.post('/ocr-check', authenticate, authorize('admin', 'editor'), nlpController.checkOcr.bind(nlpController));
 
+// OCR Review Workbench Routes
+router.post('/ocr/tasks', authenticate, authorize('admin', 'editor'), nlpController.createOcrTask.bind(nlpController));
+router.get('/ocr/queue', authenticate, authorize('admin', 'editor'), nlpController.getOcrReviewQueue.bind(nlpController));
+router.post('/ocr/tasks/:taskId/correct', authenticate, authorize('admin', 'editor'), nlpController.applyOcrCorrection.bind(nlpController));
+router.post('/ocr/bulk-approve', authenticate, authorize('admin', 'editor'), nlpController.bulkApproveOcr.bind(nlpController));
+
 export default router;
+

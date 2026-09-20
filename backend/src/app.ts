@@ -19,9 +19,13 @@ import { reportingWorker } from './workers/ReportingWorker';
 import { startTracer } from './utils/tracer';
 import { setupGracefulShutdown } from './utils/gracefulShutdown';
 import { httpRequestDurationMicroseconds } from './utils/metrics';
+import { registerDomainEventListeners } from './events/registerListeners';
 
 // Start OpenTelemetry
 startTracer();
+
+// Initialize domain event listeners
+registerDomainEventListeners();
 
 // Start scheduled BI reports
 if (env.NODE_ENV === 'production' || env.NODE_ENV === 'development') {
@@ -29,6 +33,7 @@ if (env.NODE_ENV === 'production' || env.NODE_ENV === 'development') {
 }
 
 const app: Application = express();
+
 
 // Trust proxy for rate limiting behind reverse proxy
 app.set('trust proxy', 1);

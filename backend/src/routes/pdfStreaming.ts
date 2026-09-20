@@ -18,11 +18,20 @@ import { performanceController } from "../controllers/performanceController";
  *       - Optimized copy served when available (original untouched).
  *     tags: [PDF Streaming]
  */
+import { optionalAuth, authenticate } from "../middleware/auth";
+import { verifyDRMStreamingToken } from "../middleware/drmAuth";
+
 const router = Router();
 
+// ── Enterprise DRM & Secure Streaming ─────────────────────────────────
+router.post("/drm/token", optionalAuth, streamingController.requestDRMToken.bind(streamingController));
+router.post("/drm/rotate", streamingController.rotateDRMToken.bind(streamingController));
+router.get("/drm/devices", authenticate, streamingController.listDevices.bind(streamingController));
+router.delete("/drm/devices/:deviceId", authenticate, streamingController.deauthorizeDevice.bind(streamingController));
+
 // ── Streaming ──────────────────────────────────────────────────────────
-router.get("/stream/:id", streamingController.stream.bind(streamingController));
-router.get("/range/:id", streamingController.rangeRequest.bind(streamingController));
+router.get("/stream/:id", optionalAuth, verifyDRMStreamingToken, streamingController.stream.bind(streamingController));
+router.get("/range/:id", optionalAuth, verifyDRMStreamingToken, streamingController.rangeRequest.bind(streamingController));
 router.get("/metadata/:id", streamingController.metadata.bind(streamingController));
 
 // ── Cache ──────────────────────────────────────────────────────────────

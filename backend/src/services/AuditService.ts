@@ -41,4 +41,41 @@ export class AuditService {
       }
     });
   }
+
+  /**
+   * Query audit logs with pagination and filters
+   */
+  static async queryLogs(
+    filter: {
+      userId?: string;
+      action?: string;
+      startDate?: Date;
+      endDate?: Date;
+    } = {},
+    limit = 50,
+    offset = 0
+  ) {
+    const query: any = {};
+    if (filter.userId) query.userId = filter.userId;
+    if (filter.action) query.action = filter.action;
+    if (filter.startDate || filter.endDate) {
+      query.createdAt = {};
+      if (filter.startDate) query.createdAt.$gte = filter.startDate;
+      if (filter.endDate) query.createdAt.$lte = filter.endDate;
+    }
+
+    const [logs, total] = await Promise.all([
+      AuditLog.find(query)
+        .populate('userId', 'name email role')
+        .sort({ createdAt: -1 })
+        .skip(offset)
+        .limit(limit)
+        .lean()
+        .exec(),
+      AuditLog.countDocuments(query),
+    ]);
+
+    return { logs, total, limit, offset };
+  }
 }
+

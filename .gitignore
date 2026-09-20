@@ -50,15 +50,15 @@ uploads/
 .cache/
 .eslintcache
 
-# Client apps
-swati-clientside/
+# Client apps (now part of monorepo)
+# swati-clientside/ — tracked
 
 # Client apps
 swathi-client/
 .stylelintcache
 
-# Graphify output
-graphify-out/
+# Graphify output (tracked for architecture timeline)
+# graphify-out/ — tracked
 graphify-out-*/
 
 # Taskflow server

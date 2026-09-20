@@ -40,7 +40,11 @@ describe("UserRepository", () => {
     const fakeUser = { _id: "1", email: "test@example.com" };
     User.User.findOne = jest
       .fn()
-      .mockReturnValue({ exec: jest.fn().mockResolvedValue(fakeUser) });
+      .mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(fakeUser),
+        }),
+      });
     const { userRepository } = require("../repositories/UserRepository");
     const res = await userRepository.findByEmailOrUsername("test@example.com");
     expect(res).toEqual(fakeUser);

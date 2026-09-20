@@ -1,0 +1,136 @@
+groups:
+  - name: swathi_backend
+    rules:
+      # API latency
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="swathi-backend"}[5m])) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API p95 latency > 200ms"
+          description: "{{ $labels.instance }} p95 latency is {{ $value }}s"
+
+      - alert: CriticalAPILatency
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job="swathi-backend"}[5m])) > 1.0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API p99 latency > 1s"
+
+      # Error rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "5xx error rate > 5%"
+          description: "{{ $labels.instance }} error rate is {{ $value | humanizePercentage }}"
+
+      # Memory
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes{job="swathi-backend"} > 1.5e+9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Backend memory usage > 1.5GB"
+
+      - alert: CriticalMemoryUsage
+        expr: process_resident_memory_bytes{job="swathi-backend"} > 3e+9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend memory usage > 3GB — potential leak"
+
+      # Event loop lag (Node.js)
+      - alert: HighEventLoopLag
+        expr: nodejs_eventloop_lag_seconds{job="swathi-backend"} > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Event loop lag > 100ms"
+
+  - name: swathi_mongodb
+    rules:
+      - alert: MongoDBDown
+        expr: up{job="mongodb-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB exporter is down"
+
+      - alert: MongoDBHighConnections
+        expr: mongodb_connections_current > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MongoDB connections > 500"
+
+      - alert: MongoDBReplicaLag
+        expr: mongodb_rs_members_optimeDate{state="SECONDARY"} - on() mongodb_rs_members_optimeDate{state="PRIMARY"} > 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB replica lag > 10s"
+
+  - name: swathi_redis
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes > 2e+9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage > 2GB"
+
+  - name: swathi_storage
+    rules:
+      - alert: DiskSpaceLow
+        expr: node_filesystem_avail_bytes{mountpoint="/var/data"} / node_filesystem_size_bytes{mountpoint="/var/data"} < 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Storage disk space < 10% remaining"
+
+      - alert: DiskSpaceWarning
+        expr: node_filesystem_avail_bytes{mountpoint="/var/data"} / node_filesystem_size_bytes{mountpoint="/var/data"} < 0.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Storage disk space < 20% remaining"
+
+  - name: swathi_bullmq
+    rules:
+      - alert: BullMQHighWaiting
+        expr: bullmq_waiting_total > 1000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "BullMQ has > 1000 waiting jobs"
+
+      - alert: BullMQHighFailed
+        expr: rate(bullmq_failed_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "BullMQ failure rate elevated"

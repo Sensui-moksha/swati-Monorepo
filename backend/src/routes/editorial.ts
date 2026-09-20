@@ -70,4 +70,24 @@ router.post(
   editorialController.compareVersions.bind(editorialController),
 );
 
+// ── Enterprise Editorial Workflow Engine ──────────────────────────────
+router.post(
+  "/articles/:id/workflow/transition",
+  authenticate,
+  authorize("admin", "editor"),
+  editorialController.transitionWorkflow.bind(editorialController)
+);
+router.post(
+  "/articles/:id/workflow/rollback",
+  authenticate,
+  authorize("admin", "editor"),
+  editorialController.rollbackWorkflow.bind(editorialController)
+);
+router.get(
+  "/articles/:id/workflow/history",
+  authenticate,
+  authorize("admin", "editor"),
+  editorialController.getWorkflowHistory.bind(editorialController)
+);
+
 export default router;
