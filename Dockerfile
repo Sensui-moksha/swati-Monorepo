@@ -1,16 +1,14 @@
 # ==============================================================================
-# Monorepo Multi-Stage Dockerfile (Coolify & Production Deployments)
-# Default Target: frontend (swati-clientside)
-# Alternate Target: backend (--target backend)
+# Monorepo Multi-Stage Dockerfile (Coolify & Production Full-Stack Deployment)
+# Serves both the Express API and Frontend UI via Backend Fallback on Port 3000
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
-# Stage 1: Frontend Builder (TanStack Start / Vite)
+# Stage 1: Build Frontend (TanStack Start / Vite)
 # ------------------------------------------------------------------------------
 FROM node:22-alpine AS frontend-builder
-WORKDIR /app
+WORKDIR /app/swati-clientside
 
-# Build arguments provided by Coolify / CI
 ARG VITE_API_URL
 ARG COOLIFY_URL
 ARG COOLIFY_FQDN
@@ -21,43 +19,17 @@ ENV VITE_API_URL=${VITE_API_URL}
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Copy package descriptors and install dependencies
 COPY swati-clientside/package*.json ./
 RUN npm install
 
-# Copy frontend source code and build production assets
 COPY swati-clientside/ ./
 RUN npm run build
 
 # ------------------------------------------------------------------------------
-# Stage 2: Frontend Production Runner (Default for Coolify frontend deployments)
+# Stage 2: Build Backend (Express + TypeScript API)
 # ------------------------------------------------------------------------------
-FROM node:22-alpine AS frontend
-WORKDIR /app
-
-ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-ENV PORT=3000
-ENV HOST=0.0.0.0
-
-EXPOSE 3000
-
-# Copy necessary production artifacts
-COPY --from=frontend-builder /app/package.json ./package.json
-COPY --from=frontend-builder /app/node_modules ./node_modules
-COPY --from=frontend-builder /app/dist ./dist
-COPY --from=frontend-builder /app/public ./public
-COPY --from=frontend-builder /app/vite.config.ts ./vite.config.ts
-COPY --from=frontend-builder /app/tsconfig.json ./tsconfig.json
-
-# Serve application in production preview mode
-CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
-
-# ------------------------------------------------------------------------------
-# Stage 3: Backend Builder (Express + TypeScript API Server)
-# ------------------------------------------------------------------------------
-FROM node:20-alpine AS backend-builder
-WORKDIR /usr/src/app
+FROM node:22-alpine AS backend-builder
+WORKDIR /app/backend
 
 RUN apk add --no-cache python3 make g++
 
@@ -68,26 +40,38 @@ COPY backend/src/ ./src/
 RUN npm run build
 
 # ------------------------------------------------------------------------------
-# Stage 4: Backend Production Runner (--target backend)
+# Stage 3: Unified Production Full-Stack Runner (Default Target)
 # ------------------------------------------------------------------------------
-FROM node:20-alpine AS backend
-WORKDIR /usr/src/app
+FROM node:22-alpine AS runner
+WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV FRONTEND_CLIENT_DIST=/app/swati-clientside/dist/client
+ENV FRONTEND_SERVER_ENTRY=/app/swati-clientside/dist/server/server.js
 
+# Install backend production dependencies
+WORKDIR /app/backend
 COPY backend/package*.json ./
 RUN npm ci --omit=dev
 
-COPY --from=backend-builder /usr/src/app/dist ./dist
+# Copy compiled backend
+COPY --from=backend-builder /app/backend/dist ./dist
 
-USER node
+# Copy compiled frontend assets & SSR bundle
+WORKDIR /app/swati-clientside
+COPY --from=frontend-builder /app/swati-clientside/dist ./dist
+COPY --from=frontend-builder /app/swati-clientside/public ./public
+COPY --from=frontend-builder /app/swati-clientside/package*.json ./
+COPY --from=frontend-builder /app/swati-clientside/node_modules ./node_modules
+
+WORKDIR /app/backend
 EXPOSE 3000
 
+# Start backend serving API + Frontend fallback
 CMD ["node", "dist/app.js"]
 
 # ------------------------------------------------------------------------------
-# Default Final Target
-# (Ensures un-targeted 'docker build -f Dockerfile .' builds the frontend)
+# Default Target: runner
 # ------------------------------------------------------------------------------
-FROM frontend AS final
+FROM runner AS final

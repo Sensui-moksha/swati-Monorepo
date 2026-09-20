@@ -13,6 +13,7 @@ import { swaggerConfig, swaggerSpec } from './config/swagger';
 import swaggerUi from 'swagger-ui-express';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
+import { setupFrontendFallback } from './middleware/frontendStatic';
 import routes from './routes';
 import './workers/SearchWorker'; // Initialize background workers
 import { reportingWorker } from './workers/ReportingWorker';
@@ -141,7 +142,10 @@ if (swaggerConfig.enabled) {
 // API Routes
 app.use('/api', routes);
 
-// 404 handler
+// Serve Frontend static assets and SSR fallback for non-API web routes
+setupFrontendFallback(app);
+
+// 404 handler for unmatched API requests
 app.use(notFound);
 
 // Global error handler
