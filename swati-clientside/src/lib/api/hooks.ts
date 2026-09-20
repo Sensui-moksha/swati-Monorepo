@@ -14,6 +14,9 @@ import { adminApi } from "./endpoints/adminApi";
 import { couponsApi } from "./endpoints/couponsApi";
 import { analyticsApi } from "./endpoints/analyticsApi";
 import { profileApi } from "./endpoints/profile";
+import { drmApi } from "./endpoints/drm";
+import { versionControlApi } from "./endpoints/versionControl";
+import { ocrApi } from "./endpoints/ocr";
 import { queryKeys } from "./queryKeys";
 
 // ─── Articles ───────────────────────────────────────────────────────────────
@@ -860,3 +863,114 @@ export function useMarkAllNotificationsRead() {
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.user.notifications() }),
   });
 }
+
+// ─── DRM & Devices ─────────────────────────────────────────────────────────
+
+export function useUserDevices() {
+  return useQuery({
+    queryKey: ["user", "devices"],
+    queryFn: () => drmApi.listDevices(),
+  });
+}
+
+export function useDeauthorizeDevice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (deviceId: string) => drmApi.deauthorizeDevice(deviceId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["user", "devices"] }),
+  });
+}
+
+// ─── Version Control & Rollbacks ───────────────────────────────────────────
+
+export function useEntityVersionHistory(entityType: string, entityId: string, limit = 20, offset = 0) {
+  return useQuery({
+    queryKey: ["versions", entityType, entityId, limit, offset],
+    queryFn: () => versionControlApi.getHistory(entityType, entityId, limit, offset),
+    enabled: Boolean(entityType && entityId),
+  });
+}
+
+export function useEntityVersion(entityType: string, entityId: string, versionNumber: number) {
+  return useQuery({
+    queryKey: ["version", entityType, entityId, versionNumber],
+    queryFn: () => versionControlApi.getVersion(entityType, entityId, versionNumber),
+    enabled: Boolean(entityType && entityId && versionNumber > 0),
+  });
+}
+
+export function useEntityVersionDiff(entityType: string, entityId: string, v1: number, v2: number) {
+  return useQuery({
+    queryKey: ["versionDiff", entityType, entityId, v1, v2],
+    queryFn: () => versionControlApi.getDiff(entityType, entityId, v1, v2),
+    enabled: Boolean(entityType && entityId && v1 > 0 && v2 > 0),
+  });
+}
+
+export function useCreateSnapshot(entityType: string, entityId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (reason?: string) => versionControlApi.createSnapshot(entityType, entityId, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["versions", entityType, entityId] });
+    },
+  });
+}
+
+export function useRollbackVersion(entityType: string, entityId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ targetVersion, reason }: { targetVersion: number; reason?: string }) =>
+      versionControlApi.rollback(entityType, entityId, targetVersion, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["versions", entityType, entityId] });
+      qc.invalidateQueries({ queryKey: [entityType.toLowerCase(), entityId] });
+    },
+  });
+}
+
+// ─── OCR Workbench & Quality Control ───────────────────────────────────────
+
+export function useOcrQueue(params?: {
+  status?: string;
+  documentId?: string;
+  maxConfidence?: number;
+  limit?: number;
+  offset?: number;
+}) {
+  return useQuery({
+    queryKey: ["ocrQueue", params],
+    queryFn: () => ocrApi.getQueue(params),
+  });
+}
+
+export function useApplyOcrCorrection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      corrections,
+      status,
+      notes,
+    }: {
+      taskId: string;
+      corrections: Array<{ tokenIndex: number; correctedWord: string }>;
+      status?: "pending" | "in_review" | "approved" | "rejected";
+      notes?: string;
+    }) => ocrApi.applyCorrection(taskId, { corrections, status, notes }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ocrQueue"] });
+    },
+  });
+}
+
+export function useBulkApproveOcr() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (taskIds: string[]) => ocrApi.bulkApprove(taskIds),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ocrQueue"] });
+    },
+  });
+}
+

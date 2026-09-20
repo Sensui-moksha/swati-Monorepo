@@ -12,3 +12,6 @@ export * from "./adminApi";
 export * from "./couponsApi";
 export * from "./analyticsApi";
 export * from "./profile";
+export * from "./drm";
+export * from "./versionControl";
+export * from "./ocr";
