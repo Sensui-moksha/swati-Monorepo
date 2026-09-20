@@ -16,13 +16,13 @@ ARG COOLIFY_BRANCH
 ARG COOLIFY_RESOURCE_UUID
 
 ENV VITE_API_URL=${VITE_API_URL}
-ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 COPY swati-clientside/package*.json ./
-RUN npm install
+RUN npm install --include=dev
 
 COPY swati-clientside/ ./
+ENV NODE_ENV=production
 RUN npm run build
 
 # ------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ WORKDIR /app/backend
 RUN apk add --no-cache python3 make g++
 
 COPY backend/package*.json backend/tsconfig*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 COPY backend/src/ ./src/
 RUN npm run build
