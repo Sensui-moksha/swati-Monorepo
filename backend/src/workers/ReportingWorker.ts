@@ -1,11 +1,11 @@
 import cron from 'node-cron';
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 import { analyticsService } from '../services/analyticsService';
 import { exportService } from '../services/exportService';
 import { logger } from '../utils/logger';
 
 export class ReportingWorker {
-  private transporter: nodemailer.Transporter;
+  private transporter: Transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
