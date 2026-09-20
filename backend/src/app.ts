@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
+import { xssSanitizer } from './middleware/xss';
 import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
 import { env } from './config/index';
@@ -98,7 +98,7 @@ app.use(cookieParser());
 
 // Data sanitization
 app.use(mongoSanitize());
-app.use(xss());
+app.use(xssSanitizer());
 app.use(hpp());
 
 // Compression
