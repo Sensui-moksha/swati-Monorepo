@@ -13,7 +13,7 @@ COPY package*.json ./
 COPY tsconfig*.json ./
 
 # Install all dependencies (including dev)
-RUN npm ci
+RUN npm install --include=dev
 
 # Copy source code
 COPY src/ ./src/
@@ -30,7 +30,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 # Install only production dependencies
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # ---------------------------------------
 # Stage 3: Production Image

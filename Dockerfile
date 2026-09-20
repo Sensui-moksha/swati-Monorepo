@@ -34,7 +34,7 @@ WORKDIR /app/backend
 RUN apk add --no-cache python3 make g++
 
 COPY backend/package*.json backend/tsconfig*.json ./
-RUN npm ci --include=dev
+RUN npm install --include=dev
 
 COPY backend/src/ ./src/
 RUN npm run build
@@ -53,7 +53,7 @@ ENV FRONTEND_SERVER_ENTRY=/app/swati-clientside/dist/server/server.js
 # Install backend production dependencies
 WORKDIR /app/backend
 COPY backend/package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy compiled backend
 COPY --from=backend-builder /app/backend/dist ./dist
