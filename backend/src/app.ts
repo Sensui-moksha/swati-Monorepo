@@ -42,15 +42,33 @@ app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        "https://static.cloudflareinsights.com",
+        "https://cdnjs.cloudflare.com",
+        "blob:",
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com",
+      ],
+      fontSrc: [
+        "'self'",
+        "https://fonts.gstatic.com",
+        "data:",
+      ],
       imgSrc: ["'self'", "data:", "blob:", "https:"],
-      connectSrc: ["'self'", "https:"],
-      frameSrc: ["'none'"],
-      objectSrc: ["'none'"],
+      connectSrc: ["'self'", "https:", "wss:", "https://cloudflareinsights.com"],
+      frameSrc: ["'self'", "blob:", "data:"],
+      objectSrc: ["'self'", "blob:", "data:"],
+      workerSrc: ["'self'", "blob:"],
     },
   },
   hsts: {
@@ -59,7 +77,7 @@ app.use(helmet({
     preload: true,
   },
   frameguard: {
-    action: 'deny',
+    action: 'sameorigin',
   },
   xssFilter: true,
 }));

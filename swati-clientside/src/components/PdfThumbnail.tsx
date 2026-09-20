@@ -92,7 +92,22 @@ export function PdfThumbnail({
   }, [isPdf, isVisible, src]);
 
   if (!isPdf) {
-    return <img src={src} alt={alt || ""} className={className} loading="lazy" />;
+    const fallbackSrc =
+      "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=800&auto=format&fit=crop";
+    const imageSrc = src || fallbackSrc;
+    return (
+      <img
+        src={imageSrc}
+        alt={alt || ""}
+        className={className}
+        loading="lazy"
+        onError={(e) => {
+          if (e.currentTarget.src !== fallbackSrc) {
+            e.currentTarget.src = fallbackSrc;
+          }
+        }}
+      />
+    );
   }
 
   return (

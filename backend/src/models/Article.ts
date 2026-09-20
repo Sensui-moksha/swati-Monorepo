@@ -48,6 +48,7 @@ export interface IArticle extends Document {
   summary?: string;
   content: string;
   contentHtml?: string;
+  coverImage?: string;
   featuredImage?: Types.ObjectId | IMedia;
   gallery?: (Types.ObjectId | IMedia)[];
   author: Types.ObjectId | IUser;
@@ -150,6 +151,7 @@ const articleSchema = new Schema<IArticle, IArticleModel>(
     content: { type: String, default: "PDF Document" },
     contentHtml: { type: String },
     pdfUrl: { type: String, trim: true },
+    coverImage: { type: String, trim: true },
     featuredImage: { type: Schema.Types.ObjectId, ref: "Media" },
     gallery: [{ type: Schema.Types.ObjectId, ref: "Media" }],
     author: {

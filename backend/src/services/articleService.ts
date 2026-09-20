@@ -70,8 +70,10 @@ export class ArticleService {
   }
 
   async getArticleBySlug(slug: string): Promise<IArticle> {
-    const article = await articleRepository.findPublishedBySlug(slug);
-    if (!article) throw new ApiError(404, "Article not found");
+    const article =
+      (await articleRepository.findPublishedBySlug(slug)) ||
+      (await articleRepository.findBySlug(slug));
+    if (!article) throw new ApiError(404, `Article with slug '${slug}' not found`);
     return article;
   }
 

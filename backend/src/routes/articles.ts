@@ -74,7 +74,7 @@ router.get(
 router.get(
   "/slug/:slug",
   validate(articleSlugSchema),
-  editorialController.previewArticle.bind(editorialController),
+  editorialController.getArticleBySlug.bind(editorialController),
 );
 router.get(
   "/:id/versions",

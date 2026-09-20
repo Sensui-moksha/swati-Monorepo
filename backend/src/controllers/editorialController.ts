@@ -164,17 +164,37 @@ export class EditorialController {
       next(error);
     }
   }
+  async getArticleBySlug(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const slug = requireParam(req.params.slug, "slug");
+      res.json({
+        success: true,
+        data: await articleService.getArticleBySlug(slug),
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
   async previewArticle(
     req: AuthRequest,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
+      const idOrSlug = req.params.id || req.params.slug;
+      if (!idOrSlug) {
+        throw new Error("Article id or slug is required");
+      }
+      const data = /^[a-f0-9]{24}$/.test(idOrSlug)
+        ? await articleService.previewArticle(idOrSlug)
+        : await articleService.getArticleBySlug(idOrSlug);
       res.json({
         success: true,
-        data: await articleService.previewArticle(
-          requireParam(req.params.id, "id"),
-        ),
+        data,
       });
     } catch (error) {
       next(error);

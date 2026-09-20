@@ -11,6 +11,7 @@ const articleBase = z.object({
   summary: z.string().max(500).optional(),
   content: z.string().min(1),
   contentHtml: z.string().optional(),
+  coverImage: z.string().optional(),
   featuredImage: z.string().optional(),
   gallery: z.array(z.string()).optional(),
   author: z.string().optional(),

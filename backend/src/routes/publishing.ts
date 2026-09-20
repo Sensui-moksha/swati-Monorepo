@@ -79,6 +79,10 @@ router.get(
   publicationController.getPublicationBySlug,
 );
 router.get("/publications/:id", publicationController.getPublication);
+router.get("/publications/:id/issues", (req, res, next) => {
+  req.query.publication = req.params.id;
+  return magazineIssueController.listIssues(req as any, res, next);
+});
 router.get("/publications", publicationController.listPublications);
 router.post(
   "/publications",

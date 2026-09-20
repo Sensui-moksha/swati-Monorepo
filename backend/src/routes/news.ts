@@ -6,6 +6,7 @@ import {
   createArticleSchema,
   updateArticleSchema,
   articleIdSchema,
+  articleSlugSchema,
   scheduleSchema,
   listQuerySchema,
 } from "../validators/editorialValidators";
@@ -19,24 +20,24 @@ const router = Router();
  *     summary: List editorial news
  *     tags: [Editorial News]
  *   post:
- *     summary: Create news item
+ *     summary: Create editorial news
  *     tags: [Editorial News]
  * /api/news/{id}:
  *   get:
- *     summary: Preview news item
+ *     summary: Preview news
  *     tags: [Editorial News]
  *   put:
- *     summary: Update news item
+ *     summary: Update news
  *     tags: [Editorial News]
  *   delete:
- *     summary: Delete news item
+ *     summary: Delete news
+ *     tags: [Editorial News]
+ * /api/news/{id}/publish:
+ *   post:
+ *     summary: Publish news
  *     tags: [Editorial News]
  */
 
-router.get(
-  "/latest",
-  editorialController.latestArticles.bind(editorialController),
-);
 router.get(
   "/featured",
   editorialController.featuredArticles.bind(editorialController),
@@ -46,6 +47,11 @@ router.get(
   editorialController.trendingArticles.bind(editorialController),
 );
 router.get("/search", editorialController.searchNews.bind(editorialController));
+router.get(
+  "/slug/:slug",
+  validate(articleSlugSchema),
+  editorialController.getArticleBySlug.bind(editorialController),
+);
 router.get(
   "/",
   validate(listQuerySchema),

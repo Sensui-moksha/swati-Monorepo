@@ -84,7 +84,11 @@ function HomePage() {
                 <Link to="/articles/$slug" params={{ slug: featured.slug }} className="block">
                   <div className="overflow-hidden bg-secondary rounded-sm">
                     <PdfThumbnail
-                      src={featured.coverImage ?? ""}
+                      src={
+                        featured.coverImage ||
+                        featured.pdfUrl ||
+                        "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=800&auto=format&fit=crop"
+                      }
                       alt={featured.title}
                       className="aspect-[16/9] w-full object-cover"
                     />
@@ -220,7 +224,11 @@ function HomePage() {
               <div>
                 <div className="relative aspect-[4/3] overflow-hidden bg-secondary rounded-sm group">
                   <PdfThumbnail
-                    src={a.coverImage ?? ""}
+                    src={
+                      a.coverImage ||
+                      a.pdfUrl ||
+                      "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=800&auto=format&fit=crop"
+                    }
                     alt={a.title}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   />

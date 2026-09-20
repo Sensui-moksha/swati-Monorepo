@@ -24,11 +24,17 @@ export class ArticleRepository extends BaseRepository<IArticle> {
   }
 
   async findBySlug(slug: string): Promise<IArticle | null> {
-    return this.model.findOne({ slug }).exec();
+    const q = this.model.findOne({ slug });
+    return typeof (q as any)?.populate === "function"
+      ? (q as any).populate("author category tags").exec()
+      : q.exec();
   }
 
   async findPublishedBySlug(slug: string): Promise<IArticle | null> {
-    return this.model.findOne({ slug, status: "published" }).exec();
+    const q = this.model.findOne({ slug, status: "published" });
+    return typeof (q as any)?.populate === "function"
+      ? (q as any).populate("author category tags").exec()
+      : q.exec();
   }
 
   async findWithPagination(
