@@ -41,7 +41,11 @@ export const connectDB = async (): Promise<void> => {
     }
 
     if (env.NODE_ENV === "production") {
-      process.exit(1);
+      console.warn("⚠️ MongoDB is currently unavailable. Express server remains active to serve the frontend UI. Retrying in background...");
+      setTimeout(() => {
+        connectDB().catch(() => {});
+      }, 10000);
+      return;
     }
     throw error;
   }

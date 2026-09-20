@@ -156,9 +156,6 @@ import { seedIfEmpty } from './seed';
 // Start server
 const startServer = async (): Promise<void> => {
   try {
-    await connectDB();
-    await seedIfEmpty();
-    
     const server = app.listen(env.PORT, () => {
       console.log(`
 ╔══════════════════════════════════════════════════════════════════════════╗
@@ -174,6 +171,13 @@ const startServer = async (): Promise<void> => {
     });
 
     setupGracefulShutdown(server);
+
+    // Initialize database connection & seed non-blockingly
+    connectDB()
+      .then(() => seedIfEmpty())
+      .catch((err) => {
+        console.warn('Initial MongoDB connection deferred:', (err as Error)?.message || err);
+      });
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);

@@ -6,13 +6,17 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
   PORT: z.coerce.number().default(3000),
-  MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
+  MONGODB_URI: z
+    .string()
+    .default("mongodb://localhost:27017/swathi-publications"),
   JWT_ACCESS_SECRET: z
     .string()
-    .min(32, "JWT_ACCESS_SECRET must be at least 32 characters"),
+    .min(32, "JWT_ACCESS_SECRET must be at least 32 characters")
+    .default("e7fa8e2188de74619506edee76a58f15b443c05b6553aebbcc3235b14a51b143"),
   JWT_REFRESH_SECRET: z
     .string()
-    .min(32, "JWT_REFRESH_SECRET must be at least 32 characters"),
+    .min(32, "JWT_REFRESH_SECRET must be at least 32 characters")
+    .default("544cfdf070e649d1f2ecfec2e349bf8cf01d0b42806442b198716b2abf2f8bd7"),
   JWT_ACCESS_EXPIRY: z.string().default("15m"),
   JWT_REFRESH_EXPIRY: z.string().default("7d"),
   CORS_ORIGIN: z.string().default("*"),
@@ -67,6 +71,17 @@ export function loadConfig(): EnvConfig {
   }
 
   config = result.data;
+
+  if (
+    !process.env.MONGODB_URI ||
+    !process.env.JWT_ACCESS_SECRET ||
+    !process.env.JWT_REFRESH_SECRET
+  ) {
+    console.warn(
+      "⚠️  WARNING: Running with default fallback environment variables. Please set MONGODB_URI, JWT_ACCESS_SECRET, and JWT_REFRESH_SECRET in your Coolify deployment settings."
+    );
+  }
+
   return config;
 }
 
